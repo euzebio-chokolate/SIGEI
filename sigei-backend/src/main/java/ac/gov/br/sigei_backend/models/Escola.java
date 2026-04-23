@@ -3,6 +3,7 @@ package ac.gov.br.sigei_backend.models;
 import jakarta.persistence.*;
 
 @Entity
+@Table(name ="Escolas")
 public class Escola {
 
     @Id
@@ -15,6 +16,8 @@ public class Escola {
 
     @Column(unique = true)
     private Double longitude;
+
+    private int qtdAlunos;
 
 
     public Long getId() {
@@ -47,5 +50,13 @@ public class Escola {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
+    }
+
+    public int getQtdAlunos() {
+        return qtdAlunos;
+    }
+
+    public void setQtdAlunos(int qtdAlunos) {
+        this.qtdAlunos = qtdAlunos;
     }
 }

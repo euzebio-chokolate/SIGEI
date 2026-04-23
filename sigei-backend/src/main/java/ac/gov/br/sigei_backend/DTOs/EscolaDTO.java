@@ -2,11 +2,14 @@ package ac.gov.br.sigei_backend.DTOs;
 
 import ac.gov.br.sigei_backend.models.Escola;
 
-public record EscolaDTO() {
-    static Long id;
-    static String nome;
-    static Double longitude;
-    static Double latitude;
+public record EscolaDTO(
+        Long id,
+        String nome,
+        Double latitude,
+        Double longitude,
+        int qtdAlunos
+) {
+
 
     public Escola ConverterParaEntidade(){
         Escola escola = new Escola();
@@ -14,6 +17,7 @@ public record EscolaDTO() {
         escola.setNome(nome);
         escola.setLatitude(latitude);
         escola.setLongitude(longitude);
+        escola.setQtdAlunos(qtdAlunos);
         return escola;
     }
 
