@@ -1,6 +1,8 @@
 package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.EscolaDTO;
+import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +17,17 @@ public class EscolaService {
     @Autowired
     private EscolaRepository escolaRepository;
 
-    public Escola salvar(EscolaDTO escolaDTO) {
+    public EscolaResponseDTO salvar(EscolaRequestDTO escolaDTO) throws DataIntegrityViolationException {
         Escola escola = escolaDTO.ConverterParaEntidade();
-        Optional<Escola> existe = escolaRepository.findByLatitudeAndLongitude(escola.getLatitude(), escola.getLongitude());
+        escolaRepository.save(escola);
+        return new EscolaResponseDTO(
+                escola.getId(),
+                escola.getNome(),
+                escola.getLatitude(),
+                escola.getLongitude(),
+                escola.getQtdAlunos()
 
-        if (existe.isPresent()) {
-            throw new DataIntegrityViolationException("Coordenadas geográficas já cadastradas!");
-        }
-        return escolaRepository.save(escola);
+        );
     }
 
     public List<Escola> buscarTodas() {
@@ -38,6 +43,8 @@ public class EscolaService {
         return optionalEscola.get();
     }
 
+
+
     public void excluir(Long id) {
         Optional<Escola> optionalEscola = escolaRepository.findById(id);
         if(optionalEscola.isEmpty()){
@@ -47,7 +54,7 @@ public class EscolaService {
         }
     }
 
-    public void editar (EscolaDTO escolaDTO) {
+    public void editar(EscolaDTO escolaDTO) {
         Escola escola = escolaDTO.ConverterParaEntidade();
         escolaRepository.save(escola);
     }
