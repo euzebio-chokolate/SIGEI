@@ -17,9 +17,6 @@ public class Escola {
     @Column(unique = true)
     private Double longitude;
 
-    private int qtdAlunos;
-
-
     public Long getId() {
         return id;
     }
@@ -50,13 +47,5 @@ public class Escola {
 
     public void setLongitude(Double longitude) {
         this.longitude = longitude;
-    }
-
-    public int getQtdAlunos() {
-        return qtdAlunos;
-    }
-
-    public void setQtdAlunos(int qtdAlunos) {
-        this.qtdAlunos = qtdAlunos;
     }
 }

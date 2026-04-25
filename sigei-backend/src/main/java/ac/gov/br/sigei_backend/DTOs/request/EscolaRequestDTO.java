@@ -13,10 +13,9 @@ public record EscolaRequestDTO(
         String nome,
 
         Double latitude,
-        Double longitude,
+        Double longitude
 
-        //@Max(1000)
-        int qtdAlunos) {
+        ) {
 
     public Escola ConverterParaEntidade() {
         Escola escola = new Escola();
@@ -24,7 +23,6 @@ public record EscolaRequestDTO(
         escola.setNome(nome);
         escola.setLatitude(latitude);
         escola.setLongitude(longitude);
-        escola.setQtdAlunos(qtdAlunos);
         return escola;
     }
 }

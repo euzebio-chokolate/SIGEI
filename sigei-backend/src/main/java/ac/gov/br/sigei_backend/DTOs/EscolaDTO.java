@@ -6,8 +6,7 @@ public record EscolaDTO(
         Long id,
         String nome,
         Double latitude,
-        Double longitude,
-        int qtdAlunos
+        Double longitude
 ) {
 
 
@@ -17,7 +16,6 @@ public record EscolaDTO(
         escola.setNome(nome);
         escola.setLatitude(latitude);
         escola.setLongitude(longitude);
-        escola.setQtdAlunos(qtdAlunos);
         return escola;
     }
 
