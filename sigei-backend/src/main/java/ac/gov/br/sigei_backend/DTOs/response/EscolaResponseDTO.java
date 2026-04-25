@@ -4,7 +4,6 @@ public record EscolaResponseDTO(
         Long id,
         String nome,
         Double latitude,
-        Double longitude,
-        int qtdAlunos
+        Double longitude
 ) {
 }
