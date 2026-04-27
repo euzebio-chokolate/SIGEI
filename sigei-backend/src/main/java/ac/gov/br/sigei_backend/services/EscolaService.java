@@ -24,8 +24,7 @@ public class EscolaService {
                 escola.getId(),
                 escola.getNome(),
                 escola.getLatitude(),
-                escola.getLongitude(),
-                escola.getQtdAlunos()
+                escola.getLongitude()
 
         );
     }
