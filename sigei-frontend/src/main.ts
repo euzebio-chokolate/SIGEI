@@ -1,6 +1,15 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
+import * as L from 'leaflet';
 
 bootstrapApplication(App, appConfig)
   .catch((err) => console.error(err));
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'assets/marker-icon-2x.png',
+  iconUrl: 'assets/escola-marker.png',
+  shadowUrl: 'assets/marker-shadow.png'
+});

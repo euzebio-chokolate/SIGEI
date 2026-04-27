@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
-import { MapaComponent } from './pages/mapa/mapa';
+import { Component, signal } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  standalone: true,
-  imports: [MapaComponent],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
+  styleUrl: './app.css'
 })
-export class App {}
+export class App {
+  protected readonly title = signal('sigei-frontend');
+}
