@@ -5,6 +5,7 @@ import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.utils.EscolaConversor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -15,46 +16,37 @@ import java.util.Optional;
 @Service
 public class EscolaService {
     @Autowired
-    private EscolaRepository escolaRepository;
+    EscolaRepository escolaRepository;
 
-    public EscolaResponseDTO salvar(EscolaRequestDTO escolaDTO) throws DataIntegrityViolationException {
-        Escola escola = escolaDTO.ConverterParaEntidade();
+    @Autowired
+    EscolaConversor escolaConversor;
+
+    public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{
+        Escola escola = escolaConversor.converterDTO(escolaRequestDTO);
         escolaRepository.save(escola);
-        return new EscolaResponseDTO(
-                escola.getId(),
-                escola.getNome(),
-                escola.getLatitude(),
-                escola.getLongitude()
-
-        );
+        EscolaResponseDTO escolaResponseDTO = escolaConversor.converterEscola(escola);
+        return escolaResponseDTO;
     }
 
-    public List<Escola> buscarTodas() {
-        return escolaRepository.findAll();
-    }
-
-    public Escola buscarPorId(Long id) {
+    public EscolaResponseDTO buscarPorId(Long id){
         Optional<Escola> optionalEscola = escolaRepository.findById(id);
-
-        if(optionalEscola.isEmpty()){
-            throw new IllegalArgumentException("Escola não encontrada!");
+        if (optionalEscola.isEmpty()){
+            throw new IllegalArgumentException("Escola não existe");
         }
-        return optionalEscola.get();
+        Escola escola = optionalEscola.get();
+        EscolaResponseDTO escolaResponseDTO = escolaConversor.converterEscola(escola);
+        return escolaResponseDTO;
     }
 
-
-
-    public void excluir(Long id) {
-        Optional<Escola> optionalEscola = escolaRepository.findById(id);
-        if(optionalEscola.isEmpty()){
-            throw new IllegalArgumentException("Escola inexistente!");
-        } else{
-            escolaRepository.deleteById(id);
+    public EscolaResponseDTO buscarPorCodigo(String codigo){
+        Optional<Escola> optionalEscola = escolaRepository.findEscolaByCodigo(codigo);
+        if (optionalEscola.isEmpty()){
+            throw new IllegalArgumentException("Escola não existe");
         }
+        Escola escola = optionalEscola.get();
+        EscolaResponseDTO escolaResponseDTO = escolaConversor.converterEscola(escola);
+        return escolaResponseDTO;
     }
 
-    public void editar(EscolaDTO escolaDTO) {
-        Escola escola = escolaDTO.ConverterParaEntidade();
-        escolaRepository.save(escola);
-    }
+
 }
