@@ -3,19 +3,24 @@ package ac.gov.br.sigei_backend.models;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name ="Escolas")
 public class Escola {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String codigo;
     private String nome;
 
-    @Column(unique = true)
-    private Double latitude;
+    @ManyToOne
+    @JoinColumn(name = "municipio_id")
+    private Municipio municipio;
 
-    @Column(unique = true)
-    private Double longitude;
+    @ManyToOne
+    @JoinColumn(name = "terra_indigena_id")
+    private TerraIndigena terraIndigena;
+
+    @OneToOne
+    @JoinColumn(name = "aldeia_id")
+    private Aldeia aldeia;
 
     public Long getId() {
         return id;
@@ -23,6 +28,14 @@ public class Escola {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getCodigo() {
+        return codigo;
+    }
+
+    public void setCodigo(String codigo) {
+        this.codigo = codigo;
     }
 
     public String getNome() {
@@ -33,19 +46,27 @@ public class Escola {
         this.nome = nome;
     }
 
-    public Double getLatitude() {
-        return latitude;
+    public Municipio getMunicipio() {
+        return municipio;
     }
 
-    public void setLatitude(Double latitude) {
-        this.latitude = latitude;
+    public void setMunicipio(Municipio municipio) {
+        this.municipio = municipio;
     }
 
-    public Double getLongitude() {
-        return longitude;
+    public TerraIndigena getTerraIndigena() {
+        return terraIndigena;
     }
 
-    public void setLongitude(Double longitude) {
-        this.longitude = longitude;
+    public void setTerraIndigena(TerraIndigena terraIndigena) {
+        this.terraIndigena = terraIndigena;
+    }
+
+    public Aldeia getAldeia() {
+        return aldeia;
+    }
+
+    public void setAldeia(Aldeia aldeia) {
+        this.aldeia = aldeia;
     }
 }

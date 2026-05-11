@@ -9,5 +9,5 @@ import java.util.Optional;
 @Repository
 public interface EscolaRepository extends JpaRepository<Escola, Long> {
     public Optional<Escola> findById(Long id);
-    public Optional<Escola> findByLatitudeAndLongitude(Double latitude, Double longitude);
+    public Optional<Escola> findEscolaByCodigo(String codigo);
 }
