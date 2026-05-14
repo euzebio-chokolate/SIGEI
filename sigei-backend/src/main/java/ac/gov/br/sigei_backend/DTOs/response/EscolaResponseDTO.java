@@ -5,8 +5,7 @@ public record EscolaResponseDTO(
         String codigo,
         String nome,
 
-        ac.gov.br.sigei_backend.models.Municipio municipioResponseDTO,
-        ac.gov.br.sigei_backend.models.TerraIndigena terraIndigenaResponseDTO,
-        ac.gov.br.sigei_backend.models.Aldeia aldeiaResponseDTO
+        MunicipioResponseDTO municipio,
+        AldeiaResponseDTO aldeia
 ) {
 }
