@@ -4,6 +4,7 @@ import ac.gov.br.sigei_backend.DTOs.request.MunicipioRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.MunicipioResponseDTO;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
+import ac.gov.br.sigei_backend.utils.MinicipioMapper;
 import ac.gov.br.sigei_backend.utils.MunicipioConversor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -17,13 +18,17 @@ public class MunicipioService {
     MunicipioRepository municipioRepository;
 
     @Autowired
-    MunicipioConversor municipioConversor;
+    MinicipioMapper minicipioMapper;
 
     public MunicipioResponseDTO salvar(MunicipioRequestDTO municipioRequestDTO) throws DataIntegrityViolationException{
-        Municipio municipio = municipioConversor.converterDTO(municipioRequestDTO);
+        Optional<Municipio> optionalMunicipio = municipioRepository.findByNome(municipioRequestDTO.nome());
+        if (optionalMunicipio.isPresent()) {
+            throw new IllegalArgumentException("Esse município já existe");
+        }
+        Municipio municipio = minicipioMapper.converterDTO(municipioRequestDTO);
         municipioRepository.save(municipio);
 
-        return municipioConversor.converterMunicipio(municipio);
+        return minicipioMapper.converterMunicipio(municipio);
     }
 
     public void excluir(Long id){
