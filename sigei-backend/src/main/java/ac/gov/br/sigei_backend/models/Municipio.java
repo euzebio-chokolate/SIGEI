@@ -1,16 +1,14 @@
 package ac.gov.br.sigei_backend.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 @Entity
 public class Municipio {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String Nome;
+
+    private String nome;
 
     public Long getId() {
         return id;
@@ -21,10 +19,10 @@ public class Municipio {
     }
 
     public String getNome() {
-        return Nome;
+        return nome;
     }
 
     public void setNome(String nome) {
-        Nome = nome;
+        this.nome = nome;
     }
 }
