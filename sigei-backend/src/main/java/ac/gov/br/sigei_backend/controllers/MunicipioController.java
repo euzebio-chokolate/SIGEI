@@ -7,10 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/municipio")
@@ -24,4 +23,24 @@ public class MunicipioController {
         MunicipioResponseDTO municipioResponseDTO = municipioService.salvar(municipioDTO);
         return new ResponseEntity<MunicipioResponseDTO>(municipioResponseDTO, HttpStatus.CREATED);
     }
+
+    @GetMapping("")
+    public ResponseEntity<List<MunicipioResponseDTO>> buscar(){
+        List<MunicipioResponseDTO> municipios = municipioService.buscarTodos();
+        return new ResponseEntity<List<MunicipioResponseDTO>>(municipios, HttpStatus.OK);
+    }
+
+    @GetMapping("/nome/{nome}")
+    public ResponseEntity buscarPeloNome(@PathVariable String nome){
+        MunicipioResponseDTO municipio = municipioService.buscarPeloNome(nome);
+        return new ResponseEntity<MunicipioResponseDTO>(municipio, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/excluir/{id}")
+    public ResponseEntity<?> excluir(@PathVariable Long id){
+        municipioService.excluir(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+
 }
