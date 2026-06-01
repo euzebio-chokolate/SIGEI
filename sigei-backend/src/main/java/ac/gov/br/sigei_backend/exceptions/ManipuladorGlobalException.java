@@ -8,10 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @RestControllerAdvice
@@ -30,10 +27,19 @@ public class ManipuladorGlobalException {
         );
         return erros;
     }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
     public ResponseEntity<String> tratarDataIntegrityViolationException(DataIntegrityViolationException erro){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> tratarIllegalArgumentException(IllegalArgumentException erro){
         return ResponseEntity.badRequest().body(erro.getMessage());
     }
 
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> tratarNoSuchElementException(NoSuchElementException erro){
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro.getMessage());
+    }
 }
