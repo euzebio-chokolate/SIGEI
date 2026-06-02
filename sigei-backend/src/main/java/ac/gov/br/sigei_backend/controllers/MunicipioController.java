@@ -30,10 +30,11 @@ public class MunicipioController {
         return new ResponseEntity<List<MunicipioResponseDTO>>(municipios, HttpStatus.OK);
     }
 
-    @GetMapping("/nome/{nome}")
-    public ResponseEntity buscarPeloNome(@PathVariable String nome){
-        MunicipioResponseDTO municipio = municipioService.buscarPeloNome(nome);
-        return new ResponseEntity<MunicipioResponseDTO>(municipio, HttpStatus.OK);
+
+    @PutMapping("/editar")
+    public ResponseEntity<MunicipioResponseDTO> editar(@RequestBody MunicipioRequestDTO municipioDTO){
+        MunicipioResponseDTO municipioResponseDTO = municipioService.editar(municipioDTO);
+        return new ResponseEntity<MunicipioResponseDTO>(municipioResponseDTO, HttpStatus.OK);
     }
 
     @DeleteMapping("/excluir/{id}")

@@ -39,12 +39,11 @@ public class MunicipioService {
         return municipioResponseDTOS;
     }
 
-    public MunicipioResponseDTO buscarPeloNome(String nome){
-        Optional<Municipio> optional = municipioRepository.findByNome(nome);
-        MunicipioResponseDTO municipioResponseDTO = municipioMapper.converter(optional.get());
-        return municipioResponseDTO;
+    public MunicipioResponseDTO editar(MunicipioRequestDTO municipioDTO){
+        Municipio municipio = municipioMapper.converter(municipioDTO);
+        municipioRepository.save(municipio);
+        return municipioMapper.converter(municipio);
     }
-
 
     public void excluir(Long id){
         Optional<Municipio> optionalMunicipio = municipioRepository.findById(id);
