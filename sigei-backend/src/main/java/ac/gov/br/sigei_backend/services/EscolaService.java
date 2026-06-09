@@ -10,13 +10,14 @@ import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
-import ac.gov.br.sigei_backend.utils.EscolaConversor;
+import ac.gov.br.sigei_backend.utils.EscolaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -34,7 +35,7 @@ public class EscolaService {
     AldeiaRepository aldeiaRepository;
 
     @Autowired
-    EscolaConversor escolaConversor;
+    EscolaMapper escolaMapper;
 
     public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{
         Optional<Municipio> optionalMunicipio = municipioRepository.findById(escolaRequestDTO.municipioId());
@@ -62,19 +63,27 @@ public class EscolaService {
         escola.setAldeia(optionalAldeia.get());
 
         Escola escolaSalva = escolaRepository.save(escola);
-        return escolaConversor.converterEscola(escolaSalva);
+        return escolaMapper.converter(escolaSalva);
 
     }
 
-    public List<EscolaResponseDTO> buscarTodas(){
+    public List<EscolaResponseDTO> buscarTudo(){
         List<Escola> escolas = escolaRepository.findAll();
         List<EscolaResponseDTO> escolaResponseDTOS = new ArrayList<>();
         for (Escola escola : escolas) {
-            EscolaResponseDTO escolaResponseDTO = escolaConversor.converterEscola(escola);
+            EscolaResponseDTO escolaResponseDTO = escolaMapper.converter(escola);
             escolaResponseDTOS.add(escolaResponseDTO);
         }
         return escolaResponseDTOS;
     }
 
+    public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
+        Optional<Escola> optionalEscola = escolaRepository.findById(escolaDTO.id());
+        if (optionalEscola.isEmpty()){
+            throw new NoSuchElementException("Id de escola inválido ou não encontrado");
+        }
+
+        Optional<>
+    }
 
 }
