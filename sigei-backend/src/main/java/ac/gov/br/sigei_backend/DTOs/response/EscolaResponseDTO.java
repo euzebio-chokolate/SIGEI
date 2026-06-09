@@ -6,6 +6,7 @@ public record EscolaResponseDTO(
         String nome,
 
         MunicipioResponseDTO municipio,
+        TerraIndigenaResponseDTO terraIndigena,
         AldeiaResponseDTO aldeia
 ) {
 }

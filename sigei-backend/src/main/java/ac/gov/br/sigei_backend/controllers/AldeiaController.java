@@ -5,13 +5,11 @@ import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
 import ac.gov.br.sigei_backend.services.AldeiaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/aldeia")
@@ -21,13 +19,27 @@ public class AldeiaController {
     AldeiaService aldeiaService;
 
     @PostMapping("/salvar")
-    public ResponseEntity salvar(@Valid @RequestBody AldeiaRequestDTO aldeiaRequestDTO){
-        try {
-            AldeiaResponseDTO aldeiaResponseDTO = aldeiaService.salvar(aldeiaRequestDTO);
-            return new ResponseEntity<AldeiaResponseDTO>(aldeiaResponseDTO, HttpStatus.CREATED);
-        } catch (DataIntegrityViolationException erro){
-            return new ResponseEntity<String>("Esta aldeia ja foi registrada", HttpStatus.CONFLICT);
-        }
+    public ResponseEntity salvar(@Valid @RequestBody AldeiaRequestDTO aldeiaDTO){
+       AldeiaResponseDTO aldeiaResponseDTO = aldeiaService.salvar(aldeiaDTO);
+       return new ResponseEntity<AldeiaResponseDTO>(aldeiaResponseDTO, HttpStatus.CREATED);
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<AldeiaResponseDTO>> buscar(){
+        List<AldeiaResponseDTO> aldeias = aldeiaService.buscarTudo();
+        return new ResponseEntity<List<AldeiaResponseDTO>>(aldeias, HttpStatus.OK);
+    }
+
+    @PutMapping("/editar")
+    public ResponseEntity<AldeiaResponseDTO> editar(@RequestBody AldeiaRequestDTO aldeiaDTO){
+        AldeiaResponseDTO aldeiaResponseDTO = aldeiaService.editar(aldeiaDTO);
+        return new ResponseEntity<AldeiaResponseDTO>(aldeiaResponseDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/exluir/{id}")
+    public ResponseEntity<?> excluir(@PathVariable Long id){
+        aldeiaService.excluir(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }
