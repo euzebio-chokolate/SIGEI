@@ -77,13 +77,13 @@ public class EscolaService {
         return escolaResponseDTOS;
     }
 
-    public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
+    /*public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
         Optional<Escola> optionalEscola = escolaRepository.findById(escolaDTO.id());
         if (optionalEscola.isEmpty()){
             throw new NoSuchElementException("Id de escola inválido ou não encontrado");
         }
 
         Optional<>
-    }
+    }*/
 
 }
