@@ -34,4 +34,16 @@ public class EscolaController {
         return new ResponseEntity<List<EscolaResponseDTO>>(escolas, HttpStatus.OK);
     }
 
+    @PutMapping("/editar")
+    public ResponseEntity<EscolaResponseDTO> editar(@RequestBody EscolaRequestDTO escolaDTO){
+        EscolaResponseDTO escolaResponseDTO = escolaService.editar(escolaDTO);
+        return new ResponseEntity<EscolaResponseDTO>(escolaResponseDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/exluir/{id}")
+    public ResponseEntity<?> excluir(@PathVariable Long id){
+        escolaService.excluir(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 }

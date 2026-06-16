@@ -36,7 +36,6 @@ public class TerraIndigenaServiceTestes {
     @InjectMocks
     TerraIndigenaService terraIndigenaService;
 
-    // TESTES DO MÉTODO: salvar()
     @Test
     public void deveSalvarTerraIndigenaComSucesso() {
         // 1. Arrange
@@ -55,10 +54,8 @@ public class TerraIndigenaServiceTestes {
         when(terraIndigenaRepository.save(any(TerraIndigena.class))).thenReturn(terraSalva);
         when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
 
-        // 2. Act
         TerraIndigenaResponseDTO resultado = terraIndigenaService.salvar(requestDTO);
 
-        // 3. Assert
         assertNotNull(resultado);
         verify(municipioRepository, times(1)).findById(1L);
         verify(terraIndigenaRepository, times(1)).save(any(TerraIndigena.class));
@@ -66,11 +63,9 @@ public class TerraIndigenaServiceTestes {
 
     @Test
     public void deveLancarExcecaoAoSalvarComMunicipioInvalido() {
-        // 1. Arrange
         TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(null, "Vale do Javari", 99L);
         when(municipioRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // 2. Act & 3. Assert
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
             terraIndigenaService.salvar(requestDTO);
         });
@@ -79,13 +74,9 @@ public class TerraIndigenaServiceTestes {
         verify(terraIndigenaRepository, never()).save(any(TerraIndigena.class));
     }
 
-    // ==========================================================
-    // TESTES DO MÉTODO: buscarTudo()
-    // ==========================================================
 
     @Test
     public void deveBuscarTodasAsTerrasIndigenas() {
-        // 1. Arrange
         List<TerraIndigena> lista = new ArrayList<>();
         lista.add(new TerraIndigena());
         lista.add(new TerraIndigena());
@@ -95,23 +86,17 @@ public class TerraIndigenaServiceTestes {
         when(terraIndigenaRepository.findAll()).thenReturn(lista);
         when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
 
-        // 2. Act
         List<TerraIndigenaResponseDTO> resultado = terraIndigenaService.buscarTudo();
 
-        // 3. Assert
         assertNotNull(resultado);
         assertEquals(2, resultado.size());
         verify(terraIndigenaRepository, times(1)).findAll();
         verify(terraIndigenaMapper, times(2)).converter(any(TerraIndigena.class));
     }
 
-    // ==========================================================
-    // TESTES DO MÉTODO: editar()
-    // ==========================================================
 
     @Test
     public void deveEditarTerraIndigenaComSucesso() {
-        // 1. Arrange
         TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(1L, "Terra Editada", 2L);
 
         TerraIndigena terraAntiga = new TerraIndigena();
@@ -126,14 +111,11 @@ public class TerraIndigenaServiceTestes {
         when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terraAntiga));
         when(municipioRepository.findById(2L)).thenReturn(Optional.of(municipioNovo));
 
-        // No seu código o save é chamado duas vezes no editar, por isso usamos any()
         when(terraIndigenaRepository.save(any(TerraIndigena.class))).thenReturn(terraAntiga);
         when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
 
-        // 2. Act
         TerraIndigenaResponseDTO resultado = terraIndigenaService.editar(requestDTO);
 
-        // 3. Assert
         assertNotNull(resultado);
         verify(terraIndigenaRepository, times(1)).findById(1L);
         verify(municipioRepository, times(1)).findById(2L);
@@ -142,11 +124,9 @@ public class TerraIndigenaServiceTestes {
 
     @Test
     public void deveLancarExcecaoAoEditarTerraIndigenaInexistente() {
-        // 1. Arrange
         TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(99L, "Terra Editada", 1L);
         when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // 2. Act & 3. Assert
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
             terraIndigenaService.editar(requestDTO);
         });
@@ -158,7 +138,6 @@ public class TerraIndigenaServiceTestes {
 
     @Test
     public void deveLancarExcecaoAoEditarComMunicipioInexistente() {
-        // 1. Arrange
         TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(1L, "Terra Editada", 99L);
 
         TerraIndigena terraExistente = new TerraIndigena();
@@ -167,7 +146,6 @@ public class TerraIndigenaServiceTestes {
         when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terraExistente));
         when(municipioRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // 2. Act & 3. Assert
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
             terraIndigenaService.editar(requestDTO);
         });
@@ -176,13 +154,9 @@ public class TerraIndigenaServiceTestes {
         verify(terraIndigenaRepository, never()).save(any(TerraIndigena.class));
     }
 
-    // ==========================================================
-    // TESTES DO MÉTODO: excluir()
-    // ==========================================================
 
     @Test
     public void deveExcluirTerraIndigenaComSucesso() {
-        // 1. Arrange
         Long id = 1L;
         TerraIndigena terra = new TerraIndigena();
         terra.setId(id);
@@ -190,10 +164,8 @@ public class TerraIndigenaServiceTestes {
         when(terraIndigenaRepository.findById(id)).thenReturn(Optional.of(terra));
         doNothing().when(terraIndigenaRepository).deleteById(id);
 
-        // 2. Act
         assertDoesNotThrow(() -> terraIndigenaService.excluir(id));
 
-        // 3. Assert
         verify(terraIndigenaRepository, times(1)).findById(id);
         verify(terraIndigenaRepository, times(1)).deleteById(id);
     }

@@ -19,12 +19,10 @@ public class TerraIndigenaRepositoryTestes {
     TerraIndigenaRepository terraIndigenaRepository;
 
     @Autowired
-    MunicipioRepository municipioRepository; // Usado para criar a dependência
+    MunicipioRepository municipioRepository;
 
     @Test
     public void deveSalvarTerraIndigena() {
-        // 1. Preparação (Arrange)
-        // Criando e salvando um município primeiro para respeitar a chave estrangeira
         Municipio municipio = new Municipio();
         municipio.setNome("Feijó");
         municipioRepository.save(municipio);
@@ -33,17 +31,14 @@ public class TerraIndigenaRepositoryTestes {
         terraIndigena.setNome("Envira");
         terraIndigena.setMunicipio(municipio);
 
-        // 2. Ação (Act)
         terraIndigenaRepository.save(terraIndigena);
 
-        // 3. Verificação (Assert)
         assertNotEquals(null, terraIndigena.getId());
         assertEquals("Envira", terraIndigena.getNome());
     }
 
     @Test
     public void deveBuscarTerraIndigenaPorId() {
-        // 1. Preparação (Arrange)
         Municipio municipio = new Municipio();
         municipio.setNome("Tarauacá");
         municipioRepository.save(municipio);
@@ -53,10 +48,8 @@ public class TerraIndigenaRepositoryTestes {
         terraIndigena.setMunicipio(municipio);
         terraIndigenaRepository.save(terraIndigena);
 
-        // 2. Ação (Act)
         Optional<TerraIndigena> terraBuscada = terraIndigenaRepository.findById(terraIndigena.getId());
 
-        // 3. Verificação (Assert)
         assertTrue(terraBuscada.isPresent());
         assertEquals("Rio Gregório", terraBuscada.get().getNome());
         assertEquals("Tarauacá", terraBuscada.get().getMunicipio().getNome());
