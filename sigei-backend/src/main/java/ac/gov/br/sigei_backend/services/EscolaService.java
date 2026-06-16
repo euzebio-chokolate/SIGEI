@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
 import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Escola;
@@ -77,13 +78,45 @@ public class EscolaService {
         return escolaResponseDTOS;
     }
 
-    /*public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
+    public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
         Optional<Escola> optionalEscola = escolaRepository.findById(escolaDTO.id());
         if (optionalEscola.isEmpty()){
             throw new NoSuchElementException("Id de escola inválido ou não encontrado");
         }
 
-        Optional<>
-    }*/
+        Optional<Municipio> optionalMunicipio = municipioRepository.findById(escolaDTO.municipioId());
+        if (optionalMunicipio.isEmpty()){
+            throw new NoSuchElementException("Id de município inválido ou não encontrado");
+        }
 
+        Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(escolaDTO.terraIndigenaId());
+        if (optionalTerraIndigena.isEmpty()){
+            throw new NoSuchElementException("Id de terra indígena inválido ou não encontrado");
+        }
+
+        Optional<Aldeia> optionalAldeia = aldeiaRepository.findById(escolaDTO.aldeiaId());
+        if (optionalAldeia.isEmpty()){
+            throw new NoSuchElementException("Id de aldeia inválido ou não encontrado");
+        }
+
+        Escola escola = optionalEscola.get();
+        Municipio municipio = optionalMunicipio.get();
+        TerraIndigena terraIndigena = optionalTerraIndigena.get();
+        Aldeia aldeia = optionalAldeia.get();
+
+        escola.setCodigo(escolaDTO.codigo());
+        escola.setNome(escolaDTO.nome());
+        escola.setMunicipio(municipio);
+        escola.setTerraIndigena(terraIndigena);
+        escola.setAldeia(aldeia);
+
+        Escola escolaSalva = escolaRepository.save(escola);
+
+        return escolaMapper.converter(escolaSalva);
+    }
+
+    public void excluir(Long id){
+        Optional<Escola> optionalEscola = escolaRepository.findById(id);
+        escolaRepository.deleteById(id);
+    }
 }
