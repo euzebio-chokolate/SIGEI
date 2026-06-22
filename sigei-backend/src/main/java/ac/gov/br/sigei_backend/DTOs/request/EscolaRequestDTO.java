@@ -12,6 +12,11 @@ public record EscolaRequestDTO(
         @NotBlank(message = "O nome não pode ser vazio!")
         String nome,
 
+        @NotBlank(message = "O tipo da unidade não pode ser vazio!")
+        String tipoUnidade,
+
+        Long escolaSedeId,
+
         @NotNull(message = "O município é obrigatório!")
         Long municipioId,
 

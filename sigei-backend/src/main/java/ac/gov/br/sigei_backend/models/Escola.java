@@ -9,6 +9,11 @@ public class Escola {
     private Long id;
     private String codigo;
     private String nome;
+    private String tipoUnidade;
+
+    @ManyToOne
+    @JoinColumn(name = "escola_sede_id")
+    private Escola escolaSede;
 
     @ManyToOne
     @JoinColumn(name = "municipio_id")
@@ -21,6 +26,7 @@ public class Escola {
     @OneToOne
     @JoinColumn(name = "aldeia_id")
     private Aldeia aldeia;
+
 
     public Long getId() {
         return id;
@@ -44,6 +50,22 @@ public class Escola {
 
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    public String getTipoUnidade() {
+        return tipoUnidade;
+    }
+
+    public void setTipoUnidade(String tipoUnidade) {
+        this.tipoUnidade = tipoUnidade;
+    }
+
+    public Escola getEscolaSede() {
+        return escolaSede;
+    }
+
+    public void setEscolaSede(Escola escolaSede) {
+        this.escolaSede = escolaSede;
     }
 
     public Municipio getMunicipio() {
