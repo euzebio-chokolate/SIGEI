@@ -1,0 +1,295 @@
+package ac.gov.br.sigei_backend.services;
+
+import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
+import ac.gov.br.sigei_backend.models.Aldeia;
+import ac.gov.br.sigei_backend.models.Escola;
+import ac.gov.br.sigei_backend.models.Municipio;
+import ac.gov.br.sigei_backend.models.TerraIndigena;
+import ac.gov.br.sigei_backend.repository.AldeiaRepository;
+import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.repository.MunicipioRepository;
+import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
+import ac.gov.br.sigei_backend.utils.EscolaMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+public class EscolaServiceTestes {
+
+    @Mock
+    EscolaRepository escolaRepository;
+
+    @Mock
+    MunicipioRepository municipioRepository;
+
+    @Mock
+    TerraIndigenaRepository terraIndigenaRepository;
+
+    @Mock
+    AldeiaRepository aldeiaRepository;
+
+    @Mock
+    EscolaMapper escolaMapper;
+
+    @InjectMocks
+    EscolaService escolaService;
+
+    @Test
+    public void deveSalvarEscolaComSucesso() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", 2L, 1L, 1L, 1L);
+
+        Municipio municipio = new Municipio();
+        municipio.setId(1L);
+
+        TerraIndigena terra = new TerraIndigena();
+        terra.setId(1L);
+
+        Aldeia aldeia = new Aldeia();
+        aldeia.setId(1L);
+
+        Escola escolaSede = new Escola();
+        escolaSede.setId(2L);
+
+        Escola escolaSalva = new Escola();
+        escolaSalva.setId(1L);
+        escolaSalva.setNome("Escola Nova");
+
+        EscolaResponseDTO responseMock = mock(EscolaResponseDTO.class);
+
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(municipio));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terra));
+        when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeia));
+        when(escolaRepository.findById(2L)).thenReturn(Optional.of(escolaSede));
+        when(escolaRepository.save(any(Escola.class))).thenReturn(escolaSalva);
+        lenient().when(escolaMapper.converter(any(Escola.class))).thenReturn(responseMock);
+
+        EscolaResponseDTO resultado = escolaService.salvar(requestDTO);
+
+        assertNotNull(resultado);
+        verify(escolaRepository, times(1)).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveSalvarEscolaSemSedeComSucesso() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", null, 1L, 1L, 1L);
+
+        Municipio municipio = new Municipio();
+        municipio.setId(1L);
+
+        TerraIndigena terra = new TerraIndigena();
+        terra.setId(1L);
+
+        Aldeia aldeia = new Aldeia();
+        aldeia.setId(1L);
+
+        Escola escolaSalva = new Escola();
+        escolaSalva.setId(1L);
+
+        EscolaResponseDTO responseMock = mock(EscolaResponseDTO.class);
+
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(municipio));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terra));
+        when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeia));
+        when(escolaRepository.save(any(Escola.class))).thenReturn(escolaSalva);
+        lenient().when(escolaMapper.converter(any(Escola.class))).thenReturn(responseMock);
+
+        EscolaResponseDTO resultado = escolaService.salvar(requestDTO);
+
+        assertNotNull(resultado);
+        verify(escolaRepository, never()).findById(anyLong());
+        verify(escolaRepository, times(1)).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoSalvarComMunicipioInvalido() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", null, 99L, 1L, 1L);
+        when(municipioRepository.findById(99L)).thenReturn(Optional.empty());
+
+        RuntimeException erro = assertThrows(RuntimeException.class, () -> escolaService.salvar(requestDTO));
+
+        assertEquals("Município não encontrado", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoSalvarComTerraIndigenaInvalida() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", null, 1L, 99L, 1L);
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(new Municipio()));
+        when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        RuntimeException erro = assertThrows(RuntimeException.class, () -> escolaService.salvar(requestDTO));
+
+        assertEquals("Terra indígena não encontrada", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoSalvarComAldeiaInvalida() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", null, 1L, 1L, 99L);
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(new Municipio()));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(new TerraIndigena()));
+        when(aldeiaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        RuntimeException erro = assertThrows(RuntimeException.class, () -> escolaService.salvar(requestDTO));
+
+        assertEquals("Aldeia não encontrada", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoSalvarComEscolaSedeInvalida() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", 99L, 1L, 1L, 1L);
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(new Municipio()));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(new TerraIndigena()));
+        when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(new Aldeia()));
+        when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        RuntimeException erro = assertThrows(RuntimeException.class, () -> escolaService.salvar(requestDTO));
+
+        assertEquals("Escola sede não encontrada", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveBuscarTodasAsEscolas() {
+        List<Escola> lista = new ArrayList<>();
+        lista.add(new Escola());
+        lista.add(new Escola());
+
+        EscolaResponseDTO responseMock = mock(EscolaResponseDTO.class);
+
+        when(escolaRepository.findAll()).thenReturn(lista);
+        lenient().when(escolaMapper.converter(any(Escola.class))).thenReturn(responseMock);
+
+        List<EscolaResponseDTO> resultado = escolaService.buscarTudo();
+
+        assertNotNull(resultado);
+        assertEquals(2, resultado.size());
+        verify(escolaRepository, times(1)).findAll();
+    }
+
+    @Test
+    public void deveEditarEscolaComSucesso() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 2L, 1L, 1L, 1L);
+
+        Escola escolaAntiga = new Escola();
+        escolaAntiga.setId(1L);
+
+        Municipio municipio = new Municipio();
+        TerraIndigena terra = new TerraIndigena();
+        Aldeia aldeia = new Aldeia();
+        Escola escolaSede = new Escola();
+
+        EscolaResponseDTO responseMock = mock(EscolaResponseDTO.class);
+
+        when(escolaRepository.findById(1L)).thenReturn(Optional.of(escolaAntiga));
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(municipio));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terra));
+        when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeia));
+        when(escolaRepository.findById(2L)).thenReturn(Optional.of(escolaSede));
+        when(escolaRepository.save(any(Escola.class))).thenReturn(escolaAntiga);
+        lenient().when(escolaMapper.converter(any(Escola.class))).thenReturn(responseMock);
+
+        EscolaResponseDTO resultado = escolaService.editar(requestDTO);
+
+        assertNotNull(resultado);
+        verify(escolaRepository, times(1)).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoEditarEscolaInexistente() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(99L, "123", "Escola Editada", "Polo", 2L, 1L, 1L, 1L);
+        when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+
+        assertEquals("Id de escola inválido ou não encontrado", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoEditarComMunicipioInexistente() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 2L, 99L, 1L, 1L);
+        when(escolaRepository.findById(1L)).thenReturn(Optional.of(new Escola()));
+        when(municipioRepository.findById(99L)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+
+        assertEquals("Id de município inválido ou não encontrado", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoEditarComTerraIndigenaInexistente() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 2L, 1L, 99L, 1L);
+        when(escolaRepository.findById(1L)).thenReturn(Optional.of(new Escola()));
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(new Municipio()));
+        when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+
+        assertEquals("Id de terra indígena inválido ou não encontrado", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoEditarComAldeiaInexistente() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 2L, 1L, 1L, 99L);
+        when(escolaRepository.findById(1L)).thenReturn(Optional.of(new Escola()));
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(new Municipio()));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(new TerraIndigena()));
+        when(aldeiaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+
+        assertEquals("Id de aldeia inválido ou não encontrado", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveLancarExcecaoAoEditarComEscolaSedeInexistente() {
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 99L, 1L, 1L, 1L);
+        when(escolaRepository.findById(1L)).thenReturn(Optional.of(new Escola()));
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(new Municipio()));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(new TerraIndigena()));
+        when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(new Aldeia()));
+        when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+
+        assertEquals("Id de escola sede inválido", erro.getMessage());
+        verify(escolaRepository, never()).save(any(Escola.class));
+    }
+
+    @Test
+    public void deveExcluirEscolaComSucesso() {
+        when(escolaRepository.existsById(1L)).thenReturn(true);
+        doNothing().when(escolaRepository).deleteById(1L);
+
+        assertDoesNotThrow(() -> escolaService.excluir(1L));
+
+        verify(escolaRepository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    public void deveLancarExcecaoAoExcluirEscolaInexistente() {
+        when(escolaRepository.existsById(99L)).thenReturn(false);
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.excluir(99L));
+
+        assertEquals("Escola não encontrada", erro.getMessage());
+        verify(escolaRepository, never()).deleteById(anyLong());
+    }
+}
