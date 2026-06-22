@@ -1,7 +1,6 @@
 package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
 import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Escola;
@@ -54,11 +53,22 @@ public class EscolaService {
             throw new RuntimeException("Aldeia não encontrada");
         }
 
+        Escola escolaSede = null;
+        if (escolaRequestDTO.escolaSedeId() != null){
+            Optional<Escola> optionalEscola = escolaRepository.findById(escolaRequestDTO.escolaSedeId());
+            if (optionalEscola.isEmpty()){
+                throw new RuntimeException("Escola sede não encontrada");
+            }
+            escolaSede = optionalEscola.get();
+        }
+
         Escola escola = new Escola();
 
         escola.setCodigo(escolaRequestDTO.codigo());
         escola.setNome(escolaRequestDTO.nome());
+        escola.setTipoUnidade(escolaRequestDTO.tipoUnidade());
 
+        escola.setEscolaSede(escolaSede);
         escola.setMunicipio(optionalMunicipio.get());
         escola.setTerraIndigena(optionalTerraIndigena.get());
         escola.setAldeia(optionalAldeia.get());
@@ -99,6 +109,11 @@ public class EscolaService {
             throw new NoSuchElementException("Id de aldeia inválido ou não encontrado");
         }
 
+        Escola escolaSede = null;
+        if (escolaDTO.escolaSedeId() != null){
+            escolaSede = escolaRepository.findById(escolaDTO.escolaSedeId()).orElseThrow(() -> new NoSuchElementException("Id de escola sede inválido"));
+        }
+
         Escola escola = optionalEscola.get();
         Municipio municipio = optionalMunicipio.get();
         TerraIndigena terraIndigena = optionalTerraIndigena.get();
@@ -106,6 +121,7 @@ public class EscolaService {
 
         escola.setCodigo(escolaDTO.codigo());
         escola.setNome(escolaDTO.nome());
+        escola.setEscolaSede(escolaSede);
         escola.setMunicipio(municipio);
         escola.setTerraIndigena(terraIndigena);
         escola.setAldeia(aldeia);
@@ -116,7 +132,8 @@ public class EscolaService {
     }
 
     public void excluir(Long id){
-        Optional<Escola> optionalEscola = escolaRepository.findById(id);
+        if (!escolaRepository.existsById(id))
+            throw new NoSuchElementException("Escola não encontrada");
         escolaRepository.deleteById(id);
     }
 }
