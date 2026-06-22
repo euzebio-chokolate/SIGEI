@@ -30,7 +30,7 @@ public class AldeiaService {
     public AldeiaResponseDTO salvar(AldeiaRequestDTO aldeiaRequestDTO) throws DataIntegrityViolationException{
         Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(aldeiaRequestDTO.terraIndigenaId());
         if (optionalTerraIndigena.isEmpty()){
-            throw new RuntimeException("Terra indígena não encontrada");
+            throw new NoSuchElementException("Terra indígena não encontrada");
         }
 
         Aldeia aldeia = new Aldeia();
