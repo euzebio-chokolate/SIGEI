@@ -37,6 +37,8 @@ public class AldeiaService {
         aldeia.setNome(aldeiaRequestDTO.nome());
         aldeia.setTerraIndigena(optionalTerraIndigena.get());
 
+        //Aldeia aldeia = aldeiaMapper.converter(aldeiaRequestDTO);
+
         Aldeia aldeiaSalva = aldeiaRepository.save(aldeia);
         return aldeiaMapper.converter(aldeiaSalva);
     }
