@@ -1,0 +1,471 @@
+\documentclass[12pt,a4paper,oneside]{abntspiifac}
+
+% ---- Codificação e língua ----
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+
+% ---- Fontes ----
+\usepackage{mathptmx}
+
+% ---- Pacotes gráficos e tabelas ----
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{xcolor}
+
+% ---- Pacotes de layout ----
+\usepackage{indentfirst}
+\usepackage{microtype}
+\usepackage{lastpage}
+
+% ---- Citações ABNT ----
+\usepackage[alf,abnt-emphasize=bf,abnt-etal-list=3,abnt-etal-text=it]{abntex2cite}
+
+% ---- Configurações de PDF ----
+\hypersetup{
+  pdftitle={Projeto de TCC: SIGEI},
+  pdfauthor={Euzébio do Nascimento Oliveira Neto},
+  pdfsubject={Projeto de Trabalho de Conclusão de Curso},
+  pdfkeywords={SIGEI, Escolas Indígenas, Sistema de Informação, Georreferenciamento},
+  colorlinks=false
+}
+
+% METADADOS
+
+\instituicao{Instituto Federal de Educação, Ciência e Tecnologia do Acre}
+\campus{Campus Rio Branco}
+\programa{Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas}
+
+\autor{Euzébio do Nascimento Oliveira Neto}
+\autorVirg{Oliveira Neto, Euzébio do Nascimento}
+
+\titulo{SIGEI}
+\subtitulo{Sistema de Gerenciamento Escolar Indígena}
+
+\natureza{Projeto de Trabalho de Conclusão de Curso apresentado ao Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas do Instituto Federal de Educação, Ciência e Tecnologia do Acre, como requisito parcial para aprovação na disciplina de Metodologia Científica e Tecnológica.}
+
+\orientadorTitulo{Prof. Me.}
+\orientador{Marlon Amaro Coelho Teixeira}
+
+\objeto{Projeto de Trabalho de Conclusão de Curso}
+\finalcatalog{1. Sistemas de informação. 2. Educação indígena. 3. Georreferenciamento. 4. Desenvolvimento web. I. Título.}
+
+\local{Rio Branco}
+\data{2026}
+
+\begin{document}
+
+\pretextual
+
+% -- Capa --
+\inserecapa
+
+% -- Folha de rosto --
+\inserefolhaderosto{Folha de rosto}
+
+% ---- Lista de abreviaturas e siglas ----
+\begin{siglas}
+  \item[ABNT]   Associação Brasileira de Normas Técnicas
+  \item[API]    \textit{Application Programming Interface}
+  \item[CRUD]   \textit{Create, Read, Update, Delete}
+  \item[CSS]    \textit{Cascading Style Sheets}
+  \item[DTO]    \textit{Data Transfer Object}
+  \item[FUNAI]  Fundação Nacional dos Povos Indígenas
+  \item[HTML]   \textit{HyperText Markup Language}
+  \item[HTTP]   \textit{HyperText Transfer Protocol}
+  \item[IBGE]   Instituto Brasileiro de Geografia e Estatística
+  \item[IFAC]   Instituto Federal de Educação, Ciência e Tecnologia do Acre
+  \item[JPA]    \textit{Java Persistence API}
+  \item[JSON]   \textit{JavaScript Object Notation}
+  \item[LDB]    Lei de Diretrizes e Bases da Educação Nacional
+  \item[MEC]    Ministério da Educação
+  \item[OIT]    Organização Internacional do Trabalho
+  \item[ORM]    \textit{Object-Relational Mapping}
+  \item[REST]   \textit{Representational State Transfer}
+  \item[RF]     Requisito Funcional
+  \item[RNF]    Requisito Não Funcional
+  \item[SEE/AC] Secretaria de Estado de Educação, Cultura e Esportes do Acre
+  \item[SIG]    Sistema de Informação Geográfica
+  \item[SIGEI]  Sistema de Gerenciamento Escolar Indígena
+  \item[SQL]    \textit{Structured Query Language}
+  \item[TCC]    Trabalho de Conclusão de Curso
+  \item[UML]    \textit{Unified Modeling Language}
+  \item[URL]    \textit{Uniform Resource Locator}
+\end{siglas}
+
+% ---- Sumário ----
+\tableofcontents*
+\cleardoublepage
+
+\textual
+
+% CAPÍTULO 1 — INTRODUÇÃO
+
+\chapter{INTRODUÇÃO}
+\label{cap:introducao}
+
+O Estado do Acre, situado na região Norte do Brasil, abriga uma das populações indígenas mais expressivas do país em termos de diversidade cultural e linguística. A Fundação Nacional dos Povos Indígenas registra no estado a presença de mais de uma dezena de etnias distintas, distribuídas por territórios demarcados que, em sua maioria, localizam-se em áreas remotas, de acesso difícil e com infraestrutura de comunicação limitada \cite{brasil1988}. Essa realidade geográfica e sociocultural impõe desafios históricos ao poder público, especialmente no que diz respeito à oferta e ao gerenciamento da educação escolar destinada a esses povos.
+
+A educação escolar indígena, garantida pela Constituição Federal de 1988 e regulamentada pela Lei de Diretrizes e Bases da Educação Nacional (Lei n.º 9.394/1996), prevê o ensino ministrado nas línguas maternas das comunidades, o respeito às especificidades culturais de cada povo e a participação ativa das próprias comunidades na gestão de suas escolas \cite{brasil1996}. No Acre, essa modalidade educacional é administrada pela Secretaria de Estado de Educação, Cultura e Esportes (SEE/AC), responsável pela coordenação de escolas distribuídas por municípios cujo acesso frequentemente depende de transporte fluvial ou de estradas em precário estado de conservação.
+
+Diante da amplitude territorial e da diversidade das comunidades atendidas, a SEE/AC deparava-se, até o início do desenvolvimento deste projeto, com uma gestão fragmentada das informações escolares. Os dados referentes às 149 escolas indígenas e 19 anexos escolares existentes no estado encontravam-se dispersos em planilhas eletrônicas, documentos físicos e registros administrativos desconexos, sem integração entre si. Essa realidade dificultava a realização de consultas rápidas, a atualização cadastral, o cruzamento de informações e a emissão de relatórios gerenciais precisos, comprometendo a eficiência administrativa e a capacidade de planejamento educacional.
+
+\section{Problema de Pesquisa}
+
+A ausência de uma ferramenta tecnológica integrada para o gerenciamento das escolas indígenas do Acre gera inconsistências nos dados, retrabalho por parte dos gestores e dificuldades na tomada de decisões estratégicas. Como é possível, portanto, centralizar, organizar e disponibilizar de forma georreferenciada as informações das escolas indígenas acreanas, de modo a subsidiar a gestão educacional realizada pela SEE/AC?
+
+\section{Justificativa}
+\label{sec:justificativa}
+
+A gestão eficiente de sistemas educacionais depende, em larga medida, da qualidade e da acessibilidade das informações disponíveis para seus gestores. Conforme destacam \citeonline{laudon2014}, os sistemas de informação desempenham papel central nas organizações contemporâneas ao fornecer dados estruturados que apoiam processos decisórios em todos os níveis hierárquicos. No contexto das escolas indígenas, essa necessidade é ainda mais premente, dado o isolamento geográfico das instituições e a complexidade administrativa inerente à gestão de múltiplas etnias, línguas e territórios.
+
+A inexistência de uma plataforma digital integrada para o gerenciamento das escolas indígenas do Acre representa não apenas um obstáculo operacional, mas também um entrave ao exercício pleno do direito à educação diferenciada, assegurado constitucional e legalmente aos povos indígenas \cite{brasil1988}. Nesse sentido, o desenvolvimento do SIGEI justifica-se tanto pela necessidade técnica de modernização dos processos administrativos da SEE/AC quanto pelo potencial impacto social que a melhoria da gestão educacional pode trazer às comunidades beneficiadas.
+
+A incorporação de funcionalidades de georreferenciamento ao sistema representa um diferencial estratégico, uma vez que permite a visualização espacial das escolas no território acreano, facilitando o planejamento logístico, a alocação de recursos humanos e materiais, e o monitoramento das condições de atendimento em cada unidade escolar \cite{longley2013}. Conforme \citeonline{camara2001}, a integração de dados geográficos com informações descritivas em sistemas de informação geográfica possibilita análises que seriam inviáveis em representações puramente tabulares, tornando o georreferenciamento uma ferramenta estratégica para a gestão de redes escolares dispersas geograficamente.
+
+Do ponto de vista acadêmico, o projeto contribui para a área de Análise e Desenvolvimento de Sistemas ao demonstrar a aplicação prática de tecnologias modernas de desenvolvimento web — Angular, Spring Boot e PostgreSQL — na solução de problemas concretos da administração pública educacional, integrando aspectos de engenharia de software, sistemas de informação e ciência da geoinformação.
+
+\section{Objetivo Geral}
+\label{sec:objetivogeral}
+
+Desenvolver uma plataforma web capaz de centralizar e gerenciar informações das escolas indígenas do Acre, proporcionando maior organização, rastreabilidade, eficiência administrativa e suporte à tomada de decisões por parte dos gestores da SEE/AC.
+
+\section{Objetivos Específicos}
+\label{sec:objetivosespecificos}
+
+Para atingir o objetivo geral proposto, foram estabelecidos os seguintes objetivos específicos:
+
+\begin{alineas}
+  \item mapear geograficamente as escolas indígenas do Acre por meio de um mapa interativo;
+  \item centralizar dados escolares, incluindo informações administrativas, pedagógicas e estruturais;
+  \item facilitar consultas e atualizações cadastrais referentes a escolas, aldeias, municípios e terras indígenas;
+  \item disponibilizar informações consolidadas para gestores educacionais por meio de relatórios gerenciais;
+  \item reduzir inconsistências e retrabalho no gerenciamento de dados educacionais.
+\end{alineas}
+
+\section{Estrutura do Projeto}
+
+O presente projeto encontra-se organizado em cinco seções principais. O Capítulo 1 apresenta a introdução, contextualizando o problema, a justificativa e os objetivos do estudo. O Capítulo 2 desenvolve a revisão de literatura, fornecendo a fundamentação teórica que embasa o sistema. O Capítulo 3 descreve os materiais e métodos que serão adotados no desenvolvimento. O Capítulo 4 apresenta o cronograma de execução previsto. Por fim, são listadas as referências bibliográficas utilizadas.
+
+
+% CAPÍTULO 2 — REVISÃO DE LITERATURA
+
+\chapter{REVISÃO DE LITERATURA}
+\label{cap:revisao}
+
+Este capítulo apresenta os fundamentos teóricos que sustentam o desenvolvimento do SIGEI, abrangendo as áreas de sistemas de informação, gestão escolar, educação escolar indígena, sistemas de informação geográfica, georreferenciamento e as principais tecnologias de desenvolvimento web a serem utilizadas no projeto.
+
+\section{Sistemas de Informação}
+
+\subsection{Conceitos Fundamentais}
+
+Um sistema de informação pode ser definido como um conjunto de componentes inter-relacionados que coletam, processam, armazenam e distribuem informações para apoiar a tomada de decisões, a coordenação, o controle, a análise e a visualização em uma organização \cite{laudon2014}. Segundo \citeonline{stair2015}, os sistemas de informação são constituídos por dados brutos que, após processados, transformam-se em informações com valor agregado para os usuários. Essa transformação ocorre por meio de processos de entrada, processamento e saída, que podem ser retroalimentados por mecanismos de controle e avaliação.
+
+\citeonline{obrien2013} categorizam os sistemas de informação segundo seu nível organizacional de aplicação, distinguindo sistemas de processamento de transações, sistemas de suporte à decisão, sistemas de informações gerenciais e sistemas de suporte executivo. No contexto do SIGEI, o sistema enquadra-se predominantemente na categoria de sistema de informações gerenciais, uma vez que tem por finalidade consolidar dados operacionais das escolas indígenas e disponibilizá-los em formato adequado à tomada de decisões pelos gestores da SEE/AC.
+
+\subsection{Importância para Organizações Públicas}
+
+No setor público, os sistemas de informação assumem papel particularmente relevante ao possibilitar a modernização dos processos administrativos, a transparência na gestão e a melhoria nos serviços prestados à sociedade. \citeonline{laudon2014} ressaltam que as organizações que investem em sistemas de informação robustos tendem a apresentar maior eficiência operacional, melhor qualidade no processo decisório e maior capacidade de adaptação às mudanças no ambiente externo.
+
+No contexto educacional, os sistemas de informação permitem a gestão integrada de dados relativos a matrículas, infraestrutura escolar e dados institucionais, contribuindo para o planejamento estratégico e a avaliação de políticas públicas. A disponibilidade de informações precisas e atualizadas é condição indispensável para que gestores educacionais possam identificar demandas, alocar recursos de forma eficiente e monitorar o alcance dos objetivos institucionais \cite{obrien2013}.
+
+\section{Gestão Escolar}
+
+\subsection{Conceitos e Abrangência}
+
+A gestão escolar compreende o conjunto de atividades administrativas e pedagógicas que visam assegurar o funcionamento adequado das instituições de ensino, garantindo condições favoráveis ao processo de ensino e aprendizagem \cite{libaneofernandes2012}. Segundo \citeonline{luck2009}, a gestão escolar eficaz pressupõe a articulação entre dimensões pedagógicas, administrativas, financeiras e de relacionamento comunitário, demandando dos gestores competências diversas e o domínio de ferramentas adequadas para a organização institucional.
+
+No âmbito administrativo, a gestão escolar envolve o controle de matrículas, o acompanhamento da infraestrutura física das escolas e a prestação de contas aos órgãos reguladores. Tais atividades, quando realizadas sem o suporte de sistemas informacionais adequados, tendem a gerar sobrecarga de trabalho, inconsistências nos registros e dificuldades no cumprimento das obrigações legais \cite{libaneofernandes2012}.
+
+\subsection{Desafios Administrativos na Gestão Escolar Indígena}
+
+A gestão de escolas indígenas apresenta desafios específicos que a distinguem da administração de escolas convencionais. A dispersão geográfica das comunidades, a diversidade linguística e cultural, a irregularidade no acesso às tecnologias de comunicação e as particularidades dos calendários escolares adaptados ao ritmo das comunidades são fatores que complexificam o gerenciamento dessas instituições \cite{grupioni2006}.
+
+Além disso, a gestão escolar indígena frequentemente envolve a articulação entre o poder público estadual, as lideranças comunitárias indígenas, o Ministério da Educação e a Fundação Nacional dos Povos Indígenas, exigindo fluxos de comunicação e registros documentais que demandam organização sistemática e eficiente \cite{brasil2012}.
+
+\section{Educação Escolar Indígena}
+
+\subsection{Aspectos Legais}
+
+A educação escolar indígena no Brasil é assegurada por um conjunto de dispositivos legais que historicamente representaram avanço significativo no reconhecimento dos direitos dos povos originários. A Constituição Federal de 1988, em seus artigos 210, 215 e 231, reconhece aos povos indígenas a organização social, os costumes, as línguas, as crenças e as tradições, bem como o direito à educação ministrada em suas línguas maternas e com processos próprios de aprendizagem \cite{brasil1988}.
+
+A Lei de Diretrizes e Bases da Educação Nacional (Lei n.º 9.394/1996), em seu artigo 78, estabelece a obrigação do Estado de oferecer educação escolar bilíngue e intercultural aos povos indígenas, com currículos e programas específicos que incluam seus conteúdos culturais \cite{brasil1996}. A Resolução CNE/CEB n.º 5/2012 define as Diretrizes Curriculares Nacionais para a Educação Escolar Indígena na Educação Básica, consolidando os princípios de interculturalidade, bilinguismo e especificidade que devem orientar a oferta educacional para as comunidades indígenas \cite{brasil2012}.
+
+No plano internacional, a Convenção n.º 169 da Organização Internacional do Trabalho (OIT), promulgada no Brasil pelo Decreto n.º 5.051/2004, reafirma o direito dos povos indígenas e tribais à educação em todos os seus níveis, respeitando suas especificidades culturais e linguísticas \cite{brazil2004}.
+
+\subsection{Particularidades da Gestão da Educação Indígena no Acre}
+
+O Acre abriga um mosaico de povos indígenas que inclui, entre outros, os Ashaninka, Jaminawa, Kaxinawá (Huni Kuin), Manchineri, Nukini e Yawanapi. Esses povos habitam territórios demarcados distribuídos por municípios como Cruzeiro do Sul, Feijó, Jordão, Marechal Thaumaturgo, Santa Rosa do Purus e Tarauacá, além da capital Rio Branco \cite{secretariaacre2022}.
+
+A gestão das escolas indígenas acreanas pela SEE/AC envolve a coordenação de unidades escolares localizadas em territórios de acesso restrito e a adaptação dos currículos às realidades culturais e linguísticas de cada povo. Conforme \citeonline{munduruku2019}, a educação indígena não pode ser tratada como mera extensão da educação não indígena, sendo necessário o desenvolvimento de ferramentas e metodologias adequadas às especificidades de cada contexto cultural.
+
+\section{Sistemas de Informação Geográfica}
+
+\subsection{Conceitos}
+
+Um Sistema de Informação Geográfica (SIG) é definido como um conjunto integrado de hardware, software, dados e metodologias destinado à coleta, armazenamento, recuperação, análise e exibição de dados espacialmente referenciados \cite{longley2013}. Segundo \citeonline{camara2001}, os SIGs distinguem-se de outros sistemas de informação pela sua capacidade de integrar dados de natureza geográfica com informações descritivas, permitindo análises espaciais que revelam padrões e relações não perceptíveis em representações puramente tabulares.
+
+Os componentes essenciais de um SIG incluem: dados espaciais (geometrias representando entidades do mundo real), dados de atributos (informações descritivas associadas às entidades geográficas), ferramentas de análise espacial e interfaces de visualização, como mapas digitais interativos \cite{longley2013}.
+
+\subsection{Aplicações Educacionais}
+
+No campo educacional, os SIGs têm sido utilizados crescentemente para subsidiar o planejamento e a avaliação de redes de ensino. Segundo \citeonline{moura2003}, a representação cartográfica de estabelecimentos educacionais permite identificar lacunas na cobertura territorial do atendimento escolar, otimizar rotas de transporte estudantil e diagnosticar desigualdades regionais no acesso à educação.
+
+No contexto das escolas indígenas, a incorporação de funcionalidades geográficas a sistemas de gestão educacional possibilita a visualização da distribuição espacial das unidades escolares nos territórios demarcados, facilitando o planejamento de visitas técnicas e a identificação de comunidades sem cobertura educacional adequada \cite{camara2001}.
+
+\section{Georreferenciamento}
+
+O georreferenciamento consiste no processo de associação de dados ou objetos a uma localização geográfica específica, expressa por coordenadas geográficas — latitude e longitude — ou por um sistema de referência espacial definido \cite{moura2003}. Essa técnica permite que informações de natureza diversa, como escolas, aldeias e infraestruturas, sejam representadas em mapas digitais e submetidas a análises espaciais.
+
+Para o SIGEI, o georreferenciamento das escolas indígenas representa uma funcionalidade central, pois permite que os gestores da SEE/AC visualizem a distribuição geográfica das unidades escolares no território acreano e relacionem essa informação espacial com dados administrativos, como o número de matrículas e a situação da infraestrutura. Conforme \citeonline{longley2013}, a combinação de dados geoespaciais com atributos descritivos constitui a base para análises de suporte à decisão em organizações que operam em territórios amplos e geograficamente diversificados.
+
+\section{Tecnologias de Desenvolvimento Web}
+
+\subsection{Angular}
+
+Angular é um framework de desenvolvimento de aplicações web mantido pela Google, construído sobre a linguagem TypeScript. Trata-se de uma plataforma completa para o desenvolvimento de aplicações de página única (\textit{Single Page Applications} — SPA), oferecendo um conjunto integrado de ferramentas para gerenciamento de estado, roteamento, comunicação com servidores e construção de componentes reutilizáveis \cite{fain2017}.
+
+A arquitetura do Angular baseia-se no padrão de componentes, em que cada elemento da interface do usuário é encapsulado em um componente com seu próprio template HTML, folha de estilos CSS e lógica TypeScript. A comunicação entre componentes é gerenciada por meio de serviços injetáveis responsáveis pelo compartilhamento de dados e pela comunicação com APIs externas \cite{freeman2019}.
+
+\subsection{Spring Boot}
+
+Spring Boot é um framework baseado no ecossistema Spring para a plataforma Java, projetado para simplificar o desenvolvimento de aplicações web e microsserviços. Sua principal característica é a configuração automática (\textit{auto-configuration}), que reduz significativamente a quantidade de código necessário para iniciar uma aplicação \cite{walls2019}. O Spring Boot integra-se nativamente com o Spring Data JPA para o acesso a dados relacionais por meio de repositórios baseados em interfaces, com o Hibernate como implementação padrão do JPA, permitindo o mapeamento objeto-relacional entre as entidades Java e as tabelas do banco de dados \cite{bauer2015}.
+
+\subsection{PostgreSQL}
+
+PostgreSQL é um sistema gerenciador de banco de dados relacional de código aberto, reconhecido por sua robustez, conformidade com os padrões SQL e suporte a tipos de dados avançados \cite{obe2017}. Conforme \citeonline{postgresql2023}, o sistema oferece recursos como transações ACID, controle de concorrência por versionamento de linhas (MVCC) e índices de múltiplos tipos, fazendo dele uma escolha sólida para aplicações que demandam integridade de dados e desempenho em cenários de alta concorrência.
+
+\subsection{API REST}
+
+REST (\textit{Representational State Transfer}) é um estilo arquitetural para o desenvolvimento de serviços web proposto por \citeonline{fielding2000}. As APIs RESTful utilizam o protocolo HTTP, adotando os verbos \texttt{GET}, \texttt{POST}, \texttt{PUT} e \texttt{DELETE} para expressar as operações sobre os recursos expostos. São caracterizadas pela ausência de estado nas requisições, pela utilização de identificadores uniformes de recursos (URIs) e pela representação dos recursos em formatos padronizados como JSON \cite{richardson2013}.
+
+\subsection{Leaflet}
+
+Leaflet é uma biblioteca JavaScript de código aberto voltada para o desenvolvimento de mapas interativos em aplicações web. Projetada com foco em leveza e desempenho, oferece suporte a camadas de mapeamento baseadas em \textit{tiles}, marcadores, \textit{pop-ups} e outros elementos cartográficos, sendo compatível com o OpenStreetMap \cite{leaflet2023}. No contexto do SIGEI, o Leaflet será utilizado para renderizar o mapa interativo que exibirá a localização georreferenciada das escolas indígenas do Acre, com marcadores posicionados segundo as coordenadas geográficas cadastradas no banco de dados \cite{muehlenhaus2014}.
+
+
+% CAPÍTULO 3 — MATERIAL E MÉTODOS
+
+\chapter{MATERIAL E MÉTODOS}
+\label{cap:metodos}
+
+Este capítulo descreve os procedimentos metodológicos a serem adotados no desenvolvimento do SIGEI, abrangendo o tipo de pesquisa, a metodologia de desenvolvimento, o levantamento de requisitos, a modelagem prevista e a arquitetura tecnológica planejada.
+
+\section{Tipo de Pesquisa}
+
+Do ponto de vista de sua natureza, o presente trabalho caracteriza-se como uma pesquisa aplicada, uma vez que objetiva gerar conhecimentos direcionados à solução de um problema prático específico: a ausência de um sistema integrado para o gerenciamento das escolas indígenas do Acre \cite{gil2008}. Segundo \citeonline{wazlawick2013}, pesquisas aplicadas na área de Ciência da Computação envolvem o desenvolvimento de artefatos tecnológicos — como sistemas de software, \textit{frameworks} ou algoritmos — que respondem a demandas identificadas em contextos reais de uso.
+
+Quanto aos objetivos, o estudo apresenta caráter descritivo-exploratório, na medida em que descreverá as funcionalidades do sistema desenvolvido e explorará as potencialidades das tecnologias adotadas para a solução do problema de gestão identificado \cite{gil2008}.
+
+\section{Metodologia de Desenvolvimento}
+
+O SIGEI será desenvolvido por meio de uma metodologia incremental, na qual o sistema será construído de forma progressiva, com cada incremento representando um conjunto coeso de funcionalidades testadas e integradas ao produto final \cite{pressman2016}. Essa abordagem permitirá a entrega contínua de valor e possibilitará a identificação e a correção precoce de desvios em relação aos requisitos levantados.
+
+O processo de desenvolvimento será organizado nas seguintes fases:
+
+\begin{alineas}
+  \item \textbf{Levantamento de requisitos:} identificação das necessidades dos usuários por meio de reuniões com profissionais da SEE/AC, análise de documentos existentes e observação dos processos de trabalho vigentes;
+  \item \textbf{Modelagem:} elaboração dos diagramas de casos de uso, entidade-relacionamento e da arquitetura em camadas do sistema;
+  \item \textbf{Implementação incremental:} desenvolvimento iterativo do \textit{backend}, do \textit{frontend} e do banco de dados, com integração contínua entre os módulos;
+  \item \textbf{Testes:} verificação funcional de cada módulo implementado, com correção de falhas identificadas;
+  \item \textbf{Implantação:} configuração do ambiente de execução e disponibilização do sistema para uso pelos gestores da SEE/AC.
+\end{alineas}
+
+\section{Levantamento de Requisitos}
+
+O levantamento de requisitos constitui etapa fundamental no desenvolvimento de sistemas de informação, pois é nessa fase que as necessidades dos usuários são identificadas e traduzidas em especificações formais que orientam a construção do \textit{software} \cite{sommerville2019}. Para o SIGEI, os requisitos foram identificados por meio de reuniões com representantes da SEE/AC, análise de planilhas de dados existentes e estudo da legislação pertinente à educação escolar indígena.
+
+Os requisitos foram classificados em funcionais, que descrevem as funções que o sistema deve realizar, e não funcionais, que expressam restrições e qualidades que o sistema deve apresentar \cite{pressman2016}.
+
+\subsection{Requisitos Funcionais}
+
+Os requisitos funcionais do SIGEI são apresentados no Quadro~\ref{qua:rf}.
+
+\begin{longtable}{p{1.5cm}p{4.5cm}p{7.5cm}}
+\caption{Requisitos Funcionais do SIGEI}
+\label{qua:rf} \\
+\toprule
+\textbf{Código} & \textbf{Nome} & \textbf{Descrição} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Código} & \textbf{Nome} & \textbf{Descrição} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small\textit{continua na próxima página}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+RF01 & Cadastrar escola        & O sistema deve permitir o cadastro de novas escolas indígenas, incluindo nome, localização geográfica, estrutura física e dados administrativos. \\[4pt]
+RF02 & Editar escola           & O sistema deve permitir a edição dos dados cadastrais de escolas já registradas. \\[4pt]
+RF03 & Excluir escola          & O sistema deve permitir a exclusão de registros de escolas, com confirmação prévia da operação. \\[4pt]
+RF04 & Visualizar no mapa      & O sistema deve exibir as escolas em mapa interativo, com marcadores posicionados de acordo com as coordenadas geográficas de cada unidade. \\[4pt]
+RF05 & Gerenciar aldeias       & O sistema deve permitir o cadastro, edição, consulta e exclusão de aldeias indígenas, associadas às respectivas terras indígenas. \\[4pt]
+RF06 & Gerenciar municípios    & O sistema deve permitir o cadastro, edição, consulta e exclusão de municípios do Estado do Acre vinculados ao sistema. \\[4pt]
+RF07 & Gerenciar terras indígenas & O sistema deve permitir o cadastro, edição, consulta e exclusão de terras indígenas demarcadas no estado. \\[4pt]
+RF08 & Gerar relatórios        & O sistema deve permitir a geração de relatórios gerenciais com informações consolidadas sobre as escolas indígenas. \\[4pt]
+RF09 & Registrar matrículas    & O sistema deve permitir o registro e a consulta da quantidade de matrículas por escola e por período letivo. \\[4pt]
+RF10 & Consultar mapa interativo & O sistema deve fornecer uma interface de consulta rápida por meio do mapa interativo, com filtros e acesso às informações de cada escola. \\
+\end{longtable}
+\fonte{Euzébio do Nascimento Oliveira Neto (2026)}
+
+\subsection{Requisitos Não Funcionais}
+
+Os requisitos não funcionais do SIGEI são apresentados no Quadro~\ref{qua:rnf}.
+
+\begin{longtable}{p{1.5cm}p{4cm}p{8cm}}
+\caption{Requisitos Não Funcionais do SIGEI}
+\label{qua:rnf} \\
+\toprule
+\textbf{Código} & \textbf{Nome} & \textbf{Descrição} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Código} & \textbf{Nome} & \textbf{Descrição} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{3}{r}{\small\textit{continua na próxima página}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+RNF01 & Interface responsiva    & A interface do sistema deve adaptar-se adequadamente a diferentes resoluções de tela, incluindo dispositivos móveis. \\[4pt]
+RNF02 & Disponibilidade         & O sistema deve estar disponível para acesso por navegadores web modernos, sem necessidade de instalação de \textit{software} adicional. \\[4pt]
+RNF03 & Segurança               & O sistema deve implementar mecanismos de controle de acesso, garantindo que apenas usuários autorizados possam acessar e modificar os dados. \\[4pt]
+RNF04 & Desempenho              & O sistema deve responder às requisições em tempo aceitável, com carregamento do mapa interativo em até cinco segundos em condições normais de rede. \\[4pt]
+RNF05 & Usabilidade             & A interface deve ser intuitiva e de fácil utilização, minimizando a necessidade de treinamento para os usuários finais. \\[4pt]
+RNF06 & Integridade dos dados   & O sistema deve garantir a integridade referencial dos dados, por meio de restrições de banco de dados e validações na camada de aplicação. \\
+\end{longtable}
+\fonte{Euzébio do Nascimento Oliveira Neto (2026)}
+
+\section{Modelagem do Sistema}
+
+\subsection{Diagrama de Casos de Uso}
+
+O diagrama de casos de uso representa as interações entre os atores do sistema e as funcionalidades disponibilizadas pela plataforma. Os atores identificados são o Gestor — usuário com acesso completo ao sistema — e o Consulente — usuário com acesso apenas às funcionalidades de visualização. As funcionalidades modeladas incluem o gerenciamento de escolas, aldeias, municípios, terras indígenas, a consulta ao mapa interativo e a geração de relatórios.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{imagens/diagrama-casos-de-uso.drawio.png}
+\caption{Diagrama de casos de uso do SIGEI}
+\fonte{Euzébio do Nascimento Oliveira Neto (2026)}
+\label{fig:casosdeuso}
+\end{figure}
+
+\subsection{Diagrama Entidade-Relacionamento}
+
+O modelo de dados do SIGEI foi projetado para representar as entidades do domínio da educação escolar indígena e seus relacionamentos. As principais entidades identificadas são: \texttt{Escola}, \texttt{Aldeia}, \texttt{TerraIndigena}, \texttt{Municipio} e \texttt{Matricula}. A entidade \texttt{Escola} é central no modelo: está localizada em uma \texttt{Aldeia}, que pertence a uma \texttt{TerraIndigena} e a um \texttt{Municipio}, e registra \texttt{Matricula}s por período letivo.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.90\textwidth]{imagens/SIGEI - ER2-2026-06-26-142013.png}
+\caption{Diagrama entidade-relacionamento do SIGEI}
+\fonte{Euzébio do Nascimento Oliveira Neto (2026)}
+\label{fig:der}
+\end{figure}
+
+\subsection{Arquitetura em Camadas}
+
+O SIGEI será projetado seguindo o padrão de arquitetura em camadas, que promove a separação de responsabilidades entre os diferentes componentes do sistema \cite{pressman2016}. As camadas adotadas são:
+
+\begin{alineas}
+  \item \textbf{Controller (Controlador):} responsável por receber as requisições HTTP, validar os dados de entrada e delegar o processamento à camada de serviço;
+  \item \textbf{Service (Serviço):} concentra a lógica de negócio da aplicação, realizando transformações de dados e coordenando as operações entre diferentes repositórios;
+  \item \textbf{Repository (Repositório):} abstrai as operações de acesso ao banco de dados, utilizando a interface \texttt{JpaRepository} do Spring Data JPA;
+  \item \textbf{Entity (Entidade):} representa as classes de domínio mapeadas para as tabelas do banco de dados por meio das anotações JPA/Hibernate;
+  \item \textbf{DTO (\textit{Data Transfer Object}):} objetos utilizados para a transferência de dados entre as camadas, evitando a exposição direta das entidades na interface da API.
+\end{alineas}
+
+\section{Arquitetura do Sistema}
+
+A arquitetura geral do SIGEI seguirá o modelo cliente-servidor, com clara separação entre o \textit{frontend}, o \textit{backend} e o banco de dados. O Quadro~\ref{qua:arq} resume os componentes e as tecnologias adotadas em cada camada.
+
+\begin{table}[H]
+\centering
+\caption{Arquitetura do SIGEI por camadas}
+\label{qua:arq}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Camada} & \textbf{Tecnologia e responsabilidade} \\
+\midrule
+\textit{Frontend}       & Angular + TypeScript + Leaflet: interface do usuário, mapa interativo, consumo da API REST \\[4pt]
+Comunicação             & API REST via HTTP/JSON: troca de dados entre \textit{frontend} e \textit{backend} \\[4pt]
+\textit{Backend}        & Java 17 + Spring Boot + Spring Data JPA + Hibernate: lógica de negócio e persistência \\[4pt]
+Banco de Dados          & PostgreSQL: armazenamento relacional dos dados do sistema \\
+\bottomrule
+\end{tabularx}
+\fonte{Euzébio do Nascimento Oliveira Neto (2026)}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.75\textwidth]{imagens/diagrama-arquitetura.png}
+\caption{Diagrama da arquitetura em camadas do SIGEI}
+\fonte{Euzébio do Nascimento Oliveira Neto (2026)}
+\label{fig:arquitetura}
+\end{figure}
+
+\section{Tecnologias a Serem Utilizadas}
+
+\subsection{\textit{Frontend}: Angular e TypeScript}
+
+No \textit{frontend}, o SIGEI utilizará o framework Angular na versão 16, que proporciona uma estrutura modular e orientada a componentes. A linguagem TypeScript garantirá a tipagem estática do código, contribuindo para a detecção precoce de erros e para a manutenibilidade da aplicação. A biblioteca Leaflet será integrada ao Angular por meio do pacote \texttt{ngx-leaflet}, que fornece uma diretiva Angular para a inicialização e o controle do mapa interativo. Os marcadores geográficos das escolas serão gerados dinamicamente a partir dos dados retornados pela API REST, renderizados sobre uma camada de \textit{tiles} do OpenStreetMap.
+
+\subsection{\textit{Backend}: Java e Spring Boot}
+
+No \textit{backend}, o SIGEI será desenvolvido em Java 17, utilizando o Spring Boot como \textit{framework} principal. A exposição dos \textit{endpoints} da API REST ocorrerá por meio das anotações \texttt{@RestController} e \texttt{@RequestMapping} do Spring MVC. O acesso ao banco de dados será realizado por meio do Spring Data JPA, com o Hibernate como provedor JPA padrão. A validação dos dados de entrada ocorrerá com o \textit{Bean Validation} (JSR-380), por meio das anotações \texttt{@NotNull}, \texttt{@NotBlank} e \texttt{@Size}.
+
+\subsection{Banco de Dados: PostgreSQL}
+
+O banco de dados relacional PostgreSQL será utilizado para o armazenamento de todas as informações gerenciadas pelo SIGEI. O esquema será criado e mantido por meio do Hibernate com a propriedade \texttt{spring.jpa.hibernate.ddl-auto}. As coordenadas geográficas das escolas serão armazenadas como colunas numéricas de precisão dupla (\texttt{DOUBLE PRECISION}) para latitude e longitude.
+
+
+% CAPÍTULO 4 — CRONOGRAMA
+
+\chapter{CRONOGRAMA}
+\label{cap:cronograma}
+
+O cronograma de execução do projeto foi elaborado considerando as etapas previstas na metodologia de desenvolvimento incremental adotada, distribuídas ao longo do segundo semestre de 2026, conforme demonstrado na Tabela 4.
+
+\begin{longtable}{p{6.5cm}*{6}{c}}
+\caption{Cronograma de atividades do TCC}
+\label{qua:cronograma} \\
+\toprule
+\textbf{Atividade} & \textbf{Maio} & \textbf{Jun} & \textbf{Jul} & \textbf{Ago} & \textbf{Set} & \textbf{Out} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Atividade} & \textbf{Maio} & \textbf{Jun} & \textbf{Jul} & \textbf{Ago} & \textbf{Set} & \textbf{Out} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{7}{r}{\small\textit{continua na próxima página}} \\
+\endfoot
+\bottomrule
+\endlastfoot
+Revisão bibliográfica                    & $\bullet$ & $\bullet$ &            &            &            &            \\[3pt]
+Levantamento e validação de requisitos   & $\bullet$ & $\bullet$ &            &            &            &            \\[3pt]
+Modelagem do banco de dados              &           & $\bullet$ & $\bullet$  &            &            &            \\[3pt]
+Implementação do \textit{backend}        &           & $\bullet$ & $\bullet$  & $\bullet$  &            &            \\[3pt]
+Implementação do \textit{frontend}       &           &           & $\bullet$  & $\bullet$  &            &            \\[3pt]
+Integração \textit{frontend}/\textit{backend} &      &           &            & $\bullet$  & $\bullet$  &            \\[3pt]
+Testes e correções                       &           &           &            & $\bullet$  & $\bullet$  &            \\[3pt]
+Redação do TCC                           & $\bullet$ & $\bullet$ & $\bullet$  & $\bullet$  & $\bullet$  &            \\[3pt]
+Revisão final e entrega do TCC           &           &           &            &            & $\bullet$  & $\bullet$  \\[3pt]
+Apresentação à banca                     &           &           &            &            &            & $\bullet$  \\
+\end{longtable}
+\fonte{Euzébio do Nascimento Oliveira Neto (2026)}
+
+
+% REFERÊNCIAS
+
+\postextual
+\bibliography{refs}
+
+\end{document}
