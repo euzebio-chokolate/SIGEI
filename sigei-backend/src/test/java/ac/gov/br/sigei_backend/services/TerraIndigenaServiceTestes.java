@@ -38,27 +38,24 @@ public class TerraIndigenaServiceTestes {
 
     @Test
     public void deveSalvarTerraIndigenaComSucesso() {
-        // 1. Arrange
         TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(null, "Vale do Javari", 1L);
         Municipio municipio = new Municipio();
         municipio.setId(1L);
 
+        TerraIndigena terraConvertida = new TerraIndigena();
         TerraIndigena terraSalva = new TerraIndigena();
-        terraSalva.setId(1L);
-        terraSalva.setNome("Vale do Javari");
-        terraSalva.setMunicipio(municipio);
-
         TerraIndigenaResponseDTO responseMock = mock(TerraIndigenaResponseDTO.class);
 
         when(municipioRepository.findById(1L)).thenReturn(Optional.of(municipio));
+        when(terraIndigenaMapper.converter(requestDTO)).thenReturn(terraConvertida);
         when(terraIndigenaRepository.save(any(TerraIndigena.class))).thenReturn(terraSalva);
-        when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
+        lenient().when(terraIndigenaMapper.converter(terraSalva)).thenReturn(responseMock);
 
         TerraIndigenaResponseDTO resultado = terraIndigenaService.salvar(requestDTO);
 
         assertNotNull(resultado);
         verify(municipioRepository, times(1)).findById(1L);
-        verify(terraIndigenaRepository, times(1)).save(any(TerraIndigena.class));
+        verify(terraIndigenaRepository, times(1)).save(terraConvertida);
     }
 
     @Test
@@ -70,10 +67,9 @@ public class TerraIndigenaServiceTestes {
             terraIndigenaService.salvar(requestDTO);
         });
 
-        assertEquals("Id de municipio inválido ou não encontrado", erro.getMessage());
+        assertEquals("Municipio não encontrado", erro.getMessage());
         verify(terraIndigenaRepository, never()).save(any(TerraIndigena.class));
     }
-
 
     @Test
     public void deveBuscarTodasAsTerrasIndigenas() {
@@ -84,7 +80,7 @@ public class TerraIndigenaServiceTestes {
         TerraIndigenaResponseDTO responseMock = mock(TerraIndigenaResponseDTO.class);
 
         when(terraIndigenaRepository.findAll()).thenReturn(lista);
-        when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
+        lenient().when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
 
         List<TerraIndigenaResponseDTO> resultado = terraIndigenaService.buscarTudo();
 
@@ -94,37 +90,36 @@ public class TerraIndigenaServiceTestes {
         verify(terraIndigenaMapper, times(2)).converter(any(TerraIndigena.class));
     }
 
-
     @Test
     public void deveEditarTerraIndigenaComSucesso() {
-        TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(1L, "Terra Editada", 2L);
+        TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(1L, "Vale Editado", 2L);
 
-        TerraIndigena terraAntiga = new TerraIndigena();
-        terraAntiga.setId(1L);
-        terraAntiga.setNome("Nome Antigo");
+        TerraIndigena terraExistente = new TerraIndigena();
+        terraExistente.setId(1L);
 
         Municipio municipioNovo = new Municipio();
         municipioNovo.setId(2L);
 
+        TerraIndigena terraConvertida = new TerraIndigena();
         TerraIndigenaResponseDTO responseMock = mock(TerraIndigenaResponseDTO.class);
 
-        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terraAntiga));
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terraExistente));
         when(municipioRepository.findById(2L)).thenReturn(Optional.of(municipioNovo));
-
-        when(terraIndigenaRepository.save(any(TerraIndigena.class))).thenReturn(terraAntiga);
-        when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
+        when(terraIndigenaMapper.converter(requestDTO)).thenReturn(terraConvertida);
+        when(terraIndigenaRepository.save(any(TerraIndigena.class))).thenReturn(terraConvertida);
+        lenient().when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
 
         TerraIndigenaResponseDTO resultado = terraIndigenaService.editar(requestDTO);
 
         assertNotNull(resultado);
         verify(terraIndigenaRepository, times(1)).findById(1L);
         verify(municipioRepository, times(1)).findById(2L);
-        verify(terraIndigenaRepository, times(2)).save(any(TerraIndigena.class)); // Verifica os dois saves do seu código
+        verify(terraIndigenaRepository, times(1)).save(terraConvertida);
     }
 
     @Test
     public void deveLancarExcecaoAoEditarTerraIndigenaInexistente() {
-        TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(99L, "Terra Editada", 1L);
+        TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(99L, "Vale Editado", 1L);
         when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
 
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
@@ -132,14 +127,13 @@ public class TerraIndigenaServiceTestes {
         });
 
         assertEquals("Id de terra indígena inválido ou não encontrado", erro.getMessage());
-        verify(municipioRepository, never()).findById(anyLong()); // Não deve nem tentar buscar o município
+        verify(municipioRepository, never()).findById(anyLong());
         verify(terraIndigenaRepository, never()).save(any(TerraIndigena.class));
     }
 
     @Test
     public void deveLancarExcecaoAoEditarComMunicipioInexistente() {
-        TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(1L, "Terra Editada", 99L);
-
+        TerraIndigenaRequestDTO requestDTO = new TerraIndigenaRequestDTO(1L, "Vale Editado", 99L);
         TerraIndigena terraExistente = new TerraIndigena();
         terraExistente.setId(1L);
 
@@ -154,7 +148,6 @@ public class TerraIndigenaServiceTestes {
         verify(terraIndigenaRepository, never()).save(any(TerraIndigena.class));
     }
 
-
     @Test
     public void deveExcluirTerraIndigenaComSucesso() {
         Long id = 1L;
@@ -168,5 +161,18 @@ public class TerraIndigenaServiceTestes {
 
         verify(terraIndigenaRepository, times(1)).findById(id);
         verify(terraIndigenaRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void deveLancarExcecaoAoExcluirTerraIndigenaInexistente() {
+        Long id = 99L;
+        when(terraIndigenaRepository.findById(id)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
+            terraIndigenaService.excluir(id);
+        });
+
+        assertEquals("Id de terra indígena inválido ou não encontrado", erro.getMessage());
+        verify(terraIndigenaRepository, never()).deleteById(anyLong());
     }
 }
