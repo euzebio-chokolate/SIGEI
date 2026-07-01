@@ -28,17 +28,11 @@ public class AldeiaService {
     TerraIndigenaRepository terraIndigenaRepository;
 
     public AldeiaResponseDTO salvar(AldeiaRequestDTO aldeiaRequestDTO) throws DataIntegrityViolationException{
-        Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(aldeiaRequestDTO.terraIndigenaId());
-        if (optionalTerraIndigena.isEmpty()){
-            throw new NoSuchElementException("Terra indígena não encontrada");
-        }
+        TerraIndigena terraIndigena = terraIndigenaRepository.findById(aldeiaRequestDTO.terraIndigenaId())
+                .orElseThrow(() -> new NoSuchElementException("Terra índigena não encontrada"));
 
-        Aldeia aldeia = new Aldeia();
-        aldeia.setNome(aldeiaRequestDTO.nome());
-        aldeia.setTerraIndigena(optionalTerraIndigena.get());
-
-        //Aldeia aldeia = aldeiaMapper.converter(aldeiaRequestDTO);
-
+        Aldeia aldeia = aldeiaMapper.converter(aldeiaRequestDTO);
+        aldeia.setTerraIndigena(terraIndigena);
         Aldeia aldeiaSalva = aldeiaRepository.save(aldeia);
         return aldeiaMapper.converter(aldeiaSalva);
     }
@@ -53,30 +47,27 @@ public class AldeiaService {
         return aldeiaResponseDTOS;
     }
 
-    public AldeiaResponseDTO editar(AldeiaRequestDTO aldeiaDTO){
-        Optional<Aldeia> optionalAldeia = aldeiaRepository.findById(aldeiaDTO.id());
-        if (optionalAldeia.isEmpty()){
-            throw new NoSuchElementException("Id de aldeia inválido ou não encontrado ");
-        }
+    public AldeiaResponseDTO editar(AldeiaRequestDTO aldeiaDTO) {
 
-        Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(aldeiaDTO.terraIndigenaId());
-        if (optionalTerraIndigena.isEmpty()){
-            throw new NoSuchElementException("Id de terra indígena inválido ou não encontrado");
-        }
+        aldeiaRepository.findById(aldeiaDTO.id())
+                .orElseThrow(() -> new NoSuchElementException("Id de aldeia inválido ou não encontrado"));
 
-        Aldeia aldeia = optionalAldeia.get();
-        TerraIndigena terraIndigena = optionalTerraIndigena.get();
+        TerraIndigena terraIndigena = terraIndigenaRepository.findById(aldeiaDTO.terraIndigenaId())
+                .orElseThrow(() -> new NoSuchElementException("Id de terra indígena inválido ou não encontrado"));
 
-        aldeia.setNome(aldeiaDTO.nome());
+        Aldeia aldeia = aldeiaMapper.converter(aldeiaDTO);
+        aldeia.setId(aldeiaDTO.id());
         aldeia.setTerraIndigena(terraIndigena);
-        aldeiaRepository.save(aldeia);
 
         Aldeia aldeiaSalva = aldeiaRepository.save(aldeia);
+
         return aldeiaMapper.converter(aldeiaSalva);
     }
 
-    public void excluir(Long id){
-        Optional<Aldeia> optionalAldeia = aldeiaRepository.findById(id);
+    public void excluir(Long id) {
+        aldeiaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Id de aldeia inválido ou não encontrado"));
+
         aldeiaRepository.deleteById(id);
     }
 }
