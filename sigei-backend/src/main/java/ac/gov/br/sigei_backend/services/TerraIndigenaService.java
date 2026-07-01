@@ -2,6 +2,7 @@ package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.TerraIndigenaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaResponseDTO;
+import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
@@ -27,17 +28,13 @@ public class TerraIndigenaService {
     MunicipioRepository municipioRepository;
 
     public TerraIndigenaResponseDTO salvar(TerraIndigenaRequestDTO terraIndigenaDTO){
-        Optional<Municipio> optionalMunicipio = municipioRepository.findById(terraIndigenaDTO.municipioId());
-        if (optionalMunicipio.isEmpty()){
-            throw new NoSuchElementException("Id de municipio inválido ou não encontrado");
-        }
+        Municipio municipio = municipioRepository.findById(terraIndigenaDTO.municipioId())
+                .orElseThrow(() -> new NoSuchElementException("Municipio não encontrado"));
 
-        TerraIndigena terraIndigena = new TerraIndigena();
-        terraIndigena.setNome(terraIndigenaDTO.nome());
-        terraIndigena.setMunicipio(optionalMunicipio.get());
-
-        TerraIndigena terraIndigenaSalva = terraIndigenaRepository.save(terraIndigena);
-        return terraIndigenaMapper.converter(terraIndigenaSalva);
+        TerraIndigena terraIndigena = terraIndigenaMapper.converter(terraIndigenaDTO);
+        terraIndigena.setMunicipio(municipio);
+        TerraIndigena terraSalva = terraIndigenaRepository.save(terraIndigena);
+        return terraIndigenaMapper.converter(terraSalva);
     }
 
     public List<TerraIndigenaResponseDTO> buscarTudo(){
@@ -51,29 +48,23 @@ public class TerraIndigenaService {
     }
 
     public TerraIndigenaResponseDTO editar(TerraIndigenaRequestDTO terraIndigenaDTO){
-        Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(terraIndigenaDTO.id());
-        if (optionalTerraIndigena.isEmpty()){
-            throw new NoSuchElementException("Id de terra indígena inválido ou não encontrado");
-        }
+        terraIndigenaRepository.findById(terraIndigenaDTO.id())
+                        .orElseThrow(() -> new NoSuchElementException("Id de terra indígena inválido ou não encontrado"));
 
-        Optional<Municipio> optionalMunicipio = municipioRepository.findById(terraIndigenaDTO.municipioId());
-        if (optionalMunicipio.isEmpty()){
-            throw new NoSuchElementException("Id de município inválido ou não encontrado");
-        }
+        Municipio municipio = municipioRepository.findById(terraIndigenaDTO.municipioId())
+                .orElseThrow(() -> new NoSuchElementException("Id de município inválido ou não encontrado"));
 
-        TerraIndigena terraIndigena = optionalTerraIndigena.get();
-        Municipio municipio = optionalMunicipio.get();
-
-        terraIndigena.setNome(terraIndigenaDTO.nome());
+        TerraIndigena terraIndigena = terraIndigenaMapper.converter(terraIndigenaDTO);
+        terraIndigena.setId(terraIndigenaDTO.id());
         terraIndigena.setMunicipio(municipio);
-        terraIndigenaRepository.save(terraIndigena);
 
-        TerraIndigena terraIndigenaSalva = terraIndigenaRepository.save(terraIndigena);
-        return terraIndigenaMapper.converter(terraIndigenaSalva);
+        TerraIndigena TerraSalva = terraIndigenaRepository.save(terraIndigena);
+        return terraIndigenaMapper.converter(TerraSalva);
     }
 
     public void excluir(Long id){
-        Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(id);
+        terraIndigenaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Id de terra indígena inválido ou não encontrado"));
         terraIndigenaRepository.deleteById(id);
     }
 }
