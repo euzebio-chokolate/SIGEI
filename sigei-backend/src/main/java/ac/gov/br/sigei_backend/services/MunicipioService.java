@@ -4,7 +4,7 @@ import ac.gov.br.sigei_backend.DTOs.request.MunicipioRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.MunicipioResponseDTO;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
-import ac.gov.br.sigei_backend.utils.MunicipioMapper;
+import ac.gov.br.sigei_backend.mappers.MunicipioMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 public class MunicipioService {

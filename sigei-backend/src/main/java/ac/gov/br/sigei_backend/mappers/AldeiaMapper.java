@@ -1,4 +1,4 @@
-package ac.gov.br.sigei_backend.utils;
+package ac.gov.br.sigei_backend.mappers;
 
 import ac.gov.br.sigei_backend.DTOs.request.AldeiaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;

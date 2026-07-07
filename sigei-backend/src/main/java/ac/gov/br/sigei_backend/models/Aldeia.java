@@ -2,6 +2,9 @@ package ac.gov.br.sigei_backend.models;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 public class Aldeia {
     @Id
@@ -12,6 +15,14 @@ public class Aldeia {
     @ManyToOne
     @JoinColumn(name = "terra_indigena_id")
     private TerraIndigena terraIndigena;
+
+    @ManyToMany
+    @JoinTable(
+            name = "aldeia_povo",
+            joinColumns = @JoinColumn(name = "aldeia_id"),
+            inverseJoinColumns = @JoinColumn(name = "povo_id")
+    )
+    private List<Povo> povos = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -35,5 +46,13 @@ public class Aldeia {
 
     public void setTerraIndigena(TerraIndigena terraIndigena) {
         this.terraIndigena = terraIndigena;
+    }
+
+    public List<Povo> getPovos() {
+        return povos;
+    }
+
+    public void setPovos(List<Povo> povos) {
+        this.povos = povos;
     }
 }

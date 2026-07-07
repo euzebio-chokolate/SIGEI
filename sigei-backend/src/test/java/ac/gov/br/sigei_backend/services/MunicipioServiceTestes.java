@@ -4,7 +4,7 @@ import ac.gov.br.sigei_backend.DTOs.request.MunicipioRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.MunicipioResponseDTO;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
-import ac.gov.br.sigei_backend.utils.MunicipioMapper;
+import ac.gov.br.sigei_backend.mappers.MunicipioMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

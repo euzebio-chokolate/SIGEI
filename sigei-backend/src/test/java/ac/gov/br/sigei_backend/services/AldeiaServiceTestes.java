@@ -6,7 +6,7 @@ import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
-import ac.gov.br.sigei_backend.utils.AldeiaMapper;
+import ac.gov.br.sigei_backend.mappers.AldeiaMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
