@@ -2,19 +2,17 @@ package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.TerraIndigenaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaResponseDTO;
-import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
-import ac.gov.br.sigei_backend.utils.TerraIndigenaMapper;
+import ac.gov.br.sigei_backend.mappers.TerraIndigenaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 public class TerraIndigenaService {

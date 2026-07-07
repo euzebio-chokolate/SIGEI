@@ -6,7 +6,7 @@ import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
-import ac.gov.br.sigei_backend.utils.AldeiaMapper;
+import ac.gov.br.sigei_backend.mappers.AldeiaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Service
 public class AldeiaService {

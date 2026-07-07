@@ -10,7 +10,7 @@ import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
-import ac.gov.br.sigei_backend.utils.EscolaMapper;
+import ac.gov.br.sigei_backend.mappers.EscolaMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
