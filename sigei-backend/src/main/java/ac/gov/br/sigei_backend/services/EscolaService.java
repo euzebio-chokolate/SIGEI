@@ -38,40 +38,26 @@ public class EscolaService {
     EscolaMapper escolaMapper;
 
     public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{
-        Optional<Municipio> optionalMunicipio = municipioRepository.findById(escolaRequestDTO.municipioId());
-        if (optionalMunicipio.isEmpty()){
-            throw new RuntimeException("Município não encontrado");
-        }
+        Municipio municipio = municipioRepository.findById(escolaRequestDTO.municipioId())
+                .orElseThrow(() -> new NoSuchElementException("Municipio não encontrado"));
 
-        Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(escolaRequestDTO.terraIndigenaId());
-        if (optionalTerraIndigena.isEmpty()){
-            throw new RuntimeException("Terra indígena não encontrada");
-        }
+        TerraIndigena terraIndigena = terraIndigenaRepository.findById(escolaRequestDTO.terraIndigenaId())
+                .orElseThrow(() -> new NoSuchElementException("Terra índigena não encontrada"));
 
-        Optional<Aldeia> optionalAldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId());
-        if (optionalAldeia.isEmpty()){
-            throw new RuntimeException("Aldeia não encontrada");
-        }
+        Aldeia aldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId())
+                .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
-        Escola escolaSede = null;
-        if (escolaRequestDTO.escolaSedeId() != null){
-            Optional<Escola> optionalEscola = escolaRepository.findById(escolaRequestDTO.escolaSedeId());
-            if (optionalEscola.isEmpty()){
-                throw new RuntimeException("Escola sede não encontrada");
-            }
-            escolaSede = optionalEscola.get();
-        }
+        Escola escolaSede = escolaRequestDTO.escolaSedeId() == null
+                ? null
+                : escolaRepository.findById(escolaRequestDTO.escolaSedeId())
+                .orElseThrow(() -> new NoSuchElementException("Escola sede não encontrada"));
 
-        Escola escola = new Escola();
+        Escola escola = escolaMapper.converter(escolaRequestDTO);
 
-        escola.setCodigo(escolaRequestDTO.codigo());
-        escola.setNome(escolaRequestDTO.nome());
-        escola.setTipoUnidade(escolaRequestDTO.tipoUnidade());
-
+        escola.setMunicipio(municipio);
+        escola.setTerraIndigena(terraIndigena);
+        escola.setAldeia(aldeia);
         escola.setEscolaSede(escolaSede);
-        escola.setMunicipio(optionalMunicipio.get());
-        escola.setTerraIndigena(optionalTerraIndigena.get());
-        escola.setAldeia(optionalAldeia.get());
 
         Escola escolaSalva = escolaRepository.save(escola);
         return escolaMapper.converter(escolaSalva);
@@ -89,42 +75,29 @@ public class EscolaService {
     }
 
     public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
-        Optional<Escola> optionalEscola = escolaRepository.findById(escolaDTO.id());
-        if (optionalEscola.isEmpty()){
-            throw new NoSuchElementException("Id de escola inválido ou não encontrado");
-        }
+        Escola escola = escolaRepository.findById(escolaDTO.id())
+                .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
 
-        Optional<Municipio> optionalMunicipio = municipioRepository.findById(escolaDTO.municipioId());
-        if (optionalMunicipio.isEmpty()){
-            throw new NoSuchElementException("Id de município inválido ou não encontrado");
-        }
+        Municipio municipio = municipioRepository.findById(escolaDTO.municipioId())
+                .orElseThrow(() -> new NoSuchElementException("Município não encontrado"));
 
-        Optional<TerraIndigena> optionalTerraIndigena = terraIndigenaRepository.findById(escolaDTO.terraIndigenaId());
-        if (optionalTerraIndigena.isEmpty()){
-            throw new NoSuchElementException("Id de terra indígena inválido ou não encontrado");
-        }
+        TerraIndigena terraIndigena = terraIndigenaRepository.findById(escolaDTO.terraIndigenaId())
+                .orElseThrow(() -> new NoSuchElementException("Terra indígena não encontrada"));
 
-        Optional<Aldeia> optionalAldeia = aldeiaRepository.findById(escolaDTO.aldeiaId());
-        if (optionalAldeia.isEmpty()){
-            throw new NoSuchElementException("Id de aldeia inválido ou não encontrado");
-        }
+        Aldeia aldeia = aldeiaRepository.findById(escolaDTO.aldeiaId())
+                .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
-        Escola escolaSede = null;
-        if (escolaDTO.escolaSedeId() != null){
-            escolaSede = escolaRepository.findById(escolaDTO.escolaSedeId()).orElseThrow(() -> new NoSuchElementException("Id de escola sede inválido"));
-        }
+        Escola escolaSede = escolaDTO.escolaSedeId() == null
+                ? null
+                : escolaRepository.findById(escolaDTO.escolaSedeId())
+                .orElseThrow(() -> new NoSuchElementException("Escola sede não encontrada"));
 
-        Escola escola = optionalEscola.get();
-        Municipio municipio = optionalMunicipio.get();
-        TerraIndigena terraIndigena = optionalTerraIndigena.get();
-        Aldeia aldeia = optionalAldeia.get();
+        escolaMapper.atualizar(escolaDTO, escola);
 
-        escola.setCodigo(escolaDTO.codigo());
-        escola.setNome(escolaDTO.nome());
-        escola.setEscolaSede(escolaSede);
         escola.setMunicipio(municipio);
         escola.setTerraIndigena(terraIndigena);
         escola.setAldeia(aldeia);
+        escola.setEscolaSede(escolaSede);
 
         Escola escolaSalva = escolaRepository.save(escola);
 
@@ -132,8 +105,9 @@ public class EscolaService {
     }
 
     public void excluir(Long id){
-        if (!escolaRepository.existsById(id))
-            throw new NoSuchElementException("Escola não encontrada");
+        escolaRepository.findById(id)
+                        .orElseThrow(() -> new NoSuchElementException("Id de escola inválido ou não encontrado"));
+
         escolaRepository.deleteById(id);
     }
 }
