@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,88 +32,100 @@ public class MunicipioServiceTestes {
     MunicipioService municipioService;
 
     @Test
-    public void deveSalvarMunicipio() {
+    public void deveSalvarMunicipioComSucesso() {
         MunicipioRequestDTO requestDTO = new MunicipioRequestDTO(null, "Rio Branco");
+        Municipio municipioConvertido = new Municipio();
+        MunicipioResponseDTO responseMock = mock(MunicipioResponseDTO.class);
 
-        Municipio municipioFake = new Municipio();
-        municipioFake.setNome("Rio Branco");
-
-        MunicipioResponseDTO responseDTO = new MunicipioResponseDTO(1L, "Rio Branco");
-
-        when(municipioMapper.converter(requestDTO)).thenReturn(municipioFake);
-        when(municipioRepository.save(any(Municipio.class))).thenReturn(municipioFake);
-        when(municipioMapper.converter(municipioFake)).thenReturn(responseDTO);
-
-        assertDoesNotThrow(() -> municipioService.salvar(requestDTO));
+        when(municipioMapper.converter(requestDTO)).thenReturn(municipioConvertido);
+        when(municipioRepository.save(any(Municipio.class))).thenReturn(municipioConvertido);
+        lenient().when(municipioMapper.converter(any(Municipio.class))).thenReturn(responseMock);
 
         MunicipioResponseDTO resultado = municipioService.salvar(requestDTO);
-        assertNotNull(resultado);
-        assertEquals("Rio Branco", resultado.nome()); // Acessando o valor no record
 
-        verify(municipioRepository, times(2)).save(municipioFake);
+        assertNotNull(resultado);
+        verify(municipioRepository, times(1)).save(municipioConvertido);
     }
 
     @Test
     public void deveBuscarTodosOsMunicipios() {
-        Municipio municipio1 = new Municipio();
-        municipio1.setId(1L);
-        municipio1.setNome("Rio Branco");
+        List<Municipio> lista = new ArrayList<>();
+        lista.add(new Municipio());
+        lista.add(new Municipio());
 
-        Municipio municipio2 = new Municipio();
-        municipio2.setId(2L);
-        municipio2.setNome("Cruzeiro do Sul");
+        MunicipioResponseDTO responseMock = mock(MunicipioResponseDTO.class);
 
-        List<Municipio> listaMunicipios = new ArrayList<>();
-        listaMunicipios.add(municipio1);
-        listaMunicipios.add(municipio2);
-
-        MunicipioResponseDTO responseDTO1 = new MunicipioResponseDTO(1L, "Rio Branco");
-        MunicipioResponseDTO responseDTO2 = new MunicipioResponseDTO(2L, "Cruzeiro do Sul");
-
-        when(municipioRepository.findAll()).thenReturn(listaMunicipios);
-        when(municipioMapper.converter(municipio1)).thenReturn(responseDTO1);
-        when(municipioMapper.converter(municipio2)).thenReturn(responseDTO2);
+        when(municipioRepository.findAll()).thenReturn(lista);
+        lenient().when(municipioMapper.converter(any(Municipio.class))).thenReturn(responseMock);
 
         List<MunicipioResponseDTO> resultado = municipioService.buscarTodos();
 
         assertNotNull(resultado);
         assertEquals(2, resultado.size());
         verify(municipioRepository, times(1)).findAll();
+        verify(municipioMapper, times(2)).converter(any(Municipio.class));
     }
 
     @Test
-    public void deveEditarMunicipio() {
+    public void deveEditarMunicipioComSucesso() {
         MunicipioRequestDTO requestDTO = new MunicipioRequestDTO(1L, "Rio Branco Editado");
 
-        Municipio municipioFake = new Municipio();
-        municipioFake.setId(1L);
-        municipioFake.setNome("Rio Branco Editado");
+        Municipio municipioExistente = new Municipio();
+        municipioExistente.setId(1L);
 
-        MunicipioResponseDTO responseDTO = new MunicipioResponseDTO(1L, "Rio Branco Editado");
+        Municipio municipioConvertido = new Municipio();
+        MunicipioResponseDTO responseMock = mock(MunicipioResponseDTO.class);
 
-        when(municipioMapper.converter(requestDTO)).thenReturn(municipioFake);
-        when(municipioRepository.save(any(Municipio.class))).thenReturn(municipioFake);
-        when(municipioMapper.converter(municipioFake)).thenReturn(responseDTO);
+        when(municipioRepository.findById(1L)).thenReturn(Optional.of(municipioExistente));
+        when(municipioMapper.converter(requestDTO)).thenReturn(municipioConvertido);
+        when(municipioRepository.save(any(Municipio.class))).thenReturn(municipioConvertido);
+        lenient().when(municipioMapper.converter(any(Municipio.class))).thenReturn(responseMock);
 
         MunicipioResponseDTO resultado = municipioService.editar(requestDTO);
 
         assertNotNull(resultado);
-        assertEquals("Rio Branco Editado", resultado.nome());
-        verify(municipioRepository, times(1)).save(municipioFake);
+        verify(municipioRepository, times(1)).findById(1L);
+        verify(municipioRepository, times(1)).save(municipioConvertido);
     }
 
     @Test
-    public void deveExcluirMunicipio() {
-        Long idParaDeletar = 1L;
-        Municipio municipioFake = new Municipio();
-        municipioFake.setId(idParaDeletar);
+    public void deveLancarExcecaoAoEditarMunicipioInexistente() {
+        MunicipioRequestDTO requestDTO = new MunicipioRequestDTO(99L, "Rio Branco");
+        when(municipioRepository.findById(99L)).thenReturn(Optional.empty());
 
-        when(municipioRepository.findById(idParaDeletar)).thenReturn(Optional.of(municipioFake));
-        doNothing().when(municipioRepository).deleteById(idParaDeletar);
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
+            municipioService.editar(requestDTO);
+        });
 
-        assertDoesNotThrow(() -> municipioService.excluir(idParaDeletar));
+        assertEquals("Id de municipio inválido ou não encontrado", erro.getMessage());
+        verify(municipioRepository, never()).save(any(Municipio.class));
+    }
 
-        verify(municipioRepository, times(1)).findById(idParaDeletar);
-        verify(municipioRepository, times(1)).deleteById(idParaDeletar);
+    @Test
+    public void deveExcluirMunicipioComSucesso() {
+        Long id = 1L;
+        Municipio municipio = new Municipio();
+        municipio.setId(id);
+
+        when(municipioRepository.findById(id)).thenReturn(Optional.of(municipio));
+        doNothing().when(municipioRepository).deleteById(id);
+
+        assertDoesNotThrow(() -> municipioService.excluir(id));
+
+        verify(municipioRepository, times(1)).findById(id);
+        verify(municipioRepository, times(1)).deleteById(id);
+    }
+
+    @Test
+    public void deveLancarExcecaoAoExcluirMunicipioInexistente() {
+        Long id = 99L;
+        when(municipioRepository.findById(id)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
+            municipioService.excluir(id);
+        });
+
+        assertEquals("Id de municipio inválido ou não encontrado", erro.getMessage());
+        verify(municipioRepository, never()).deleteById(anyLong());
     }
 }

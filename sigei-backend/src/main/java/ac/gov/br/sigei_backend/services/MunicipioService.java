@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -40,13 +41,17 @@ public class MunicipioService {
     }
 
     public MunicipioResponseDTO editar(MunicipioRequestDTO municipioDTO){
+        municipioRepository.findById(municipioDTO.id())
+                .orElseThrow(() -> new NoSuchElementException("Id de municipio inválido ou não encontrado"));
+
         Municipio municipio = municipioMapper.converter(municipioDTO);
         municipioRepository.save(municipio);
         return municipioMapper.converter(municipio);
     }
 
     public void excluir(Long id){
-        Optional<Municipio> optionalMunicipio = municipioRepository.findById(id);
+        Municipio municipio = municipioRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Id de municipio inválido ou não encontrado"));
         municipioRepository.deleteById(id);
     }
 
