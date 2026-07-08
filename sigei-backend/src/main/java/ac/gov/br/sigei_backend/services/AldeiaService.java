@@ -3,8 +3,10 @@ package ac.gov.br.sigei_backend.services;
 import ac.gov.br.sigei_backend.DTOs.request.AldeiaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
 import ac.gov.br.sigei_backend.models.Aldeia;
+import ac.gov.br.sigei_backend.models.Povo;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
+import ac.gov.br.sigei_backend.repository.PovoRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
 import ac.gov.br.sigei_backend.mappers.AldeiaMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,13 +28,24 @@ public class AldeiaService {
     @Autowired
     TerraIndigenaRepository terraIndigenaRepository;
 
-    public AldeiaResponseDTO salvar(AldeiaRequestDTO aldeiaRequestDTO) throws DataIntegrityViolationException{
-        TerraIndigena terraIndigena = terraIndigenaRepository.findById(aldeiaRequestDTO.terraIndigenaId())
-                .orElseThrow(() -> new NoSuchElementException("Terra índigena não encontrada"));
+    @Autowired
+    PovoRepository povoRepository;
 
-        Aldeia aldeia = aldeiaMapper.converter(aldeiaRequestDTO);
+    public AldeiaResponseDTO salvar(AldeiaRequestDTO dto) throws DataIntegrityViolationException {
+
+        TerraIndigena terraIndigena = terraIndigenaRepository.findById(dto.terraIndigenaId())
+                .orElseThrow(() -> new NoSuchElementException("Terra indígena não encontrada"));
+
+        Povo povo = povoRepository.findById(dto.povoId())
+                .orElseThrow(() -> new NoSuchElementException("Povo não encontrado"));
+
+        Aldeia aldeia = aldeiaMapper.converter(dto);
+
         aldeia.setTerraIndigena(terraIndigena);
+        aldeia.setPovo(povo);
+
         Aldeia aldeiaSalva = aldeiaRepository.save(aldeia);
+
         return aldeiaMapper.converter(aldeiaSalva);
     }
 
@@ -46,17 +59,22 @@ public class AldeiaService {
         return aldeiaResponseDTOS;
     }
 
-    public AldeiaResponseDTO editar(AldeiaRequestDTO aldeiaDTO) {
+    public AldeiaResponseDTO editar(AldeiaRequestDTO dto) {
 
-        aldeiaRepository.findById(aldeiaDTO.id())
-                .orElseThrow(() -> new NoSuchElementException("Id de aldeia inválido ou não encontrado"));
+        aldeiaRepository.findById(dto.id())
+                .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
-        TerraIndigena terraIndigena = terraIndigenaRepository.findById(aldeiaDTO.terraIndigenaId())
-                .orElseThrow(() -> new NoSuchElementException("Id de terra indígena inválido ou não encontrado"));
+        TerraIndigena terraIndigena = terraIndigenaRepository.findById(dto.terraIndigenaId())
+                .orElseThrow(() -> new NoSuchElementException("Terra indígena não encontrada"));
 
-        Aldeia aldeia = aldeiaMapper.converter(aldeiaDTO);
-        aldeia.setId(aldeiaDTO.id());
+        Povo povo = povoRepository.findById(dto.povoId())
+                .orElseThrow(() -> new NoSuchElementException("Povo não encontrado"));
+
+        Aldeia aldeia = aldeiaMapper.converter(dto);
+
+        aldeia.setId(dto.id());
         aldeia.setTerraIndigena(terraIndigena);
+        aldeia.setPovo(povo);
 
         Aldeia aldeiaSalva = aldeiaRepository.save(aldeia);
 
