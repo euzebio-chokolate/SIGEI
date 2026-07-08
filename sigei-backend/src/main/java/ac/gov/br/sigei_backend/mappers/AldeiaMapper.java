@@ -2,16 +2,25 @@ package ac.gov.br.sigei_backend.mappers;
 
 import ac.gov.br.sigei_backend.DTOs.request.AldeiaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
+import ac.gov.br.sigei_backend.DTOs.response.resumo.AldeiaResumoDTO;
 import ac.gov.br.sigei_backend.models.Aldeia;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring",
-        uses = {TerraIndigenaMapper.class}
+@Mapper(
+        componentModel = "spring",
+        uses = {
+                TerraIndigenaMapper.class,
+                PovoMapper.class
+        }
 )
 public interface AldeiaMapper {
-    public AldeiaResponseDTO converter(Aldeia aldeia);
+
+    AldeiaResponseDTO converter(Aldeia aldeia);
+
+    AldeiaResumoDTO converterResumo(Aldeia aldeia);
 
     @Mapping(target = "terraIndigena", ignore = true)
-    public Aldeia converter(AldeiaRequestDTO aldeiaRequestDTO);
+    @Mapping(target = "povo", ignore = true)
+    Aldeia converter(AldeiaRequestDTO dto);
 }

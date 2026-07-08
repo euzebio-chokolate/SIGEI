@@ -7,13 +7,14 @@ import java.util.List;
 
 @Entity
 public class Povo {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nome;
 
-    @ManyToMany(mappedBy = "povos")
+    @OneToMany(mappedBy = "povo")
     private List<Aldeia> aldeias = new ArrayList<>();
 
     public Long getId() {

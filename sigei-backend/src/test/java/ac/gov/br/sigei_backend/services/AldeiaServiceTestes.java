@@ -2,11 +2,13 @@ package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.AldeiaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
+import ac.gov.br.sigei_backend.mappers.AldeiaMapper;
 import ac.gov.br.sigei_backend.models.Aldeia;
+import ac.gov.br.sigei_backend.models.Povo;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
+import ac.gov.br.sigei_backend.repository.PovoRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
-import ac.gov.br.sigei_backend.mappers.AldeiaMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,17 +33,23 @@ public class AldeiaServiceTestes {
     TerraIndigenaRepository terraIndigenaRepository;
 
     @Mock
+    PovoRepository povoRepository;
+
+    @Mock
     AldeiaMapper aldeiaMapper;
 
     @InjectMocks
     AldeiaService aldeiaService;
 
-
     @Test
     public void deveSalvarAldeiaComSucesso() {
-        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(null, "Aldeia Nova", 1L);
+        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(null, "Aldeia Nova", 1L, 2L);
+
         TerraIndigena terra = new TerraIndigena();
         terra.setId(1L);
+
+        Povo povo = new Povo();
+        povo.setId(2L);
 
         Aldeia aldeiaConvertida = new Aldeia();
         aldeiaConvertida.setNome("Aldeia Nova");
@@ -49,38 +57,50 @@ public class AldeiaServiceTestes {
         Aldeia aldeiaSalva = new Aldeia();
         aldeiaSalva.setId(1L);
         aldeiaSalva.setNome("Aldeia Nova");
-        aldeiaSalva.setTerraIndigena(terra);
 
         AldeiaResponseDTO responseMock = mock(AldeiaResponseDTO.class);
 
         when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terra));
-
+        when(povoRepository.findById(2L)).thenReturn(Optional.of(povo));
         when(aldeiaMapper.converter(requestDTO)).thenReturn(aldeiaConvertida);
-
         when(aldeiaRepository.save(any(Aldeia.class))).thenReturn(aldeiaSalva);
-
         lenient().when(aldeiaMapper.converter(aldeiaSalva)).thenReturn(responseMock);
 
         AldeiaResponseDTO resultado = aldeiaService.salvar(requestDTO);
 
         assertNotNull(resultado);
         verify(terraIndigenaRepository, times(1)).findById(1L);
+        verify(povoRepository, times(1)).findById(2L);
         verify(aldeiaRepository, times(1)).save(aldeiaConvertida);
     }
 
     @Test
     public void deveLancarExcecaoAoSalvarComTerraIndigenaInvalida() {
-        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(null, "Aldeia Nova", 99L);
+        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(null, "Aldeia Nova", 99L, 2L);
         when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
-            aldeiaService.salvar(requestDTO);
-        });
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.salvar(requestDTO));
 
-        assertEquals("Terra índigena não encontrada", erro.getMessage());
+        assertEquals("Terra indígena não encontrada", erro.getMessage());
+        verify(povoRepository, never()).findById(anyLong());
         verify(aldeiaRepository, never()).save(any(Aldeia.class));
     }
 
+    @Test
+    public void deveLancarExcecaoAoSalvarComPovoInvalido() {
+        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(null, "Aldeia Nova", 1L, 99L);
+
+        TerraIndigena terra = new TerraIndigena();
+        terra.setId(1L);
+
+        when(terraIndigenaRepository.findById(1L)).thenReturn(Optional.of(terra));
+        when(povoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.salvar(requestDTO));
+
+        assertEquals("Povo não encontrado", erro.getMessage());
+        verify(aldeiaRepository, never()).save(any(Aldeia.class));
+    }
 
     @Test
     public void deveBuscarTodasAsAldeias() {
@@ -101,10 +121,9 @@ public class AldeiaServiceTestes {
         verify(aldeiaMapper, times(2)).converter(any(Aldeia.class));
     }
 
-
     @Test
     public void deveEditarAldeiaComSucesso() {
-        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(1L, "Aldeia Editada", 2L);
+        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(1L, "Aldeia Editada", 2L, 3L);
 
         Aldeia aldeiaExistente = new Aldeia();
         aldeiaExistente.setId(1L);
@@ -112,13 +131,15 @@ public class AldeiaServiceTestes {
         TerraIndigena terraNova = new TerraIndigena();
         terraNova.setId(2L);
 
-        Aldeia aldeiaConvertida = new Aldeia();
-        aldeiaConvertida.setNome("Aldeia Editada");
+        Povo povoNovo = new Povo();
+        povoNovo.setId(3L);
 
+        Aldeia aldeiaConvertida = new Aldeia();
         AldeiaResponseDTO responseMock = mock(AldeiaResponseDTO.class);
 
         when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeiaExistente));
         when(terraIndigenaRepository.findById(2L)).thenReturn(Optional.of(terraNova));
+        when(povoRepository.findById(3L)).thenReturn(Optional.of(povoNovo));
 
         when(aldeiaMapper.converter(requestDTO)).thenReturn(aldeiaConvertida);
         when(aldeiaRepository.save(any(Aldeia.class))).thenReturn(aldeiaConvertida);
@@ -130,40 +151,59 @@ public class AldeiaServiceTestes {
         assertNotNull(resultado);
         verify(aldeiaRepository, times(1)).findById(1L);
         verify(terraIndigenaRepository, times(1)).findById(2L);
+        verify(povoRepository, times(1)).findById(3L);
         verify(aldeiaRepository, times(1)).save(aldeiaConvertida);
     }
 
     @Test
     public void deveLancarExcecaoAoEditarAldeiaInexistente() {
-        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(99L, "Aldeia Editada", 1L);
+        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(99L, "Aldeia Editada", 1L, 2L);
         when(aldeiaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
-            aldeiaService.editar(requestDTO);
-        });
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO));
 
-        assertEquals("Id de aldeia inválido ou não encontrado", erro.getMessage());
+        assertEquals("Aldeia não encontrada", erro.getMessage());
         verify(terraIndigenaRepository, never()).findById(anyLong());
+        verify(povoRepository, never()).findById(anyLong());
         verify(aldeiaRepository, never()).save(any(Aldeia.class));
     }
 
     @Test
     public void deveLancarExcecaoAoEditarComTerraIndigenaInexistente() {
-        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(1L, "Aldeia Editada", 99L);
+        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(1L, "Aldeia Editada", 99L, 2L);
+
         Aldeia aldeiaExistente = new Aldeia();
         aldeiaExistente.setId(1L);
 
         when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeiaExistente));
         when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
-            aldeiaService.editar(requestDTO);
-        });
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO));
 
-        assertEquals("Id de terra indígena inválido ou não encontrado", erro.getMessage());
+        assertEquals("Terra indígena não encontrada", erro.getMessage());
+        verify(povoRepository, never()).findById(anyLong());
         verify(aldeiaRepository, never()).save(any(Aldeia.class));
     }
 
+    @Test
+    public void deveLancarExcecaoAoEditarComPovoInexistente() {
+        AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(1L, "Aldeia Editada", 2L, 99L);
+
+        Aldeia aldeiaExistente = new Aldeia();
+        aldeiaExistente.setId(1L);
+
+        TerraIndigena terraNova = new TerraIndigena();
+        terraNova.setId(2L);
+
+        when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeiaExistente));
+        when(terraIndigenaRepository.findById(2L)).thenReturn(Optional.of(terraNova));
+        when(povoRepository.findById(99L)).thenReturn(Optional.empty());
+
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO));
+
+        assertEquals("Povo não encontrado", erro.getMessage());
+        verify(aldeiaRepository, never()).save(any(Aldeia.class));
+    }
 
     @Test
     public void deveExcluirAldeiaComSucesso() {
@@ -183,12 +223,9 @@ public class AldeiaServiceTestes {
     @Test
     public void deveLancarExcecaoAoExcluirAldeiaInexistente() {
         Long id = 99L;
-
         when(aldeiaRepository.findById(id)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
-            aldeiaService.excluir(id);
-        });
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.excluir(id));
 
         assertEquals("Id de aldeia inválido ou não encontrado", erro.getMessage());
         verify(aldeiaRepository, never()).deleteById(anyLong());
