@@ -86,6 +86,7 @@ public class RegistroAnualServiceTestes {
         assertNotNull(resultado);
         assertEquals(2, resultado.size());
         verify(registroAnualRepository, times(1)).findAll();
+        verify(registroAnualMapper, times(2)).converter(any(RegistroAnual.class));
     }
 
     @Test
