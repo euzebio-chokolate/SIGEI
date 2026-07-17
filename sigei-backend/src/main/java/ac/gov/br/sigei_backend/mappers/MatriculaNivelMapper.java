@@ -13,12 +13,12 @@ import org.mapstruct.MappingTarget;
 )
 public interface MatriculaNivelMapper {
 
-    MatriculaNivelResponseDTO converter(MatriculaNivel matricula);
+    MatriculaNivelResponseDTO converter(MatriculaNivel matriculaNivel);
 
     @Mapping(target = "registro", ignore = true)
     MatriculaNivel converter(MatriculaNivelRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "registro", ignore = true)
-    void atualizar(MatriculaNivelRequestDTO dto, @MappingTarget MatriculaNivel matricula);
+    void atualizar(MatriculaNivelRequestDTO dto, @MappingTarget MatriculaNivel matriculaNivel);
 }

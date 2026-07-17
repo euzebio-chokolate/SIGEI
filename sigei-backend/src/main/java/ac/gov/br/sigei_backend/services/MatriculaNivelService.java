@@ -20,45 +20,45 @@ public class MatriculaNivelService {
     RegistroAnualRepository registroRepository;
 
     @Autowired
-    MatriculaNivelRepository matriculaRepository;
+    MatriculaNivelRepository matriculaNivelRepository;
 
     @Autowired
-    MatriculaNivelMapper matriculaMapper;
+    MatriculaNivelMapper matriculaNivelMapper;
 
-    public MatriculaNivelResponseDTO salvar(MatriculaNivelRequestDTO dto) {
+    public MatriculaNivelResponseDTO salvar(MatriculaNivelRequestDTO matriculaNivelDTO) {
 
-        RegistroAnual registro = registroRepository.findById(dto.registroId())
+        RegistroAnual registro = registroRepository.findById(matriculaNivelDTO.registroId())
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
-        MatriculaNivel matricula = matriculaMapper.converter(dto);
+        MatriculaNivel matricula = matriculaNivelMapper.converter(matriculaNivelDTO);
         matricula.setRegistro(registro);
-        MatriculaNivel matriculaSalva = matriculaRepository.save(matricula);
+        MatriculaNivel matriculaSalva = matriculaNivelRepository.save(matricula);
 
-        return matriculaMapper.converter(matriculaSalva);
+        return matriculaNivelMapper.converter(matriculaSalva);
     }
 
     public List<MatriculaNivelResponseDTO> buscarTudo() {
-        return matriculaRepository.findAll().stream().map(matriculaMapper::converter).toList();
+        return matriculaNivelRepository.findAll().stream().map(matriculaNivelMapper::converter).toList();
     }
 
-    public MatriculaNivelResponseDTO editar(MatriculaNivelRequestDTO dto) {
+    public MatriculaNivelResponseDTO editar(MatriculaNivelRequestDTO matriculaNivelDTO) {
 
-        MatriculaNivel matricula = matriculaRepository.findById(dto.id())
+        MatriculaNivel matricula = matriculaNivelRepository.findById(matriculaNivelDTO.id())
                 .orElseThrow(() -> new NoSuchElementException("Matrícula não encontrada"));
 
-        RegistroAnual registro = registroRepository.findById(dto.registroId())
+        RegistroAnual registro = registroRepository.findById(matriculaNivelDTO.registroId())
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
-        matriculaMapper.atualizar(dto, matricula);
+        matriculaNivelMapper.atualizar(matriculaNivelDTO, matricula);
         matricula.setRegistro(registro);
-        MatriculaNivel matriculaSalva = matriculaRepository.save(matricula);
-        return matriculaMapper.converter(matriculaSalva);
+        MatriculaNivel matriculaSalva = matriculaNivelRepository.save(matricula);
+        return matriculaNivelMapper.converter(matriculaSalva);
     }
 
     public void excluir(Long id) {
-        matriculaRepository.findById(id)
+        matriculaNivelRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Matrícula não encontrada"));
 
-        matriculaRepository.deleteById(id);
+        matriculaNivelRepository.deleteById(id);
     }
 }
