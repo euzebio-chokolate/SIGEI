@@ -58,5 +58,5 @@
 
 * **Visualizar logs de um serviço específico:**
   ```powershell
-  docker compose logs -f <nome_do_servico_no_yml>
+  docker compose logs -f <postgres>
   ```
