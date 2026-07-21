@@ -10,14 +10,11 @@ import org.mapstruct.Mapping;
 @Mapper(
         componentModel = "spring",
         uses = {
-                TerraIndigenaMapper.class,
-                PovoMapper.class
+                TerraIndigenaMapper.class
         }
 )
 public interface AldeiaMapper {
-
     AldeiaResponseDTO converter(Aldeia aldeia);
-
     AldeiaResumoDTO converterResumo(Aldeia aldeia);
 
     @Mapping(target = "terraIndigena", ignore = true)
