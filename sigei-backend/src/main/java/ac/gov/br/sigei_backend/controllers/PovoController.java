@@ -7,10 +7,9 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/povo")
@@ -23,5 +22,24 @@ public class PovoController {
         PovoResponseDTO povoResponseDTO = povoService.salvar(povoDTO);
         return new ResponseEntity<PovoResponseDTO>(povoResponseDTO, HttpStatus.CREATED);
     }
+
+    @GetMapping("")
+    public ResponseEntity buscarTudo(){
+        List<PovoResponseDTO> povos = povoService.buscarTudo();
+        return new ResponseEntity<List<PovoResponseDTO>>(povos, HttpStatus.OK);
+    }
+
+    @PutMapping("/editar")
+    public ResponseEntity<PovoResponseDTO> editar(@RequestBody PovoRequestDTO povoDTO){
+        PovoResponseDTO povoResponseDTO = povoService.editar(povoDTO);
+        return new ResponseEntity<PovoResponseDTO>(povoResponseDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/exluir/{id}")
+    public ResponseEntity<?> excluir(@PathVariable Long id){
+        povoService.excluir(id);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
 
 }

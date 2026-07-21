@@ -29,7 +29,7 @@ public class EscolaController {
     }
 
     @GetMapping("")
-    public ResponseEntity<List<EscolaResponseDTO>> buscar(){
+    public ResponseEntity<List<EscolaResponseDTO>> buscarTudo(){
         List<EscolaResponseDTO> escolas = escolaService.buscarTudo();
         return new ResponseEntity<List<EscolaResponseDTO>>(escolas, HttpStatus.OK);
     }
