@@ -36,7 +36,7 @@ public class AldeiaController {
         return new ResponseEntity<AldeiaResponseDTO>(aldeiaResponseDTO, HttpStatus.OK);
     }
 
-    @DeleteMapping("/exluir/{id}")
+    @DeleteMapping("/excluir/{id}")
     public ResponseEntity<?> excluir(@PathVariable Long id){
         aldeiaService.excluir(id);
         return new ResponseEntity<>(HttpStatus.OK);
