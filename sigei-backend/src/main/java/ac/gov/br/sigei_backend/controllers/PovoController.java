@@ -35,7 +35,7 @@ public class PovoController {
         return new ResponseEntity<PovoResponseDTO>(povoResponseDTO, HttpStatus.OK);
     }
 
-    @DeleteMapping("/exluir/{id}")
+    @DeleteMapping("/excluir/{id}")
     public ResponseEntity<?> excluir(@PathVariable Long id){
         povoService.excluir(id);
         return new ResponseEntity<>(HttpStatus.OK);

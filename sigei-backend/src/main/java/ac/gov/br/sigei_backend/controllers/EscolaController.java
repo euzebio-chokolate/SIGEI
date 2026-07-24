@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/escolas")
+@RequestMapping("/escola")
 public class EscolaController {
     @Autowired
     EscolaService escolaService;
@@ -40,7 +40,7 @@ public class EscolaController {
         return new ResponseEntity<EscolaResponseDTO>(escolaResponseDTO, HttpStatus.OK);
     }
 
-    @DeleteMapping("/exluir/{id}")
+    @DeleteMapping("/excluir/{id}")
     public ResponseEntity<?> excluir(@PathVariable Long id){
         escolaService.excluir(id);
         return new ResponseEntity<>(HttpStatus.OK);
