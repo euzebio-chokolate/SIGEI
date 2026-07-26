@@ -66,8 +66,6 @@ public class MatriculaSerieRepositoryTestes {
         escola.setCodigo("112233");
         escola.setNome("Escola Indígena Apolima");
         escola.setTipoUnidade("Polo");
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terra);
         escola.setAldeia(aldeia);
         escolaRepository.save(escola);
 
@@ -102,7 +100,6 @@ public class MatriculaSerieRepositoryTestes {
         escola.setCodigo("445566");
         escola.setNome("Escola Capixaba");
         escola.setTipoUnidade("Anexo");
-        escola.setMunicipio(municipio);
         escolaRepository.save(escola);
 
         RegistroAnual registro = new RegistroAnual();

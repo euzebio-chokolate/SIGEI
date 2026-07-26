@@ -66,8 +66,6 @@ public class MatriculaNivelRepositoryTestes {
         escola.setCodigo("102030");
         escola.setNome("Escola Indígena Nawa");
         escola.setTipoUnidade("Polo");
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terra);
         escola.setAldeia(aldeia);
         escolaRepository.save(escola);
 
@@ -102,7 +100,6 @@ public class MatriculaNivelRepositoryTestes {
         escola.setCodigo("405060");
         escola.setNome("Escola Acrelândia");
         escola.setTipoUnidade("Anexo");
-        escola.setMunicipio(municipio);
         escolaRepository.save(escola);
 
         RegistroAnual registro = new RegistroAnual();

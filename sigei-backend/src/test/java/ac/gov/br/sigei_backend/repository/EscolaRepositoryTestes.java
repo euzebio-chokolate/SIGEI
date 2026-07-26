@@ -48,9 +48,7 @@ public class EscolaRepositoryTestes {
         Escola escola = new Escola();
         escola.setCodigo("123456");
         escola.setNome("Escola Indígena Modelo");
-        escola.setTipoUnidade("Polo");
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terra);
+        escola.setTipoUnidade("Polo");;
         escola.setAldeia(aldeia);
 
         escolaRepository.save(escola);
@@ -58,8 +56,6 @@ public class EscolaRepositoryTestes {
         assertNotNull(escola.getId());
         assertEquals("123456", escola.getCodigo());
         assertEquals("Escola Indígena Modelo", escola.getNome());
-        assertNotNull(escola.getMunicipio());
-        assertNotNull(escola.getTerraIndigena());
     }
 
     @Test
@@ -72,7 +68,6 @@ public class EscolaRepositoryTestes {
         escola.setCodigo("987654");
         escola.setNome("Escola Nova Esperança");
         escola.setTipoUnidade("Anexo");
-        escola.setMunicipio(municipio);
         escolaRepository.save(escola);
 
         Optional<Escola> escolaBuscada = escolaRepository.findEscolaByCodigo("987654");
@@ -92,7 +87,6 @@ public class EscolaRepositoryTestes {
         escola.setCodigo("111222");
         escola.setNome("Escola Central");
         escola.setTipoUnidade("Sede");
-        escola.setMunicipio(municipio);
         escolaRepository.save(escola);
 
         Optional<Escola> escolaBuscada = escolaRepository.findById(escola.getId());

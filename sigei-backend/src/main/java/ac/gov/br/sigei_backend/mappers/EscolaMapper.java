@@ -16,14 +16,10 @@ import org.mapstruct.MappingTarget;
 public interface EscolaMapper {
     public EscolaResponseDTO converter(Escola escola);
 
-    @Mapping(target = "municipio", ignore = true)
-    @Mapping(target = "terraIndigena", ignore = true)
     @Mapping(target = "aldeia", ignore = true)
     @Mapping(target = "escolaSede", ignore = true)
     Escola converter(EscolaRequestDTO dto);
 
-    @Mapping(target = "municipio", ignore = true)
-    @Mapping(target = "terraIndigena", ignore = true)
     @Mapping(target = "aldeia", ignore = true)
     @Mapping(target = "escolaSede", ignore = true)
     public void atualizar(EscolaRequestDTO dto, @MappingTarget Escola escola);

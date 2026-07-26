@@ -62,8 +62,6 @@ public class RegistroAnualRepositoryTestes {
         escola.setCodigo("554433");
         escola.setNome("Escola Nukini");
         escola.setTipoUnidade("Polo");
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terra);
         escola.setAldeia(aldeia);
         escolaRepository.save(escola);
 
@@ -91,7 +89,6 @@ public class RegistroAnualRepositoryTestes {
         escola.setCodigo("998877");
         escola.setNome("Escola Santa Rosa");
         escola.setTipoUnidade("Anexo");
-        escola.setMunicipio(municipio);
         escolaRepository.save(escola);
 
         RegistroAnual registro = new RegistroAnual();

@@ -17,12 +17,6 @@ public record EscolaRequestDTO(
 
         Long escolaSedeId,
 
-        @NotNull(message = "O município é obrigatório!")
-        Long municipioId,
-
-        @NotNull(message = "A terra indígena é obrigatória!")
-        Long terraIndigenaId,
-
         @NotNull(message = "A aldeia é obrigatória!")
         Long aldeiaId
         ) {
