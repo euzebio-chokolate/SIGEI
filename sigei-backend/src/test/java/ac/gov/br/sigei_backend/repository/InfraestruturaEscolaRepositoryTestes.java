@@ -62,8 +62,6 @@ public class InfraestruturaEscolaRepositoryTestes {
         escola.setCodigo("999888");
         escola.setNome("Escola Yawanawá");
         escola.setTipoUnidade("Polo");
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terra);
         escola.setAldeia(aldeia);
         escolaRepository.save(escola);
 
@@ -100,7 +98,6 @@ public class InfraestruturaEscolaRepositoryTestes {
         escola.setCodigo("111333");
         escola.setNome("Escola Feijó");
         escola.setTipoUnidade("Sede");
-        escola.setMunicipio(municipio);
         escolaRepository.save(escola);
 
         InfraestruturaEscola infra = new InfraestruturaEscola();

@@ -68,8 +68,6 @@ public class AnexoRepositoryTestes {
         escolaSede.setCodigo("111111");
         escolaSede.setNome("Escola Sede");
         escolaSede.setTipoUnidade("Polo");
-        escolaSede.setMunicipio(municipio);
-        escolaSede.setTerraIndigena(terra);
         escolaSede.setAldeia(aldeia1);
         escolaRepository.save(escolaSede);
 
@@ -77,8 +75,6 @@ public class AnexoRepositoryTestes {
         escolaAnexa.setCodigo("222222");
         escolaAnexa.setNome("Escola Anexa");
         escolaAnexa.setTipoUnidade("Anexo");
-        escolaAnexa.setMunicipio(municipio);
-        escolaAnexa.setTerraIndigena(terra);
         escolaAnexa.setAldeia(aldeia2);
         escolaRepository.save(escolaAnexa);
 
@@ -101,14 +97,12 @@ public class AnexoRepositoryTestes {
         escolaSede.setCodigo("333333");
         escolaSede.setNome("Escola Polo Manoel Urbano");
         escolaSede.setTipoUnidade("Polo");
-        escolaSede.setMunicipio(municipio);
         escolaRepository.save(escolaSede);
 
         Escola escolaAnexa = new Escola();
         escolaAnexa.setCodigo("444444");
         escolaAnexa.setNome("Escola Anexa Manoel Urbano");
         escolaAnexa.setTipoUnidade("Anexo");
-        escolaAnexa.setMunicipio(municipio);
         escolaRepository.save(escolaAnexa);
 
         Anexo anexo = new Anexo();

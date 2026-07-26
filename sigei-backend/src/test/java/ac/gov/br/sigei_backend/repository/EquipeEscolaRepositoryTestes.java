@@ -62,8 +62,6 @@ public class EquipeEscolaRepositoryTestes {
         escola.setCodigo("445566");
         escola.setNome("Escola Jordão");
         escola.setTipoUnidade("Polo");
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terra);
         escola.setAldeia(aldeia);
         escolaRepository.save(escola);
 
@@ -91,7 +89,6 @@ public class EquipeEscolaRepositoryTestes {
         escola.setCodigo("778899");
         escola.setNome("Escola Porto Walter");
         escola.setTipoUnidade("Anexo");
-        escola.setMunicipio(municipio);
         escolaRepository.save(escola);
 
         EquipeEscola equipe = new EquipeEscola();

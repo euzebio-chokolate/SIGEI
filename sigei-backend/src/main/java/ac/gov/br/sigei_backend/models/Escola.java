@@ -15,14 +15,6 @@ public class Escola {
     @JoinColumn(name = "escola_sede_id")
     private Escola escolaSede;
 
-    @ManyToOne
-    @JoinColumn(name = "municipio_id")
-    private Municipio municipio;
-
-    @ManyToOne
-    @JoinColumn(name = "terra_indigena_id")
-    private TerraIndigena terraIndigena;
-
     @OneToOne
     @JoinColumn(name = "aldeia_id")
     private Aldeia aldeia;
@@ -66,22 +58,6 @@ public class Escola {
 
     public void setEscolaSede(Escola escolaSede) {
         this.escolaSede = escolaSede;
-    }
-
-    public Municipio getMunicipio() {
-        return municipio;
-    }
-
-    public void setMunicipio(Municipio municipio) {
-        this.municipio = municipio;
-    }
-
-    public TerraIndigena getTerraIndigena() {
-        return terraIndigena;
-    }
-
-    public void setTerraIndigena(TerraIndigena terraIndigena) {
-        this.terraIndigena = terraIndigena;
     }
 
     public Aldeia getAldeia() {

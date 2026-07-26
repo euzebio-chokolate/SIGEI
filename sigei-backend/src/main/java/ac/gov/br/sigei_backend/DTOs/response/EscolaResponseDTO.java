@@ -7,11 +7,7 @@ public record EscolaResponseDTO(
         String codigo,
         String nome,
         String tipoUnidade,
-
         EscolaResumoDTO escolaSede,
-
-        MunicipioResponseDTO municipio,
-        TerraIndigenaResponseDTO terraIndigena,
         AldeiaResponseDTO aldeia
 ) {
 }

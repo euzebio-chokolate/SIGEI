@@ -36,13 +36,7 @@ public class EscolaService {
     @Autowired
     EscolaMapper escolaMapper;
 
-    public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{
-        Municipio municipio = municipioRepository.findById(escolaRequestDTO.municipioId())
-                .orElseThrow(() -> new NoSuchElementException("Municipio não encontrado"));
-
-        TerraIndigena terraIndigena = terraIndigenaRepository.findById(escolaRequestDTO.terraIndigenaId())
-                .orElseThrow(() -> new NoSuchElementException("Terra índigena não encontrada"));
-
+    public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{;
         Aldeia aldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
@@ -53,8 +47,6 @@ public class EscolaService {
 
         Escola escola = escolaMapper.converter(escolaRequestDTO);
 
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terraIndigena);
         escola.setAldeia(aldeia);
         escola.setEscolaSede(escolaSede);
 
@@ -77,12 +69,6 @@ public class EscolaService {
         Escola escola = escolaRepository.findById(escolaDTO.id())
                 .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
 
-        Municipio municipio = municipioRepository.findById(escolaDTO.municipioId())
-                .orElseThrow(() -> new NoSuchElementException("Município não encontrado"));
-
-        TerraIndigena terraIndigena = terraIndigenaRepository.findById(escolaDTO.terraIndigenaId())
-                .orElseThrow(() -> new NoSuchElementException("Terra indígena não encontrada"));
-
         Aldeia aldeia = aldeiaRepository.findById(escolaDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
@@ -93,8 +79,6 @@ public class EscolaService {
 
         escolaMapper.atualizar(escolaDTO, escola);
 
-        escola.setMunicipio(municipio);
-        escola.setTerraIndigena(terraIndigena);
         escola.setAldeia(aldeia);
         escola.setEscolaSede(escolaSede);
 
