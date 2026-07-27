@@ -1,0 +1,7 @@
+info:
+  name: EndPoint Equipe Escola
+  type: folder
+  seq: 6
+
+request:
+  auth: inherit

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/MatriculaSerie")
+@RequestMapping("/matriculaSerie")
 public class MatriculaSerieController {
     @Autowired
     MatriculaSerieService matriculaService;
