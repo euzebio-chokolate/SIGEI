@@ -1,0 +1,28 @@
+info:
+  name: Salvar Equipe Escola
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/equipe/salvar
+  body:
+    type: json
+    data: |
+      {
+        "escolaId": 4,
+        "anoReferencia": 2026,
+        "temProfessorResponsavel": true,
+        "temEquipeGestora": true,
+        "temMerendeira": false,
+        "temZeladora": true,
+        "temBarqueiro": false,
+        "necessitaTransporte": false
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,0 +1,29 @@
+info:
+  name: Editar Equipe Escola
+  type: http
+  seq: 2
+
+http:
+  method: PUT
+  url: http://localhost:8080/equipe/editar
+  body:
+    type: json
+    data: |-
+      {
+        "id":"1",
+        "escolaId": 4,
+        "anoReferencia": 2026,
+        "temProfessorResponsavel": true,
+        "temEquipeGestora": true,
+        "temMerendeira": false,
+        "temZeladora": true,
+        "temBarqueiro": false,
+        "necessitaTransporte": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

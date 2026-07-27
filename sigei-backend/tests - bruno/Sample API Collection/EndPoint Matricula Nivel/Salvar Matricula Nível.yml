@@ -1,0 +1,25 @@
+info:
+  name: Salvar Matricula Nível
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/matriculaNivel/salvar
+  body:
+    type: json
+    data: |-
+      {
+        "registroId": 1,
+        "nivel": "Ensino Fundamental II",
+        "qtdMasculino": 50,
+        "qtdFeminino": 45,
+        "total": 95
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

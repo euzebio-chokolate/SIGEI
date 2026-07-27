@@ -1,0 +1,33 @@
+info:
+  name: Salvar Infraestrutura
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/infraestrutura/salvar
+  body:
+    type: json
+    data: |
+      {
+        "escolaId": 4,
+        "anoReferencia": 2026,
+        "anoConstrucao": 1998,
+        "numSalas": 8,
+        "latitude": -9.974,
+        "longitude": -67.808,
+        "situacao": "Ativa",
+        "tipoAcesso": "Terrestre",
+        "temPredio": true,
+        "temAgua": true,
+        "temInternet": false,
+        "temEnergia": true,
+        "temRegistroFotografico": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
