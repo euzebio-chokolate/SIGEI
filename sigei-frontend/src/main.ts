@@ -1,15 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { App } from './app/app';
-import * as L from 'leaflet';
+import { appConfig } from './app/app.config'; // Arquivo de configuração que inclui as rotas
+import { AppComponent } from './app/app'; // Corrigido de App para AppComponent
 
-bootstrapApplication(App, appConfig)
+bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'assets/marker-icon-2x.png',
-  iconUrl: 'assets/escola-marker.png',
-  shadowUrl: 'assets/marker-shadow.png'
-});
