@@ -11,7 +11,7 @@ import { RouterLink } from '@angular/router';
     >
       <!-- LOGO -->
       <div
-        class="bg-verde-escuro backdrop-blur-md px-5 py-3 rounded-xl shadow-lg border border-gray-100 flex items-center gap-3 pointer-events-auto shrink-0"
+        class="bg-verde-escuro backdrop-blur-md px-5 py-3 rounded-xl shadow-lg border border-verde-claro flex items-center gap-3 pointer-events-auto shrink-0"
       >
         <img src="assets/logo/Logo-SIGEI.svg" alt="Logo SIGEI" class="w-8 h-8 object-contain" />
         <div>
@@ -31,7 +31,7 @@ import { RouterLink } from '@angular/router';
           <input
             type="text"
             placeholder="Pesquisar escolas..."
-            class="w-full bg-white/95 backdrop-blur-md text-sm text-gray-700 pl-11 pr-4 py-3 rounded-xl shadow-lg border border-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all z-0"
+            class="w-full bg-verde-fundo backdrop-blur-md text-sm text-gray-700 pl-11 pr-4 py-3 rounded-xl shadow-lg border border-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:border-transparent transition-all z-0"
           />
         </div>
       </div>
@@ -39,7 +39,7 @@ import { RouterLink } from '@angular/router';
       <!-- BOTÃO ADMINISTRATIVO -->
       <a
         routerLink="/admin"
-        class="pointer-events-auto flex shrink-0 items-center gap-2 rounded-xl border border-gray-100 bg-verde-escuro px-4 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur-md transition-all hover:bg-verde-claro group"
+        class="pointer-events-auto flex shrink-0 items-center gap-2 rounded-xl border border-verde-claro bg-verde-claro px-4 py-3 text-sm font-semibold text-white shadow-lg backdrop-blur-md transition-all hover:bg-verde-escuro group"
       >
         <i class="fas fa-lock text-white transition-transform group-hover:scale-110"></i>
         Área Administrativa
