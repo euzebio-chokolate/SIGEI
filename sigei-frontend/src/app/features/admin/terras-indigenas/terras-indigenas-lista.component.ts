@@ -1,0 +1,168 @@
+import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-terras-indigenas-lista',
+  standalone: true,
+  imports: [RouterLink, CommonModule],
+  template: `
+    <div class="space-y-5 font-sans">
+      
+      <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <a routerLink="/admin/dashboard" class="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+          <i class="fa-solid fa-house text-slate-400"></i> Início
+        </a>
+        <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+        <span class="text-slate-800">Terras Indígenas</span>
+      </nav>
+
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Terras Indígenas (T.I.)</h1>
+          <p class="text-sm text-slate-500 mt-1">Gerencie os territórios, etnias e as fases de demarcação.</p>
+        </div>
+        
+        <a routerLink="/admin/terras-indigenas/novo" 
+           class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all">
+          <i class="fa-solid fa-plus text-xs"></i>
+          Nova T.I.
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Registrado</span>
+            <p class="text-2xl font-bold text-slate-800 mt-1">34</p>
+          </div>
+          <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-600 text-lg">
+            <i class="fa-solid fa-map"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Regularizadas</span>
+            <p class="text-2xl font-bold text-slate-800 mt-1">28</p>
+          </div>
+          <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-lg">
+            <i class="fa-solid fa-file-signature"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Em Estudo</span>
+            <p class="text-2xl font-bold text-slate-800 mt-1">6</p>
+          </div>
+          <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-lg">
+            <i class="fa-solid fa-magnifying-glass-location"></i>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Etnias Mapeadas</span>
+            <p class="text-2xl font-bold text-slate-800 mt-1">15</p>
+          </div>
+          <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-lg">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        
+        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-3 justify-between items-center">
+          <div class="relative w-full md:w-96">
+            <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" placeholder="Buscar por nome da T.I. ou etnia..." 
+                   class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm">
+          </div>
+
+          <div class="flex items-center gap-2 w-full md:w-auto">
+            <select class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm">
+              <option value="">Fase: Todas</option>
+              <option value="regularizada">Regularizada</option>
+              <option value="declarada">Declarada</option>
+              <option value="estudo">Em Estudo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50/80 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100">
+                <th class="px-6 py-3.5">Nome da T.I.</th>
+                <th class="px-6 py-3.5">Etnia(s)</th>
+                <th class="px-6 py-3.5">Área (ha)</th>
+                <th class="px-6 py-3.5">Fase / Situação</th>
+                <th class="px-6 py-3.5 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+              <tr *ngFor="let ti of dummyTerras" class="hover:bg-slate-50/60 transition-colors group">
+                <td class="px-6 py-4">
+                  <div class="font-semibold text-slate-800">{{ ti.nome }}</div>
+                  <span class="text-xs text-slate-400 truncate max-wxs block" title="{{ ti.municipios }}">
+                    <i class="fa-solid fa-location-dot mr-1"></i> {{ ti.municipios }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 font-medium text-slate-600">
+                  {{ ti.etnia }}
+                </td>
+                <td class="px-6 py-4 font-mono text-xs font-semibold text-slate-500">
+                  {{ ti.area | number }}
+                </td>
+                <td class="px-6 py-4">
+                  <span *ngIf="ti.fase === 'Regularizada'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Regularizada
+                  </span>
+                  <span *ngIf="ti.fase === 'Em Estudo'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Em Estudo
+                  </span>
+                  <span *ngIf="ti.fase === 'Declarada'" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/60">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Declarada
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <a [routerLink]="['/admin/terras-indigenas/editar', ti.id]" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Editar">
+                      <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    </a>
+                    <button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all" title="Excluir">
+                      <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <span>Mostrando <strong>1</strong> a <strong>4</strong> de <strong>34</strong> registros</span>
+          <div class="flex items-center gap-1">
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-50 transition-colors">
+              <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+            </button>
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors">
+              Próximo <i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `
+})
+export class TerrasIndigenasListaComponent {
+  dummyTerras = [
+    { id: 1, nome: 'Alto Rio Purus', etnia: 'Huni Kuin (Kaxinawá)', area: 256000, municipios: 'Santa Rosa do Purus', fase: 'Regularizada' },
+    { id: 2, nome: 'Campinas/Katukina', etnia: 'Noke Koí (Katukina)', area: 32000, municipios: 'Cruzeiro do Sul', fase: 'Regularizada' },
+    { id: 3, nome: 'Mamoadate', etnia: 'Manchineri, Jaminawa', area: 313647, municipios: 'Sena Madureira, Assis Brasil', fase: 'Regularizada' },
+    { id: 4, nome: 'Jaminawa do Igarapé Preto', etnia: 'Jaminawa', area: 15000, municipios: 'Cruzeiro do Sul', fase: 'Em Estudo' }
+  ];
+}
