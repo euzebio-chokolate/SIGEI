@@ -1,0 +1,25 @@
+info:
+  name: Salvar Escolas SEDE
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/escola/salvar
+  body:
+    type: json
+    data: |-
+      {
+        "codigo": "UVA123",
+        "nome": "Uva Tradicional I",
+        "tipoUnidade": "SEDE",
+        "escolaSedeId": null,
+        "aldeiaId": 5
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

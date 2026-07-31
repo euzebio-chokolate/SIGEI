@@ -2,6 +2,7 @@ package ac.gov.br.sigei_backend.mappers;
 
 import ac.gov.br.sigei_backend.DTOs.request.TerraIndigenaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaResponseDTO;
+import ac.gov.br.sigei_backend.DTOs.response.resumo.TerraIndigenaResumoDTO;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -10,6 +11,7 @@ import org.mapstruct.Mapping;
         uses = {MunicipioMapper.class}
 )
 public interface TerraIndigenaMapper {
+    TerraIndigenaResumoDTO converterResumo(TerraIndigena terraIndigena);
     TerraIndigenaResponseDTO converter(TerraIndigena terraIndigena);
 
     @Mapping(target = "municipio", ignore = true)

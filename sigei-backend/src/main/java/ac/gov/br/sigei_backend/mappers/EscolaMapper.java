@@ -1,7 +1,9 @@
 package ac.gov.br.sigei_backend.mappers;
 
 import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.EscolaDetalheResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
+import ac.gov.br.sigei_backend.DTOs.response.resumo.EscolaResumoDTO;
 import ac.gov.br.sigei_backend.models.Escola;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -14,7 +16,9 @@ import org.mapstruct.MappingTarget;
         }
 )
 public interface EscolaMapper {
-    public EscolaResponseDTO converter(Escola escola);
+    EscolaResponseDTO converter(Escola escola);
+    EscolaDetalheResponseDTO converterDetalhe(Escola escola);
+    EscolaResumoDTO converterResumo(Escola escola);
 
     @Mapping(target = "aldeia", ignore = true)
     @Mapping(target = "escolaSede", ignore = true)
