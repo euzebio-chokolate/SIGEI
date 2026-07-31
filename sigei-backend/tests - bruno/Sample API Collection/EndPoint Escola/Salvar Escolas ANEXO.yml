@@ -11,10 +11,10 @@ http:
     data: |-
       {
         "codigo": "UVA123",
-        "nome": "Uva Tradicional I",
-        "tipoUnidade": "SEDE",
-        "escolaSedeId": null,
-        "aldeiaId": 5
+        "nome": "Uva Tradicional II",
+        "tipoUnidade": "ANEXO",
+        "escolaSedeId": 5,
+        "aldeiaId": 6
       }
   auth: inherit
 

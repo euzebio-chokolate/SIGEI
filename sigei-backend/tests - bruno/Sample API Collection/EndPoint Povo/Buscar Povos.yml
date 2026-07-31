@@ -6,6 +6,12 @@ info:
 http:
   method: GET
   url: http://localhost:8080/povo
+  body:
+    type: json
+    data: |-
+      {
+        "nome":""
+      }
   auth: inherit
 
 settings:

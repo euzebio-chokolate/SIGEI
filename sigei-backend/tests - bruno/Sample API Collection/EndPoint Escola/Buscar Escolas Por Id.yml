@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/escola
+  url: http://localhost:8080/escola/4
   auth: inherit
 
 settings:
