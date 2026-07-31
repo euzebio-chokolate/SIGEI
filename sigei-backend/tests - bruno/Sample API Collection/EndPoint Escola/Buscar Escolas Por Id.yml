@@ -1,11 +1,11 @@
 info:
-  name: Salvar Escolas
+  name: Buscar Escolas Por Id
   type: http
-  seq: 1
+  seq: 4
 
 http:
-  method: POST
-  url: http://localhost:8080/escola/salvar
+  method: GET
+  url: http://localhost:8080/escola
   auth: inherit
 
 settings:

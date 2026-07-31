@@ -1,16 +1,11 @@
 package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.EscolaDetalheResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
-import ac.gov.br.sigei_backend.models.Aldeia;
-import ac.gov.br.sigei_backend.models.Escola;
-import ac.gov.br.sigei_backend.models.Municipio;
-import ac.gov.br.sigei_backend.models.TerraIndigena;
-import ac.gov.br.sigei_backend.repository.AldeiaRepository;
-import ac.gov.br.sigei_backend.repository.EscolaRepository;
-import ac.gov.br.sigei_backend.repository.MunicipioRepository;
-import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
-import ac.gov.br.sigei_backend.mappers.EscolaMapper;
+import ac.gov.br.sigei_backend.mappers.*;
+import ac.gov.br.sigei_backend.models.*;
+import ac.gov.br.sigei_backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -34,7 +29,34 @@ public class EscolaService {
     AldeiaRepository aldeiaRepository;
 
     @Autowired
+    EquipeEscolaRepository equipeRepository;
+
+    @Autowired
+    InfraestruturaEscolaRepository infraestruturaRepository;
+
+    @Autowired
+    RegistroAnualRepository registroRepository;
+
+    @Autowired
     EscolaMapper escolaMapper;
+
+    @Autowired
+    MunicipioMapper municipioMapper;
+
+    @Autowired
+    TerraIndigenaMapper terraIndigenaMapper;
+
+    @Autowired
+    AldeiaMapper aldeiaMapper;
+
+    @Autowired
+    EquipeEscolaMapper equipeEscolaMapper;
+
+    @Autowired
+    InfraestruturaEscolaMapper infraestruturaEscolaMapper;
+
+    @Autowired
+    RegistroAnualMapper registroAnualMapper;
 
     public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{;
         Aldeia aldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId())
@@ -63,6 +85,52 @@ public class EscolaService {
             escolaResponseDTOS.add(escolaResponseDTO);
         }
         return escolaResponseDTOS;
+    }
+
+    public EscolaDetalheResponseDTO buscarPorId(Long id) {
+
+        Escola escola = escolaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
+
+        EquipeEscola equipe = equipeRepository
+                .findTopByEscolaOrderByAnoReferenciaDesc(escola)
+                .orElse(null);
+
+        InfraestruturaEscola infraestrutura = infraestruturaRepository
+                .findTopByEscolaOrderByAnoReferenciaDesc(escola)
+                .orElse(null);
+
+        RegistroAnual registro = registroRepository
+                .findTopByEscolaOrderByAnoDesc(escola)
+                .orElse(null);
+
+        return new EscolaDetalheResponseDTO(
+
+                escola.getId(),
+                escola.getCodigo(),
+                escola.getNome(),
+                escola.getTipoUnidade(),
+
+                escola.getEscolaSede() == null
+                        ? null
+                        : escolaMapper.converterResumo(escola.getEscolaSede()),
+
+                municipioMapper.converterResumo(
+                        escola.getAldeia().getTerraIndigena().getMunicipio()
+                ),
+
+                terraIndigenaMapper.converterResumo(
+                        escola.getAldeia().getTerraIndigena()
+                ),
+
+                aldeiaMapper.converterResumo(escola.getAldeia()),
+
+                equipe == null ? null : equipeEscolaMapper.converter(equipe),
+
+                infraestrutura == null ? null : infraestruturaEscolaMapper.converter(infraestrutura),
+
+                registro == null ? null : registroAnualMapper.converter(registro)
+        );
     }
 
     public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){

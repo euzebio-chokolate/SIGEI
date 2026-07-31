@@ -2,6 +2,9 @@ package ac.gov.br.sigei_backend.models;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 public class Escola {
     @Id
@@ -18,6 +21,15 @@ public class Escola {
     @OneToOne
     @JoinColumn(name = "aldeia_id")
     private Aldeia aldeia;
+
+    @OneToMany(mappedBy = "escola")
+    private List<EquipeEscola> equipes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "escola")
+    private List<InfraestruturaEscola> infraestruturas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "escola")
+    private List<RegistroAnual> registros = new ArrayList<>();
 
 
     public Long getId() {
