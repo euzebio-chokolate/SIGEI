@@ -6,6 +6,13 @@ info:
 http:
   method: POST
   url: http://localhost:8080/terra/salvar
+  body:
+    type: json
+    data: |-
+      {
+        "nome":"Banana",
+        "municipioId": 9
+      }
   auth: inherit
 
 settings:

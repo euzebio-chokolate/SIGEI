@@ -6,6 +6,12 @@ info:
 http:
   method: POST
   url: http://localhost:8080/povo/salvar
+  body:
+    type: json
+    data: |-
+      {
+        "nome": "Melancia"
+      }
   auth: inherit
 
 settings:

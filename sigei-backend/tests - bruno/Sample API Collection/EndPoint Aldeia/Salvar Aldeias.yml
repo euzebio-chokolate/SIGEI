@@ -6,6 +6,14 @@ info:
 http:
   method: POST
   url: http://localhost:8080/aldeia/salvar
+  body:
+    type: json
+    data: |-
+      {
+        "nome":"Melão",
+        "terraIndigenaId": 5,
+        "povoId": 4
+      }
   auth: inherit
 
 settings:
