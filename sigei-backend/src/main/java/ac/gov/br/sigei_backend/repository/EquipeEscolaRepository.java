@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface EquipeEscolaRepository extends JpaRepository<EquipeEscola, Long> {
     Optional<EquipeEscola> findById(Long id);
-    Optional<EquipeEscola> findTopByEscolaOrderByAnoReferenciaDesc(Escola escola);
+    Optional<EquipeEscola> findTopByRegistroAnualEscolaOrderByRegistroAnualAnoReferenciaAnoDesc(Escola escola);
 }

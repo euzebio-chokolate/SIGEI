@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotNull;
 public record InfraestruturaEscolaRequestDTO(
         Long id,
 
-        @NotNull(message = "Escola é obrigatória")
-        Long escolaId,
+        @NotNull
+        Long registroAnualId,
 
         @NotNull(message = "Ano de referência é obrigatório")
-        int anoReferencia,
+        Long anoReferenciaId,
 
         int anoConstrucao,
         int numSalas,

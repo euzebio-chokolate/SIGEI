@@ -1,11 +1,9 @@
 package ac.gov.br.sigei_backend.DTOs.response;
 
-import ac.gov.br.sigei_backend.DTOs.response.resumo.EscolaResumoDTO;
+import ac.gov.br.sigei_backend.DTOs.response.resumo.RegistroAnualResumoDTO;
 
 public record EquipeEscolaResponseDTO(
         Long id,
-        EscolaResumoDTO escola,
-        int anoReferencia,
         boolean temProfessorResponsavel,
         boolean temEquipeGestora,
         boolean temMerendeira,

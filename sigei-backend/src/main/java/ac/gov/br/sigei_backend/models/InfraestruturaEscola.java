@@ -9,11 +9,14 @@ public class InfraestruturaEscola {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "escola_id")
-    private Escola escola;
+    @OneToOne
+    @JoinColumn(name = "registro_anual_id")
+    private RegistroAnual registroAnual;
 
-    private int anoReferencia;
+    @ManyToOne
+    @JoinColumn(name = "ano_referencia_id")
+    private AnoReferencia anoReferencia;
+
     private int anoConstrucao;
     private int numSalas;
     private Double latitude;
@@ -34,19 +37,19 @@ public class InfraestruturaEscola {
         this.id = id;
     }
 
-    public Escola getEscola() {
-        return escola;
+    public RegistroAnual getRegistroAnual() {
+        return registroAnual;
     }
 
-    public void setEscola(Escola escola) {
-        this.escola = escola;
+    public void setRegistroAnual(RegistroAnual registroAnual) {
+        this.registroAnual = registroAnual;
     }
 
-    public int getAnoReferencia() {
+    public AnoReferencia getAnoReferencia() {
         return anoReferencia;
     }
 
-    public void setAnoReferencia(int anoReferencia) {
+    public void setAnoReferencia(AnoReferencia anoReferencia) {
         this.anoReferencia = anoReferencia;
     }
 

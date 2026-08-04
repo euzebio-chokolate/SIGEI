@@ -1,12 +1,17 @@
 package ac.gov.br.sigei_backend.DTOs.response;
 
-import ac.gov.br.sigei_backend.DTOs.response.resumo.EscolaResumoDTO;
+import ac.gov.br.sigei_backend.DTOs.response.resumo.AnoReferenciaResumoDTO;
+
+import java.util.List;
 
 public record RegistroAnualResponseDTO(
         Long id,
-        EscolaResumoDTO escola,
-        Integer ano,
+        AnoReferenciaResumoDTO anoReferencia,
         String rede,
-        String localFuncionamento
+        String localFuncionamento,
+        EquipeEscolaResponseDTO equipe,
+        InfraestruturaEscolaResponseDTO infraestrutura,
+        List<MatriculaNivelResponseDTO>matriculasNivel,
+        List<MatriculaSerieResponseDTO> matriculasSerie
 ) {
 }

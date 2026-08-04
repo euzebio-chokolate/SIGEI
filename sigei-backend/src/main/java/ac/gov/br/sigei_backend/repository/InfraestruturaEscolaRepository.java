@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface InfraestruturaEscolaRepository extends JpaRepository<InfraestruturaEscola, Long> {
     Optional<InfraestruturaEscola> findById(Long id);
-    Optional<InfraestruturaEscola> findTopByEscolaOrderByAnoReferenciaDesc(Escola escola);
+    Optional<InfraestruturaEscola> findTopByRegistroAnualEscolaOrderByRegistroAnualAnoReferenciaAnoDesc(Escola escola);
 }

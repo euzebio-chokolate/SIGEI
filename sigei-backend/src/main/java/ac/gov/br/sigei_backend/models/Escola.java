@@ -7,11 +7,15 @@ import java.util.List;
 
 @Entity
 public class Escola {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String codigo;
+
     private String nome;
+
     private String tipoUnidade;
 
     @ManyToOne
@@ -23,14 +27,7 @@ public class Escola {
     private Aldeia aldeia;
 
     @OneToMany(mappedBy = "escola")
-    private List<EquipeEscola> equipes = new ArrayList<>();
-
-    @OneToMany(mappedBy = "escola")
-    private List<InfraestruturaEscola> infraestruturas = new ArrayList<>();
-
-    @OneToMany(mappedBy = "escola")
     private List<RegistroAnual> registros = new ArrayList<>();
-
 
     public Long getId() {
         return id;
@@ -78,5 +75,13 @@ public class Escola {
 
     public void setAldeia(Aldeia aldeia) {
         this.aldeia = aldeia;
+    }
+
+    public List<RegistroAnual> getRegistros() {
+        return registros;
+    }
+
+    public void setRegistros(List<RegistroAnual> registros) {
+        this.registros = registros;
     }
 }

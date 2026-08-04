@@ -10,8 +10,8 @@ public record RegistroAnualRequestDTO(
         @NotNull(message = "Escola é obrigatória")
         Long escolaId,
 
-        @NotNull(message = "Ano é obrigatório")
-        Integer ano,
+        @NotNull(message = "Ano de referencia é obrigatório")
+        Long anoReferenciaId,
 
         @NotBlank(message = "Rede é obrigatória")
         String rede,

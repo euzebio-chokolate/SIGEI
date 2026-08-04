@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.EscolaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.EscolaDetalheResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EscolaResponseDTO;
+import ac.gov.br.sigei_backend.DTOs.response.detalhe.EscolaDetalheResponseDTO;
 import ac.gov.br.sigei_backend.mappers.*;
 import ac.gov.br.sigei_backend.models.*;
 import ac.gov.br.sigei_backend.repository.*;
@@ -27,12 +27,6 @@ public class EscolaService {
 
     @Autowired
     AldeiaRepository aldeiaRepository;
-
-    @Autowired
-    EquipeEscolaRepository equipeRepository;
-
-    @Autowired
-    InfraestruturaEscolaRepository infraestruturaRepository;
 
     @Autowired
     RegistroAnualRepository registroRepository;
@@ -92,16 +86,7 @@ public class EscolaService {
         Escola escola = escolaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
 
-        EquipeEscola equipe = equipeRepository
-                .findTopByEscolaOrderByAnoReferenciaDesc(escola)
-                .orElse(null);
-
-        InfraestruturaEscola infraestrutura = infraestruturaRepository
-                .findTopByEscolaOrderByAnoReferenciaDesc(escola)
-                .orElse(null);
-
-        RegistroAnual registro = registroRepository
-                .findTopByEscolaOrderByAnoDesc(escola)
+        RegistroAnual registro = registroRepository.findTopByEscolaOrderByAnoReferencia_AnoDesc(escola)
                 .orElse(null);
 
         return new EscolaDetalheResponseDTO(
@@ -123,13 +108,13 @@ public class EscolaService {
                         escola.getAldeia().getTerraIndigena()
                 ),
 
-                aldeiaMapper.converterResumo(escola.getAldeia()),
+                aldeiaMapper.converterResumo(
+                        escola.getAldeia()
+                ),
 
-                equipe == null ? null : equipeEscolaMapper.converter(equipe),
-
-                infraestrutura == null ? null : infraestruturaEscolaMapper.converter(infraestrutura),
-
-                registro == null ? null : registroAnualMapper.converter(registro)
+                registro == null
+                        ? null
+                        : registroAnualMapper.converter(registro)
         );
     }
 
