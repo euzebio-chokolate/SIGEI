@@ -10,7 +10,13 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(
         componentModel = "spring",
-        uses = {EscolaMapper.class}
+        uses = {
+                EquipeEscolaMapper.class,
+                InfraestruturaEscolaMapper.class,
+                MatriculaNivelMapper.class,
+                MatriculaSerieMapper.class,
+                AnoReferenciaMapper.class
+        }
 )
 public interface RegistroAnualMapper {
 
@@ -19,9 +25,12 @@ public interface RegistroAnualMapper {
     RegistroAnualResumoDTO converterResumo(RegistroAnual registro);
 
     @Mapping(target = "escola", ignore = true)
+    @Mapping(target = "anoReferencia", ignore = true)
     RegistroAnual converter(RegistroAnualRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "escola", ignore = true)
-    void atualizar(RegistroAnualRequestDTO dto, @MappingTarget RegistroAnual registro);
+    @Mapping(target = "anoReferencia", ignore = true)
+    void atualizar(RegistroAnualRequestDTO dto,
+                   @MappingTarget RegistroAnual registro);
 }

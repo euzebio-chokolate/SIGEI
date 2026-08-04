@@ -2,6 +2,9 @@ package ac.gov.br.sigei_backend.models;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 public class RegistroAnual {
 
@@ -13,9 +16,24 @@ public class RegistroAnual {
     @JoinColumn(name = "escola_id")
     private Escola escola;
 
-    private Integer ano;
+    @ManyToOne
+    @JoinColumn(name = "ano_referencia_id")
+    private AnoReferencia anoReferencia;
+
     private String rede;
     private String localFuncionamento;
+
+    @OneToOne(mappedBy = "registroAnual")
+    private EquipeEscola equipe;
+
+    @OneToOne(mappedBy = "registroAnual")
+    private InfraestruturaEscola infraestrutura;
+
+    @OneToMany(mappedBy = "registro")
+    private List<MatriculaNivel> matriculasNivel = new ArrayList<>();
+
+    @OneToMany(mappedBy = "registro")
+    private List<MatriculaSerie> matriculasSerie = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -33,12 +51,12 @@ public class RegistroAnual {
         this.escola = escola;
     }
 
-    public Integer getAno() {
-        return ano;
+    public AnoReferencia getAnoReferencia() {
+        return anoReferencia;
     }
 
-    public void setAno(Integer ano) {
-        this.ano = ano;
+    public void setAnoReferencia(AnoReferencia anoReferencia) {
+        this.anoReferencia = anoReferencia;
     }
 
     public String getRede() {
@@ -55,5 +73,37 @@ public class RegistroAnual {
 
     public void setLocalFuncionamento(String localFuncionamento) {
         this.localFuncionamento = localFuncionamento;
+    }
+
+    public EquipeEscola getEquipe() {
+        return equipe;
+    }
+
+    public void setEquipe(EquipeEscola equipe) {
+        this.equipe = equipe;
+    }
+
+    public InfraestruturaEscola getInfraestrutura() {
+        return infraestrutura;
+    }
+
+    public void setInfraestrutura(InfraestruturaEscola infraestrutura) {
+        this.infraestrutura = infraestrutura;
+    }
+
+    public List<MatriculaNivel> getMatriculasNivel() {
+        return matriculasNivel;
+    }
+
+    public void setMatriculasNivel(List<MatriculaNivel> matriculasNivel) {
+        this.matriculasNivel = matriculasNivel;
+    }
+
+    public List<MatriculaSerie> getMatriculasSerie() {
+        return matriculasSerie;
+    }
+
+    public void setMatriculasSerie(List<MatriculaSerie> matriculasSerie) {
+        this.matriculasSerie = matriculasSerie;
     }
 }

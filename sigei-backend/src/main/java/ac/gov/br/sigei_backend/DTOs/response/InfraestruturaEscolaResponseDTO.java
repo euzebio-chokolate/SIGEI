@@ -1,12 +1,11 @@
 package ac.gov.br.sigei_backend.DTOs.response;
 
+import ac.gov.br.sigei_backend.DTOs.response.resumo.AnoReferenciaResumoDTO;
 import ac.gov.br.sigei_backend.DTOs.response.resumo.EscolaResumoDTO;
+import ac.gov.br.sigei_backend.DTOs.response.resumo.RegistroAnualResumoDTO;
 
 public record InfraestruturaEscolaResponseDTO(
-
         Long id,
-        EscolaResumoDTO escola,
-        int anoReferencia,
         int anoConstrucao,
         int numSalas,
         Double latitude,

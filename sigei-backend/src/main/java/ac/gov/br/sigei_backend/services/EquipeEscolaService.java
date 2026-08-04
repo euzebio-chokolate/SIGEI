@@ -4,9 +4,9 @@ import ac.gov.br.sigei_backend.DTOs.request.EquipeEscolaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EquipeEscolaResponseDTO;
 import ac.gov.br.sigei_backend.mappers.EquipeEscolaMapper;
 import ac.gov.br.sigei_backend.models.EquipeEscola;
-import ac.gov.br.sigei_backend.models.Escola;
+import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.EquipeEscolaRepository;
-import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -15,8 +15,9 @@ import java.util.NoSuchElementException;
 
 @Service
 public class EquipeEscolaService {
+
     @Autowired
-    EscolaRepository escolaRepository;
+    RegistroAnualRepository registroAnualRepository;
 
     @Autowired
     EquipeEscolaRepository equipeEscolaRepository;
@@ -24,13 +25,17 @@ public class EquipeEscolaService {
     @Autowired
     EquipeEscolaMapper equipeEscolaMapper;
 
-    public EquipeEscolaResponseDTO salvar(EquipeEscolaRequestDTO equipeDTO) throws DataIntegrityViolationException {
+    public EquipeEscolaResponseDTO salvar(EquipeEscolaRequestDTO equipeDTO)
+            throws DataIntegrityViolationException {
 
-        Escola escola = escolaRepository.findById(equipeDTO.escolaId())
-                .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
+        RegistroAnual registroAnual = registroAnualRepository
+                .findById(equipeDTO.registroAnualId())
+                .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
         EquipeEscola equipeEscola = equipeEscolaMapper.converter(equipeDTO);
-        equipeEscola.setEscola(escola);
+
+        equipeEscola.setRegistroAnual(registroAnual);
+
         EquipeEscola equipeEscolaSalva = equipeEscolaRepository.save(equipeEscola);
 
         return equipeEscolaMapper.converter(equipeEscolaSalva);
@@ -41,16 +46,24 @@ public class EquipeEscolaService {
         EquipeEscola equipeEscola = equipeEscolaRepository.findById(equipeDTO.id())
                 .orElseThrow(() -> new NoSuchElementException("Equipe escolar não encontrada"));
 
-        Escola escola = escolaRepository.findById(equipeDTO.escolaId())
-                .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
+        RegistroAnual registroAnual = registroAnualRepository
+                .findById(equipeDTO.registroAnualId())
+                .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
         equipeEscolaMapper.atualizar(equipeDTO, equipeEscola);
 
-        equipeEscola.setEscola(escola);
+        equipeEscola.setRegistroAnual(registroAnual);
 
         EquipeEscola equipeEscolaSalva = equipeEscolaRepository.save(equipeEscola);
 
         return equipeEscolaMapper.converter(equipeEscolaSalva);
     }
 
+    public void excluir(Long id) {
+
+        equipeEscolaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Equipe escolar não encontrada"));
+
+        equipeEscolaRepository.deleteById(id);
+    }
 }

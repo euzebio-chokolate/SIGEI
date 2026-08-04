@@ -1,5 +1,6 @@
 package ac.gov.br.sigei_backend.repository;
 
+import ac.gov.br.sigei_backend.models.AnoReferencia;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,5 +11,7 @@ import java.util.Optional;
 @Repository
 public interface RegistroAnualRepository extends JpaRepository<RegistroAnual, Long> {
     Optional<RegistroAnual> findById(Long id);
-    Optional<RegistroAnual> findTopByEscolaOrderByAnoDesc(Escola escola);
+    Optional<RegistroAnual> findTopByEscolaOrderByAnoReferenciaAnoDesc(Escola escola);
+    boolean existsByEscolaAndAnoReferencia(Escola escola, AnoReferencia anoReferencia);
+    Optional<RegistroAnual> findTopByEscolaOrderByAnoReferencia_AnoDesc(Escola escola);
 }

@@ -2,7 +2,7 @@ package ac.gov.br.sigei_backend.DTOs.response.resumo;
 
 public record RegistroAnualResumoDTO(
         Long id,
-        Integer ano,
+        AnoReferenciaResumoDTO anoReferencia,
         String rede,
         String localFuncionamento
 ) {
