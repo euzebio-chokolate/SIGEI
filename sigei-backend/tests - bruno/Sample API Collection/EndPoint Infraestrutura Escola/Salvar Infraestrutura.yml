@@ -10,7 +10,7 @@ http:
     type: json
     data: |
       {
-        "escolaId": 4,
+        "escolaId": 1,
         "anoReferencia": 2026,
         "anoConstrucao": 1998,
         "numSalas": 8,

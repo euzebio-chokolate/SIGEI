@@ -11,7 +11,7 @@ http:
     data: |-
       {
         "escolaId": 1,
-        "escolaAnexoId": 4
+        "escolaAnexoId": 1
       }
   auth: inherit
 
