@@ -13,8 +13,8 @@ http:
         "codigo": "UVA123",
         "nome": "Uva Tradicional II",
         "tipoUnidade": "ANEXO",
-        "escolaSedeId": 5,
-        "aldeiaId": 6
+        "escolaSedeId": 1,
+        "aldeiaId": 2
       }
   auth: inherit
 

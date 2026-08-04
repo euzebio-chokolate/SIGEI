@@ -14,7 +14,7 @@ http:
         "nome": "Uva Tradicional I",
         "tipoUnidade": "SEDE",
         "escolaSedeId": null,
-        "aldeiaId": 5
+        "aldeiaId": 1
       }
   auth: inherit
 
