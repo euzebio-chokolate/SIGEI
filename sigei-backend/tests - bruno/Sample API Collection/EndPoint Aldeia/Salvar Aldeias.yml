@@ -10,7 +10,7 @@ http:
     type: json
     data: |-
       {
-        "nome":"Melão 2",
+        "nome":"Melão II",
         "terraIndigenaId": 1,
         "povoId": 1
       }

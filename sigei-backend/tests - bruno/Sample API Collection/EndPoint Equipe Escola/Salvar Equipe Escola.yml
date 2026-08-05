@@ -10,8 +10,8 @@ http:
     type: json
     data: |
       {
-        "escolaId": 4,
-        "anoReferencia": 2026,
+        "escolaId": 1,
+        "registroAnualId": 1,
         "temProfessorResponsavel": true,
         "temEquipeGestora": true,
         "temMerendeira": false,

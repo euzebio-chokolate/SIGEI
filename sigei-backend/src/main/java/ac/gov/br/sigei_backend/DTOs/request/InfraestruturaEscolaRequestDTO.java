@@ -8,9 +8,6 @@ public record InfraestruturaEscolaRequestDTO(
         @NotNull
         Long registroAnualId,
 
-        @NotNull(message = "Ano de referência é obrigatório")
-        Long anoReferenciaId,
-
         int anoConstrucao,
         int numSalas,
         Double latitude,

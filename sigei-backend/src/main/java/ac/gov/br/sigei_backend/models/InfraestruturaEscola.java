@@ -13,10 +13,6 @@ public class InfraestruturaEscola {
     @JoinColumn(name = "registro_anual_id")
     private RegistroAnual registroAnual;
 
-    @ManyToOne
-    @JoinColumn(name = "ano_referencia_id")
-    private AnoReferencia anoReferencia;
-
     private int anoConstrucao;
     private int numSalas;
     private Double latitude;
@@ -43,14 +39,6 @@ public class InfraestruturaEscola {
 
     public void setRegistroAnual(RegistroAnual registroAnual) {
         this.registroAnual = registroAnual;
-    }
-
-    public AnoReferencia getAnoReferencia() {
-        return anoReferencia;
-    }
-
-    public void setAnoReferencia(AnoReferencia anoReferencia) {
-        this.anoReferencia = anoReferencia;
     }
 
     public int getAnoConstrucao() {

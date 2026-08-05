@@ -1,0 +1,21 @@
+info:
+  name: Salvar Ano Referencia
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:8080/anos/salvar
+  body:
+    type: json
+    data: |-
+      {
+        "ano": 2026
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
