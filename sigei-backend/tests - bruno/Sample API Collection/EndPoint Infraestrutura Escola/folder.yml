@@ -1,7 +1,7 @@
 info:
   name: EndPoint Infraestrutura Escola
   type: folder
-  seq: 7
+  seq: 9
 
 request:
   auth: inherit

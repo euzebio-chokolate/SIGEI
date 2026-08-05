@@ -10,8 +10,8 @@ http:
     type: json
     data: |-
       {
-        "escolaId": 1,
-        "ano": 2026,
+        "escolaId": 2,
+        "anoReferenciaId": 1,
         "rede": "Estadual",
         "localFuncionamento": "Rural"
       }

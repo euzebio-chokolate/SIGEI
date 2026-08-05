@@ -23,7 +23,7 @@ public class AnoReferenciaController {
         return new ResponseEntity<>(anoReferenciaService.salvar(dto), HttpStatus.CREATED);
     }
 
-    @GetMapping("/buscarTudo")
+    @GetMapping("")
     public ResponseEntity<List<AnoReferenciaResponseDTO>> buscarTudo() {
         return ResponseEntity.ok(anoReferenciaService.buscarTudo());
     }

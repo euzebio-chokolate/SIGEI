@@ -10,14 +10,14 @@ http:
     type: json
     data: |
       {
-        "escolaId": 1,
-        "anoReferencia": 2026,
+        "escolaId": 2,
+        "registroAnualId": 1,
         "anoConstrucao": 1998,
         "numSalas": 8,
-        "latitude": -9.974,
-        "longitude": -67.808,
+        "latitude": -7.974,
+        "longitude": -77.808,
         "situacao": "Ativa",
-        "tipoAcesso": "Terrestre",
+        "tipoAcesso": "Fluivial",
         "temPredio": true,
         "temAgua": true,
         "temInternet": false,

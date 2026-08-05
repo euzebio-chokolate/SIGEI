@@ -5,7 +5,7 @@ info:
 
 http:
   method: DELETE
-  url: http://localhost:8080/municipio/excluir
+  url: http://localhost:8080/municipio/excluir/8
   auth: inherit
 
 settings:

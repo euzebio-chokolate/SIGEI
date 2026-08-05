@@ -5,14 +5,14 @@ import jakarta.validation.constraints.NotNull;
 public record EquipeEscolaRequestDTO(
 
         Long id,
-
         Long registroAnualId,
 
-        Boolean possuiDiretor,
-        Boolean possuiCoordenador,
-        Boolean possuiSecretario,
-        Integer quantidadeProfessores,
-        Integer quantidadeFuncionarios
+        boolean temProfessorResponsavel,
+        boolean temEquipeGestora,
+        boolean temMerendeira,
+        boolean temZeladora,
+        boolean temBarqueiro,
+        boolean necessitaTransporte
 
 ) {
 }

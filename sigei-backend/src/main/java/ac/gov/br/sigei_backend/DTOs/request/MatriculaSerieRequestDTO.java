@@ -7,6 +7,5 @@ public record MatriculaSerieRequestDTO(
         String etapaEnsino,
         Integer qtdMasculino,
         Integer qtdFeminino
-
 ) {
 }
