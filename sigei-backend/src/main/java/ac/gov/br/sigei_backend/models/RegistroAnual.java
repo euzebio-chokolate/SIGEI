@@ -6,6 +6,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        columnNames = {"escola_id", "ano_referencia_id"}
+                )
+        }
+)
 public class RegistroAnual {
 
     @Id

@@ -8,5 +8,6 @@ import java.util.Optional;
 public interface AnoReferenciaRepository extends JpaRepository<AnoReferencia, Long> {
 
     Optional<AnoReferencia> findByAno(Integer ano);
+    Optional<AnoReferencia> findTopByOrderByAnoDesc();
 
 }
