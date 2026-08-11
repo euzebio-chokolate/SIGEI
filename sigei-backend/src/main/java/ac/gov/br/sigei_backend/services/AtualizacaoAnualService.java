@@ -1,7 +1,11 @@
 package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.models.AnoReferencia;
+import ac.gov.br.sigei_backend.models.EquipeEscola;
 import ac.gov.br.sigei_backend.models.Escola;
+import ac.gov.br.sigei_backend.models.InfraestruturaEscola;
+import ac.gov.br.sigei_backend.models.MatriculaNivel;
+import ac.gov.br.sigei_backend.models.MatriculaSerie;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
@@ -51,13 +55,230 @@ public class AtualizacaoAnualService {
         List<Escola> escolas = escolaRepository.findAll();
 
         for (Escola escola : escolas) {
+            RegistroAnual registroAnterior = registroAnualRepository.findTopByEscolaOrderByAnoReferencia_AnoDesc(escola).orElse(null);
 
-            RegistroAnual registro = new RegistroAnual();
+            if (registroAnterior == null) {
+                continue;
+            }
 
-            registro.setEscola(escola);
-            registro.setAnoReferencia(novoAnoSalvo);
+            RegistroAnual novoRegistro = new RegistroAnual();
 
-            registroAnualRepository.save(registro);
+            novoRegistro.setEscola(escola);
+            novoRegistro.setAnoReferencia(novoAnoSalvo);
+
+            novoRegistro.setRede(
+                    registroAnterior.getRede()
+            );
+
+            novoRegistro.setLocalFuncionamento(
+                    registroAnterior.getLocalFuncionamento()
+            );
+
+            RegistroAnual registroSalvo =
+                    registroAnualRepository.save(novoRegistro);
+
+            copiarEquipe(
+                    registroAnterior,
+                    registroSalvo
+            );
+
+            copiarInfraestrutura(
+                    registroAnterior,
+                    registroSalvo
+            );
+
+            copiarMatriculasNivel(
+                    registroAnterior,
+                    registroSalvo
+            );
+
+            copiarMatriculasSerie(
+                    registroAnterior,
+                    registroSalvo
+            );
+        }
+    }
+
+    private void copiarEquipe(
+            RegistroAnual registroAnterior,
+            RegistroAnual novoRegistro
+    ) {
+
+        EquipeEscola equipeAnterior =
+                registroAnterior.getEquipe();
+
+        if (equipeAnterior == null) {
+            return;
+        }
+
+        EquipeEscola novaEquipe = new EquipeEscola();
+
+        novaEquipe.setRegistroAnual(novoRegistro);
+
+        novaEquipe.setTemProfessorResponsavel(
+                equipeAnterior.isTemProfessorResponsavel()
+        );
+
+        novaEquipe.setTemEquipeGestora(
+                equipeAnterior.isTemEquipeGestora()
+        );
+
+        novaEquipe.setTemMerendeira(
+                equipeAnterior.isTemMerendeira()
+        );
+
+        novaEquipe.setTemZeladora(
+                equipeAnterior.isTemZeladora()
+        );
+
+        novaEquipe.setTemBarqueiro(
+                equipeAnterior.isTemBarqueiro()
+        );
+
+        novaEquipe.setNecessitaTransporte(
+                equipeAnterior.isNecessitaTransporte()
+        );
+
+        novoRegistro.setEquipe(novaEquipe);
+    }
+
+    private void copiarInfraestrutura(
+            RegistroAnual registroAnterior,
+            RegistroAnual novoRegistro
+    ) {
+
+        InfraestruturaEscola infraestruturaAnterior =
+                registroAnterior.getInfraestrutura();
+
+
+        if (infraestruturaAnterior == null) {
+            return;
+        }
+
+        InfraestruturaEscola novaInfraestrutura =
+                new InfraestruturaEscola();
+
+        novaInfraestrutura.setRegistroAnual(novoRegistro);
+
+        novaInfraestrutura.setAnoConstrucao(
+                infraestruturaAnterior.getAnoConstrucao()
+        );
+
+        novaInfraestrutura.setNumSalas(
+                infraestruturaAnterior.getNumSalas()
+        );
+
+        novaInfraestrutura.setLatitude(
+                infraestruturaAnterior.getLatitude()
+        );
+
+        novaInfraestrutura.setLongitude(
+                infraestruturaAnterior.getLongitude()
+        );
+
+        novaInfraestrutura.setSituacao(
+                infraestruturaAnterior.getSituacao()
+        );
+
+        novaInfraestrutura.setTipoAcesso(
+                infraestruturaAnterior.getTipoAcesso()
+        );
+
+        novaInfraestrutura.setTemPredio(
+                infraestruturaAnterior.getTemPredio()
+        );
+
+        novaInfraestrutura.setTemAgua(
+                infraestruturaAnterior.getTemAgua()
+        );
+
+        novaInfraestrutura.setTemInternet(
+                infraestruturaAnterior.getTemInternet()
+        );
+
+        novaInfraestrutura.setTemEnergia(
+                infraestruturaAnterior.getTemEnergia()
+        );
+
+        novaInfraestrutura.setTemRegistroFotografico(
+                infraestruturaAnterior.getTemRegistroFotografico()
+        );
+
+        novoRegistro.setInfraestrutura(novaInfraestrutura);
+    }
+
+    private void copiarMatriculasNivel(
+            RegistroAnual registroAnterior,
+            RegistroAnual novoRegistro
+    ) {
+
+        if (registroAnterior.getMatriculasNivel() == null) {
+            return;
+        }
+
+        for (MatriculaNivel matriculaAnterior :
+                registroAnterior.getMatriculasNivel()) {
+
+            MatriculaNivel novaMatricula = new MatriculaNivel();
+
+            novaMatricula.setRegistro(novoRegistro);
+
+            novaMatricula.setNivel(
+                    matriculaAnterior.getNivel()
+            );
+
+            novaMatricula.setQtdMasculino(
+                    matriculaAnterior.getQtdMasculino()
+            );
+
+            novaMatricula.setQtdFeminino(
+                    matriculaAnterior.getQtdFeminino()
+            );
+
+            novaMatricula.setTotal(
+                    matriculaAnterior.getTotal()
+            );
+
+            novoRegistro.getMatriculasNivel()
+                    .add(novaMatricula);
+        }
+    }
+
+    private void copiarMatriculasSerie(
+            RegistroAnual registroAnterior,
+            RegistroAnual novoRegistro
+    ) {
+
+        if (registroAnterior.getMatriculasSerie() == null) {
+            return;
+        }
+
+        for (MatriculaSerie matriculaAnterior :
+                registroAnterior.getMatriculasSerie()) {
+
+            MatriculaSerie novaMatricula =
+                    new MatriculaSerie();
+
+            novaMatricula.setRegistro(novoRegistro);
+
+            novaMatricula.setDenominacao(
+                    matriculaAnterior.getDenominacao()
+            );
+
+            novaMatricula.setEtapaEnsino(
+                    matriculaAnterior.getEtapaEnsino()
+            );
+
+            novaMatricula.setQtdMasculino(
+                    matriculaAnterior.getQtdMasculino()
+            );
+
+            novaMatricula.setQtdFeminino(
+                    matriculaAnterior.getQtdFeminino()
+            );
+
+            novoRegistro.getMatriculasSerie()
+                    .add(novaMatricula);
         }
     }
 }
