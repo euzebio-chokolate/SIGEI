@@ -30,16 +30,28 @@ public class RegistroAnual {
     private String rede;
     private String localFuncionamento;
 
-    @OneToOne(mappedBy = "registroAnual")
+    @OneToOne(
+            mappedBy = "registroAnual",
+            cascade = CascadeType.ALL
+    )
     private EquipeEscola equipe;
 
-    @OneToOne(mappedBy = "registroAnual")
+    @OneToOne(
+            mappedBy = "registroAnual",
+            cascade = CascadeType.ALL
+    )
     private InfraestruturaEscola infraestrutura;
 
-    @OneToMany(mappedBy = "registro")
+    @OneToMany(
+            mappedBy = "registro",
+            cascade = CascadeType.ALL
+    )
     private List<MatriculaNivel> matriculasNivel = new ArrayList<>();
 
-    @OneToMany(mappedBy = "registro")
+    @OneToMany(
+            mappedBy = "registro",
+            cascade = CascadeType.ALL
+    )
     private List<MatriculaSerie> matriculasSerie = new ArrayList<>();
 
     public Long getId() {
