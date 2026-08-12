@@ -15,4 +15,5 @@ public interface RegistroAnualRepository extends JpaRepository<RegistroAnual, Lo
     boolean existsByEscolaAndAnoReferencia(Escola escola, AnoReferencia anoReferencia);
     Optional<RegistroAnual> findTopByEscolaOrderByAnoReferencia_AnoDesc(Escola escola);
     Optional<RegistroAnual> findByEscolaAndAnoReferencia(Escola escola, AnoReferencia anoReferencia);
+    Optional<RegistroAnual> findByEscolaAndAnoReferencia_Ano(Escola escola, Integer ano);
 }

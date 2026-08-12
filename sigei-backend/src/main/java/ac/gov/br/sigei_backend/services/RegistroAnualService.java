@@ -60,6 +60,18 @@ public class RegistroAnualService {
                 .toList();
     }
 
+    public RegistroAnualResponseDTO buscarPorEscolaEAno(Long escolaId, Integer ano) {
+
+        Escola escola = escolaRepository.findById(escolaId)
+                .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
+
+        RegistroAnual registro = registroAnualRepository
+                .findByEscolaAndAnoReferencia_Ano(escola, ano)
+                .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado para a escola no ano " + ano));
+
+        return registroAnualMapper.converter(registro);
+    }
+
     public RegistroAnualResponseDTO editar(RegistroAnualRequestDTO dto) {
 
         RegistroAnual registro = registroAnualRepository.findById(dto.id())
