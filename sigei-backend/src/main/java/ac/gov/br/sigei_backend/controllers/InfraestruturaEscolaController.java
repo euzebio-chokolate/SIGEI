@@ -29,6 +29,12 @@ public class InfraestruturaEscolaController {
         return new ResponseEntity<List<InfraestruturaEscolaResponseDTO>>(infras, HttpStatus.OK);
     }
 
+    @GetMapping("/buscarPorAno")
+    public ResponseEntity<List<InfraestruturaEscolaResponseDTO>> buscarPorAno(@RequestParam Integer ano) {
+        List<InfraestruturaEscolaResponseDTO> infraestruturas = infraestruturaService.buscarPorAno(ano);
+        return new ResponseEntity<>(infraestruturas, HttpStatus.OK);
+    }
+
     @PutMapping("/editar")
     public ResponseEntity<InfraestruturaEscolaResponseDTO> editar(@RequestBody InfraestruturaEscolaRequestDTO infraDTO){
         InfraestruturaEscolaResponseDTO infraestruturaEscolaResponseDTO = infraestruturaService.editar(infraDTO);
