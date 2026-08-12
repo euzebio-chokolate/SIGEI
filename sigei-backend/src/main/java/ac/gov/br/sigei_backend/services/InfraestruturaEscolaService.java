@@ -31,9 +31,7 @@ public class InfraestruturaEscolaService {
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
         InfraestruturaEscola infraestrutura = infraestruturaMapper.converter(infraDTO);
-
         infraestrutura.setRegistroAnual(registroAnual);
-
         InfraestruturaEscola infraestruturaSalva = infraestruturaRepository.save(infraestrutura);
 
         return infraestruturaMapper.converter(infraestruturaSalva);
@@ -43,6 +41,17 @@ public class InfraestruturaEscolaService {
 
         return infraestruturaRepository.findAll()
                 .stream()
+                .map(infraestruturaMapper::converter)
+                .toList();
+    }
+
+    public List<InfraestruturaEscolaResponseDTO> buscarPorAno(Integer ano) {
+
+        List<InfraestruturaEscola> infraestruturas =
+                infraestruturaRepository
+                        .findByRegistroAnual_AnoReferencia_Ano(ano);
+
+        return infraestruturas.stream()
                 .map(infraestruturaMapper::converter)
                 .toList();
     }

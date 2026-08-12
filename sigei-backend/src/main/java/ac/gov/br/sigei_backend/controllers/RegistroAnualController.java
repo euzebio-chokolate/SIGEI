@@ -31,9 +31,7 @@ public class RegistroAnualController {
 
     @GetMapping("/buscarPorEscolaEAno")
     public ResponseEntity<RegistroAnualResponseDTO> buscarPorEscolaEAno(@RequestParam Long escolaId, @RequestParam Integer ano) {
-
         RegistroAnualResponseDTO registro = registroAnualService.buscarPorEscolaEAno(escolaId, ano);
-
         return new ResponseEntity<>(registro, HttpStatus.OK);
     }
 

@@ -6,6 +6,8 @@ import ac.gov.br.sigei_backend.DTOs.response.resumo.RegistroAnualResumoDTO;
 
 public record InfraestruturaEscolaResponseDTO(
         Long id,
+        EscolaResumoDTO escola,
+        AnoReferenciaResumoDTO anoReferencia,
         int anoConstrucao,
         int numSalas,
         Double latitude,
