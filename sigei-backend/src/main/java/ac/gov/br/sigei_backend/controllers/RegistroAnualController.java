@@ -29,6 +29,14 @@ public class RegistroAnualController {
         return new ResponseEntity<List<RegistroAnualResponseDTO>>(registroDTOS, HttpStatus.OK);
     }
 
+    @GetMapping("/buscarPorEscolaEAno")
+    public ResponseEntity<RegistroAnualResponseDTO> buscarPorEscolaEAno(@RequestParam Long escolaId, @RequestParam Integer ano) {
+
+        RegistroAnualResponseDTO registro = registroAnualService.buscarPorEscolaEAno(escolaId, ano);
+
+        return new ResponseEntity<>(registro, HttpStatus.OK);
+    }
+
     @PutMapping("/editar")
     public ResponseEntity editar(@Valid @RequestBody RegistroAnualRequestDTO registroDTO){
         RegistroAnualResponseDTO registroAnualResponseDTO = registroAnualService.editar(registroDTO);
