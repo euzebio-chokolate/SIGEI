@@ -40,7 +40,6 @@ public class AnexoService {
         anexo.setEscolaAnexo(escolaAnexo);
 
         Anexo anexoSalvo = anexoRepository.save(anexo);
-
         return anexoMapper.converter(anexoSalvo);
     }
 
