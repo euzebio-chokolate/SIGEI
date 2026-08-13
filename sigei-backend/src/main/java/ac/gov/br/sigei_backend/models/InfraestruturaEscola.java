@@ -20,9 +20,9 @@ public class InfraestruturaEscola {
     private String situacao;
     private String tipoAcesso;
     private Boolean temPredio;
-    private Boolean temAgua;
+    private String tipoAgua;
     private Boolean temInternet;
-    private Boolean temEnergia;
+    private String tipoEnergia;
     private Boolean temRegistroFotografico;
 
     public Long getId() {
@@ -97,12 +97,12 @@ public class InfraestruturaEscola {
         this.temPredio = temPredio;
     }
 
-    public Boolean getTemAgua() {
-        return temAgua;
+    public String getTipoAgua() {
+        return tipoAgua;
     }
 
-    public void setTemAgua(Boolean temAgua) {
-        this.temAgua = temAgua;
+    public void setTipoAgua(String tipoAgua) {
+        this.tipoAgua = tipoAgua;
     }
 
     public Boolean getTemInternet() {
@@ -113,12 +113,12 @@ public class InfraestruturaEscola {
         this.temInternet = temInternet;
     }
 
-    public Boolean getTemEnergia() {
-        return temEnergia;
+    public String getTipoEnergia() {
+        return tipoEnergia;
     }
 
-    public void setTemEnergia(Boolean temEnergia) {
-        this.temEnergia = temEnergia;
+    public void setTipoEnergia(String tipoEnergia) {
+        this.tipoEnergia = tipoEnergia;
     }
 
     public Boolean getTemRegistroFotografico() {

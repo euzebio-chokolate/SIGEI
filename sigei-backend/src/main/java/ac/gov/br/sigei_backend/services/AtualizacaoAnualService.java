@@ -188,16 +188,16 @@ public class AtualizacaoAnualService {
                 infraestruturaAnterior.getTemPredio()
         );
 
-        novaInfraestrutura.setTemAgua(
-                infraestruturaAnterior.getTemAgua()
+        novaInfraestrutura.setTipoAgua(
+                infraestruturaAnterior.getTipoAgua()
         );
 
         novaInfraestrutura.setTemInternet(
                 infraestruturaAnterior.getTemInternet()
         );
 
-        novaInfraestrutura.setTemEnergia(
-                infraestruturaAnterior.getTemEnergia()
+        novaInfraestrutura.setTipoEnergia(
+                infraestruturaAnterior.getTipoEnergia()
         );
 
         novaInfraestrutura.setTemRegistroFotografico(
