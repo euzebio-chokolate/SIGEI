@@ -9,5 +9,4 @@ public class SigeiBackendApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SigeiBackendApplication.class, args);
 	}
-
 }
