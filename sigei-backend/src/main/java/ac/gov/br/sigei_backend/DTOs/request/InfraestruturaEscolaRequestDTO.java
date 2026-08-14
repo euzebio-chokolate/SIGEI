@@ -5,11 +5,11 @@ import jakarta.validation.constraints.NotNull;
 public record InfraestruturaEscolaRequestDTO(
         Long id,
 
-        @NotNull
+        @NotNull(message = "O registro anual é obrigatório")
         Long registroAnualId,
 
-        int anoConstrucao,
-        int numSalas,
+        Integer anoConstrucao,
+        Integer numSalas,
         Double latitude,
         Double longitude,
         String situacao,

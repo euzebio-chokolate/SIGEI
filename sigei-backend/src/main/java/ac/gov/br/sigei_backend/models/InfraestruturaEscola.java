@@ -13,8 +13,8 @@ public class InfraestruturaEscola {
     @JoinColumn(name = "registro_anual_id")
     private RegistroAnual registroAnual;
 
-    private int anoConstrucao;
-    private int numSalas;
+    private Integer anoConstrucao;
+    private Integer numSalas;
     private Double latitude;
     private Double longitude;
     private String situacao;
@@ -41,19 +41,19 @@ public class InfraestruturaEscola {
         this.registroAnual = registroAnual;
     }
 
-    public int getAnoConstrucao() {
+    public Integer getAnoConstrucao() {
         return anoConstrucao;
     }
 
-    public void setAnoConstrucao(int anoConstrucao) {
+    public void setAnoConstrucao(Integer anoConstrucao) {
         this.anoConstrucao = anoConstrucao;
     }
 
-    public int getNumSalas() {
+    public Integer getNumSalas() {
         return numSalas;
     }
 
-    public void setNumSalas(int numSalas) {
+    public void setNumSalas(Integer numSalas) {
         this.numSalas = numSalas;
     }
 
