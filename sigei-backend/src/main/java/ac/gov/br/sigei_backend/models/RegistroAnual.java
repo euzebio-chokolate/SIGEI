@@ -29,6 +29,7 @@ public class RegistroAnual {
 
     private String rede;
     private String localFuncionamento;
+    private Integer totalAlunos;
 
     @OneToOne(
             mappedBy = "registroAnual",
@@ -92,6 +93,14 @@ public class RegistroAnual {
 
     public void setLocalFuncionamento(String localFuncionamento) {
         this.localFuncionamento = localFuncionamento;
+    }
+
+    public Integer getTotalAlunos() {
+        return totalAlunos;
+    }
+
+    public void setTotalAlunos(Integer totalAlunos) {
+        this.totalAlunos = totalAlunos;
     }
 
     public EquipeEscola getEquipe() {
