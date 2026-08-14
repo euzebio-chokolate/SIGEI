@@ -23,7 +23,10 @@ public class Escola {
     private Escola escolaSede;
 
     @OneToOne
-    @JoinColumn(name = "aldeia_id")
+    @JoinColumn(
+            name = "aldeia_id",
+            nullable = true
+    )
     private Aldeia aldeia;
 
     @OneToMany(mappedBy = "escola")
