@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface MunicipioRepository extends JpaRepository<Municipio, Long> {
     public Optional<Municipio> findById(Long id);
     public Optional<Municipio> findByNome(String name);
+    Optional<Municipio> findByNomeIgnoreCase(String nome);
+    boolean existsByNomeIgnoreCase(String nome);
 }
