@@ -1,0 +1,23 @@
+info:
+  name: Importações Infraestrutura
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8080/importacoes/infraestrutura
+  body:
+    type: multipart-form
+    data:
+      - name: arquivo
+        type: file
+        value:
+          - C:\Users\euzebio.nascimento\Downloads\Quadro_Geral_Construção_Escolas_2025_Atualizada.xlsx
+        contentType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
