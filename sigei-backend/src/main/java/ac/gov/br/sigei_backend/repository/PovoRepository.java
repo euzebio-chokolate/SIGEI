@@ -9,4 +9,6 @@ import java.util.Optional;
 @Repository
 public interface PovoRepository extends JpaRepository<Povo, Long> {
     public Optional<Povo> findById(Long id);
+    Optional<Povo> findByNomeIgnoreCase(String nome);
+    boolean existsByNomeIgnoreCase(String nome);
 }
