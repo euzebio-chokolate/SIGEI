@@ -108,9 +108,7 @@ public class ImportacaoExcelService {
             AnoReferencia anoReferencia =
                     buscarOuCriarAno(ANO_PLANILHA);
 
-            /*
-             * Primeiro cadastramos todas as escolas-sede.
-             */
+
             for (Row linha : linhas) {
                 if (!isAnexo(linha)) {
                     processarLinha(
@@ -121,10 +119,6 @@ public class ImportacaoExcelService {
                 }
             }
 
-            /*
-             * Depois cadastramos os anexos, pois suas sedes
-             * já estarão disponíveis no banco.
-             */
             for (Row linha : linhas) {
                 if (isAnexo(linha)) {
                     processarLinha(
@@ -151,10 +145,6 @@ public class ImportacaoExcelService {
     ) {
         List<Row> linhas = new ArrayList<>();
 
-        /*
-         * Começa na linha 2 do Excel.
-         * O índice 0 contém os cabeçalhos.
-         */
         for (int indice = 1;
              indice <= planilha.getLastRowNum();
              indice++) {
@@ -402,9 +392,9 @@ public class ImportacaoExcelService {
                 isAnexo(linha) ? "ANEXO" : "SEDE";
 
         Escola escola = escolaRepository
-                .findFirstByCodigoAndNomeIgnoreCase(
+                .findFirstByCodigoAndAldeia_NomeIgnoreCase(
                         codigo,
-                        nome
+                        aldeia.getNome()
                 )
                 .orElse(null);
 

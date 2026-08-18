@@ -17,6 +17,7 @@ public class MatriculaSerie {
     private String etapaEnsino;
     private Integer qtdMasculino;
     private Integer qtdFeminino;
+    private Integer total;
 
     public Long getId() {
         return id;
@@ -64,5 +65,13 @@ public class MatriculaSerie {
 
     public void setQtdFeminino(Integer qtdFeminino) {
         this.qtdFeminino = qtdFeminino;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
     }
 }
