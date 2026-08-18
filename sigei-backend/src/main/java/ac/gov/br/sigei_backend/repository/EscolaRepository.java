@@ -12,5 +12,6 @@ public interface EscolaRepository extends JpaRepository<Escola, Long> {
     List<Escola> findAllByCodigo(String codigo);
     Optional<Escola> findFirstByCodigoAndTipoUnidadeIgnoreCase(String codigo, String tipoUnidade);
     Optional<Escola> findFirstByCodigoAndNomeIgnoreCase(String codigo, String nome);
+    Optional<Escola> findFirstByCodigoAndAldeia_NomeIgnoreCase(String codigo, String nomeAldeia);
     boolean existsByCodigoAndNomeIgnoreCase(String codigo, String nome);
 }

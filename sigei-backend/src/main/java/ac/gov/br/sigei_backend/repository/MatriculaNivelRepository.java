@@ -1,12 +1,14 @@
 package ac.gov.br.sigei_backend.repository;
 
 import ac.gov.br.sigei_backend.models.MatriculaNivel;
+import ac.gov.br.sigei_backend.models.RegistroAnual;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface MatriculaNivelRepository extends JpaRepository<MatriculaNivel, Long> {
-    Optional<MatriculaNivel> findById(Long id);
+    List<MatriculaNivel> findByRegistro(RegistroAnual registro);
+    void deleteByRegistro(RegistroAnual registro);
 }
