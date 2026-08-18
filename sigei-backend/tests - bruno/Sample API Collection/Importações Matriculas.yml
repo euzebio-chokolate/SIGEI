@@ -5,14 +5,14 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8080/importacoes/infraestrutura
+  url: http://localhost:8080/importacoes/matriculas
   body:
     type: multipart-form
     data:
       - name: arquivo
         type: file
         value:
-          - C:\Users\euzebio.nascimento\Downloads\Quadro_Geral_Construção_Escolas_2025_Atualizada.xlsx
+          - C:\Users\euzebio.nascimento\Downloads\Censo_Escolas_Indígenas_2025_Ultima Versão_12.12.2025 (1).xlsx
         contentType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
   auth: inherit
 

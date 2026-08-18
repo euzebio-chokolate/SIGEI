@@ -5,10 +5,10 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/infraestrutura/buscarPorAno?ano=2026
+  url: http://localhost:8080/infraestrutura/buscarPorAno?ano=2025
   params:
     - name: ano
-      value: "2026"
+      value: "2025"
       type: query
   auth: inherit
 
