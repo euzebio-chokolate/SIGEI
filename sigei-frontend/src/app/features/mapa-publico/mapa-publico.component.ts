@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { MapaFiltrosComponent } from './components/mapa-filtros.component';
 import { MapaBuscaComponent } from './components/mapa-busca.component';
+import { InfraestruturaService } from '../../core/services/infraestrutura.service';
 import * as L from 'leaflet';
 
 @Component({
@@ -11,47 +12,77 @@ import * as L from 'leaflet';
   imports: [HeaderComponent, MapaFiltrosComponent, MapaBuscaComponent],
   template: `
     <div class="relative w-screen h-screen overflow-hidden bg-gray-200">
-      
       <app-header></app-header>
 
-      <app-mapa-busca 
+      <app-mapa-busca
         [dadosEscolas]="dadosEscolasOriginal"
         (buscaAlterada)="aoMudarBusca($event)"
-        (escolaSelecionada)="focarEscola($event)">
+        (escolaSelecionada)="focarEscola($event)"
+      >
       </app-mapa-busca>
 
-      <app-mapa-filtros 
-        (filtrosAlterados)="aoMudarFiltros($event)">
-      </app-mapa-filtros>
+      <app-mapa-filtros (filtrosAlterados)="aoMudarFiltros($event)"> </app-mapa-filtros>
 
       <div class="absolute bottom-6 left-4 z-[1010] flex flex-col gap-2">
-        <div class="bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-gray-100 flex flex-col gap-1 transition-all duration-300 origin-bottom-left"
-             [class.opacity-0]="!menuCamadasAberto"
-             [class.scale-0]="!menuCamadasAberto"
-             [class.pointer-events-none]="!menuCamadasAberto">
-          
-          <button (click)="mudarCamada('padrao')" [class.bg-green-50]="camadaAtual === 'padrao'" [class.text-green-700]="camadaAtual === 'padrao'" class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors">Padrão</button>
-          <button (click)="mudarCamada('satelite')" [class.bg-green-50]="camadaAtual === 'satelite'" [class.text-green-700]="camadaAtual === 'satelite'" class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors">Satélite</button>
-          <button (click)="mudarCamada('terreno')" [class.bg-green-50]="camadaAtual === 'terreno'" [class.text-green-700]="camadaAtual === 'terreno'" class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors">Terreno</button>
-          <button (click)="mudarCamada('escuro')" [class.bg-green-50]="camadaAtual === 'escuro'" [class.text-green-700]="camadaAtual === 'escuro'" class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors">Escuro</button>
+        <div
+          class="bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-gray-100 flex flex-col gap-1 transition-all duration-300 origin-bottom-left"
+          [class.opacity-0]="!menuCamadasAberto"
+          [class.scale-0]="!menuCamadasAberto"
+          [class.pointer-events-none]="!menuCamadasAberto"
+        >
+          <button
+            (click)="mudarCamada('padrao')"
+            [class.bg-green-50]="camadaAtual === 'padrao'"
+            [class.text-green-700]="camadaAtual === 'padrao'"
+            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
+          >
+            Padrão
+          </button>
+          <button
+            (click)="mudarCamada('satelite')"
+            [class.bg-green-50]="camadaAtual === 'satelite'"
+            [class.text-green-700]="camadaAtual === 'satelite'"
+            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
+          >
+            Satélite
+          </button>
+          <button
+            (click)="mudarCamada('terreno')"
+            [class.bg-green-50]="camadaAtual === 'terreno'"
+            [class.text-green-700]="camadaAtual === 'terreno'"
+            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
+          >
+            Terreno
+          </button>
+          <button
+            (click)="mudarCamada('escuro')"
+            [class.bg-green-50]="camadaAtual === 'escuro'"
+            [class.text-green-700]="camadaAtual === 'escuro'"
+            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
+          >
+            Escuro
+          </button>
         </div>
 
-        <button (click)="menuCamadasAberto = !menuCamadasAberto" class="h-12 px-4 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-100 flex items-center gap-2.5 text-gray-700 hover:bg-gray-50 transition-all self-start pointer-events-auto">
+        <button
+          (click)="menuCamadasAberto = !menuCamadasAberto"
+          class="h-12 px-4 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-100 flex items-center gap-2.5 text-gray-700 hover:bg-gray-50 transition-all self-start pointer-events-auto"
+        >
           <i class="fa-solid fa-layer-group text-emerald-600"></i>
           <span class="text-base font-medium text-gray-700">{{ nomesCamadas[camadaAtual] }}</span>
         </button>
       </div>
-      
+
       <div id="map" class="absolute inset-0 z-0"></div>
     </div>
-  `
+  `,
 })
 export class MapaPublicoComponent implements OnInit, OnDestroy {
   private map!: L.Map;
   private tileLayerAtual!: L.TileLayer;
   private http = inject(HttpClient);
-  
-  private grupoMarcadores = L.layerGroup(); 
+
+  private grupoMarcadores = L.layerGroup();
   private marcadoresPorId: { [key: string]: L.Marker } = {};
 
   menuCamadasAberto = false;
@@ -61,14 +92,19 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     padrao: 'Padrão',
     satelite: 'Satélite',
     terreno: 'Terreno',
-    escuro: 'Escuro'
+    escuro: 'Escuro',
   };
 
   private camadas: { [key: string]: L.TileLayer } = {
     padrao: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }),
-    satelite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 17 }),
-    terreno: L.tileLayer('https://{s}.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 }),
-    escuro: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 })
+    satelite: L.tileLayer(
+      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 17 },
+    ),
+    terreno: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 }),
+    escuro: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+    }),
   };
 
   dadosEscolasOriginal: any[] = [];
@@ -79,7 +115,7 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     situacao: '',
     tipoAcesso: '',
     apenasComInternet: false,
-    apenasComPredio: false
+    apenasComPredio: false,
   };
 
   ngOnInit(): void {
@@ -92,23 +128,29 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   }
 
   private iniciarMapa(): void {
-    this.map = L.map('map', { zoomControl: false }).setView([-8.5, -72.0], 7); 
+    this.map = L.map('map', { zoomControl: false }).setView([-8.5, -72.0], 7);
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
-    
+
     this.tileLayerAtual = this.camadas['padrao'];
     this.tileLayerAtual.addTo(this.map);
 
     this.grupoMarcadores.addTo(this.map);
   }
 
+  private infraestruturaService = inject(InfraestruturaService);
+
   private buscarDadosDaApi(): void {
-    this.http.get<any[]>('http://localhost:8080/infraestrutura').subscribe({
+    this.infraestruturaService.listarTodas().subscribe({
       next: (dadosRecebidos) => {
         this.dadosEscolasOriginal = dadosRecebidos;
         this.dadosEscolasFiltrados = [...dadosRecebidos];
-        this.adicionarPinsEscolas(); 
+
+        this.adicionarPinsEscolas();
       },
-      error: (erro) => console.error('Erro API:', erro)
+
+      error: (erro) => {
+        console.error('Erro ao buscar dados:', erro);
+      },
     });
   }
 
@@ -123,15 +165,21 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   }
 
   private processarFiltros(): void {
-    this.dadosEscolasFiltrados = this.dadosEscolasOriginal.filter(item => {
+    this.dadosEscolasFiltrados = this.dadosEscolasOriginal.filter((item) => {
       const termo = this.termoBuscaTexto.toLowerCase();
       const nomeEscola = item.escola?.nome?.toLowerCase() || '';
       const codigoInep = item.escola?.codigo?.toLowerCase() || '';
       const passaBusca = nomeEscola.includes(termo) || codigoInep.includes(termo);
 
-      const passaSituacao = this.filtrosAvancados.situacao ? item.situacao === this.filtrosAvancados.situacao : true;
-      const passaAcesso = this.filtrosAvancados.tipoAcesso ? item.tipoAcesso === this.filtrosAvancados.tipoAcesso : true;
-      const passaInternet = this.filtrosAvancados.apenasComInternet ? item.temInternet === true : true;
+      const passaSituacao = this.filtrosAvancados.situacao
+        ? item.situacao === this.filtrosAvancados.situacao
+        : true;
+      const passaAcesso = this.filtrosAvancados.tipoAcesso
+        ? item.tipoAcesso === this.filtrosAvancados.tipoAcesso
+        : true;
+      const passaInternet = this.filtrosAvancados.apenasComInternet
+        ? item.temInternet === true
+        : true;
       const passaPredio = this.filtrosAvancados.apenasComPredio ? item.temPredio === true : true;
 
       return passaBusca && passaSituacao && passaAcesso && passaInternet && passaPredio;
@@ -143,7 +191,7 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   focarEscola(item: any): void {
     if (item.latitude && item.longitude) {
       this.map.setView([item.latitude, item.longitude], 11);
-      
+
       const marcador = this.marcadoresPorId[item.id];
       if (marcador) {
         marcador.openPopup();
@@ -157,23 +205,22 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
 
     // 1. Ícone Padrão (Verde)
     const iconePadrao = L.icon({
-      iconUrl: 'assets/markers/escola-marker-green.svg', 
+      iconUrl: 'assets/markers/escola-marker-green.svg',
       iconSize: [50, 50],
       iconAnchor: [25, 50],
-      popupAnchor: [0, -50]
+      popupAnchor: [0, -50],
     });
 
     // 2. Ícone para Escolas Paralisadas (Vermelho)
     const iconeVermelho = L.icon({
-      iconUrl: 'assets/markers/escola-marker-red.svg', 
+      iconUrl: 'assets/markers/escola-marker-red.svg',
       iconSize: [50, 50],
       iconAnchor: [25, 50],
-      popupAnchor: [0, -50]
+      popupAnchor: [0, -50],
     });
 
-    this.dadosEscolasFiltrados.forEach(item => {
+    this.dadosEscolasFiltrados.forEach((item) => {
       if (item.latitude && item.longitude) {
-        
         // Verifica se a situação é PARALISADA ou PARALIZADA (ignora maiúsculas/minúsculas)
         const situacaoNorm = item.situacao?.toUpperCase() || '';
         const isParalisada = situacaoNorm === 'PARALISADA' || situacaoNorm === 'PARALIZADA';

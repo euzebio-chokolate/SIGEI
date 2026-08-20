@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { environment } from '../../environments/environment';
+
 export interface MunicipioResumo {
   id: number;
   nome: string;
@@ -31,10 +33,10 @@ export interface TerraIndigenaEstatistica {
 })
 export class TerraIndigenaService {
 
-  private readonly apiUrl =
-    'http://localhost:8080/terra';
+  private readonly http = inject(HttpClient);
 
-  private http = inject(HttpClient);
+  private readonly apiUrl =
+    `${environment.apiUrl}/terra`;
 
   listarEstatisticas(): Observable<TerraIndigenaEstatistica[]> {
     return this.http.get<TerraIndigenaEstatistica[]>(
@@ -48,7 +50,9 @@ export class TerraIndigenaService {
     );
   }
 
-  salvar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
+  salvar(
+    dados: TerraIndigenaRequest
+  ): Observable<TerraIndigenaResponse> {
     return this.http.post<TerraIndigenaResponse>(
       `${this.apiUrl}/salvar`,
       dados
