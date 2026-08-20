@@ -2,14 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// Interface para os dados resumidos da escola que vêm dentro da infraestrutura
+import { environment } from '../../environments/environment';
+
 export interface EscolaResumo {
   id: number;
   codigo: string;
   nome: string;
 }
 
-// Interface principal do JSON de Infraestrutura
 export interface InfraestruturaEscola {
   id: number;
   escola: EscolaResumo;
@@ -30,11 +30,15 @@ export interface InfraestruturaEscola {
   providedIn: 'root'
 })
 export class InfraestruturaService {
-  
-  private apiUrl = 'http://localhost:8080/infraestrutura';
-  private http = inject(HttpClient); // Sintaxe moderna do Angular 17+
+
+  private readonly apiUrl =
+    `${environment.apiUrl}/infraestrutura`;
+
+  private http = inject(HttpClient);
 
   listarTodas(): Observable<InfraestruturaEscola[]> {
-    return this.http.get<InfraestruturaEscola[]>(this.apiUrl);
+    return this.http.get<InfraestruturaEscola[]>(
+      this.apiUrl
+    );
   }
 }

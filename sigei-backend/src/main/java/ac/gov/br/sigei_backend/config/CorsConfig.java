@@ -20,7 +20,13 @@ public class CorsConfig {
         config.setAllowCredentials(true);
 
         // Origem do seu Frontend Angular
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOrigins(List.of(
+                "http://localhost:4200",
+                "http://172.16.46.41:4200",
+                "http://54.232.189.113:4200", // Removido a /
+                "http://172.27.192.1:4200",   // Removido a /
+                "http://172.20.208.1:4200"    // Removido a /
+        ));
 
         // Cabeçalhos permitidos na requisição
         config.setAllowedHeaders(Arrays.asList(

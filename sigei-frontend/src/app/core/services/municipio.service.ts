@@ -2,6 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { environment } from '../../environments/environment';
+
 export interface Municipio {
   id: number;
   nome: string;
@@ -24,9 +26,10 @@ export interface MunicipioEstatistica {
 })
 export class MunicipioService {
 
-  private readonly apiUrl = 'http://localhost:8080/municipio';
+  private readonly http = inject(HttpClient);
 
-  private http = inject(HttpClient);
+  private readonly apiUrl =
+    `${environment.apiUrl}/municipio`;
 
   listarEstatisticas(): Observable<MunicipioEstatistica[]> {
     return this.http.get<MunicipioEstatistica[]>(
@@ -53,7 +56,10 @@ export class MunicipioService {
     );
   }
 
-  editar(id: number, dados: MunicipioRequest): Observable<Municipio> {
+  editar(
+    id: number,
+    dados: MunicipioRequest
+  ): Observable<Municipio> {
     return this.http.put<Municipio>(
       `${this.apiUrl}/${id}`,
       dados

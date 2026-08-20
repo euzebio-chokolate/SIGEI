@@ -8,10 +8,7 @@ http:
   url: http://localhost:8080/municipio/salvar
   body:
     type: json
-    data: |-
-      {
-        "nome": "Rio Branco"
-      }
+    data: ""
   auth: inherit
 
 settings:
