@@ -1,9 +1,13 @@
 package ac.gov.br.sigei_backend.services;
 
 import ac.gov.br.sigei_backend.DTOs.request.TerraIndigenaRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaEstatisticaResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaResponseDTO;
+import ac.gov.br.sigei_backend.mappers.MunicipioMapper;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
+import ac.gov.br.sigei_backend.repository.AldeiaRepository;
+import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
 import ac.gov.br.sigei_backend.mappers.TerraIndigenaMapper;
@@ -18,6 +22,15 @@ import java.util.NoSuchElementException;
 public class TerraIndigenaService {
     @Autowired
     TerraIndigenaRepository terraIndigenaRepository;
+
+    @Autowired
+    AldeiaRepository aldeiaRepository;
+
+    @Autowired
+    EscolaRepository escolaRepository;
+
+    @Autowired
+    MunicipioMapper municipioMapper;
 
     @Autowired
     TerraIndigenaMapper terraIndigenaMapper;
@@ -45,6 +58,55 @@ public class TerraIndigenaService {
         return terraIndigenaResponseDTOS;
     }
 
+    public TerraIndigenaResponseDTO buscarPorId(Long id) {
+        TerraIndigena terraIndigena = terraIndigenaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Terra indígena não encontrada com o ID fornecido"));
+
+        return terraIndigenaMapper.converter(terraIndigena);
+    }
+
+    public List<TerraIndigenaEstatisticaResponseDTO> buscarEstatisticas() {
+
+        List<TerraIndigena> terrasIndigenas =
+                terraIndigenaRepository.findAll();
+
+        List<TerraIndigenaEstatisticaResponseDTO> resultado =
+                new ArrayList<>();
+
+        for (TerraIndigena terraIndigena : terrasIndigenas) {
+
+            Long quantidadeAldeias =
+                    aldeiaRepository.countByTerraIndigena_Id(
+                            terraIndigena.getId()
+                    );
+
+            Long quantidadeEscolas =
+                    escolaRepository.countByAldeia_TerraIndigena_Id(
+                            terraIndigena.getId()
+                    );
+
+            TerraIndigenaEstatisticaResponseDTO dto =
+                    new TerraIndigenaEstatisticaResponseDTO(
+
+                            terraIndigena.getId(),
+
+                            terraIndigena.getNome(),
+
+                            municipioMapper.converterResumo(
+                                    terraIndigena.getMunicipio()
+                            ),
+
+                            quantidadeAldeias,
+
+                            quantidadeEscolas
+                    );
+
+            resultado.add(dto);
+        }
+
+        return resultado;
+    }
+
     public TerraIndigenaResponseDTO editar(TerraIndigenaRequestDTO terraIndigenaDTO){
         terraIndigenaRepository.findById(terraIndigenaDTO.id())
                         .orElseThrow(() -> new NoSuchElementException("Id de terra indígena inválido ou não encontrado"));
@@ -59,6 +121,7 @@ public class TerraIndigenaService {
         TerraIndigena TerraSalva = terraIndigenaRepository.save(terraIndigena);
         return terraIndigenaMapper.converter(TerraSalva);
     }
+
 
     public void excluir(Long id){
         terraIndigenaRepository.findById(id)
