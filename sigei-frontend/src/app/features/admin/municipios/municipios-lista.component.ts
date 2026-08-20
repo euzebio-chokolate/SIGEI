@@ -1,47 +1,74 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+
+// Ajuste a rota relativa conforme a localização do seu service
+import { MunicipioService, MunicipioEstatistica } from '../../../core/services/municipio.service';
 
 @Component({
   selector: 'app-municipios-lista',
   standalone: true,
-  imports: [CommonModule],
+  imports: [RouterLink, FormsModule],
   template: `
-    <div class="space-y-5 font-sans">
+    <div class="space-y-5 font-sans pb-10">
+      <!-- Breadcrumb -->
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
         <a
           routerLink="/admin/dashboard"
           class="hover:text-emerald-600 transition-colors flex items-center gap-1.5"
         >
-          <i class="fa-solid fa-house text-slate-400"></i> Início
+          <i class="fa-solid fa-house text-slate-400"></i>
+          Início
         </a>
+
         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
-        <span class="text-slate-800">Municípios</span>
+
+        <span class="text-slate-800"> Municípios </span>
       </nav>
 
-      <div>
-        <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Gestão de Municípios</h1>
-        <p class="text-sm text-slate-500 mt-1">
-          Gerencie os municípios cadastrados e a vinculação de escolas indígenas.
-        </p>
+      <!-- Cabeçalho -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Gestão de Municípios</h1>
+
+          <p class="text-sm text-slate-500 mt-1">
+            Consulte a cobertura e estatísticas de terras, aldeias e escolas por município.
+          </p>
+        </div>
+
+        <a
+          routerLink="/admin/municipios/novo"
+          class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all"
+        >
+          <i class="fa-solid fa-plus text-xs"></i>
+          Novo Município
+        </a>
       </div>
 
+      <!-- Cards de estatísticas -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Municípios -->
         <div
           class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
         >
           <div>
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Total de Municípios
+              Municípios Cadastrados
             </span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">22</p>
+
+            <p class="text-2xl font-bold text-slate-800 mt-1">
+              {{ totalMunicipios }}
+            </p>
           </div>
+
           <div
-            class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-lg"
+            class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-lg"
           >
             <i class="fa-solid fa-city"></i>
           </div>
         </div>
 
+        <!-- Terras -->
         <div
           class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
         >
@@ -49,49 +76,84 @@ import { CommonModule } from '@angular/common';
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
               Terras Indígenas
             </span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">20</p>
+
+            <p class="text-2xl font-bold text-slate-800 mt-1">
+              {{ totalTerrasIndigenas }}
+            </p>
           </div>
+
           <div
-            class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 text-lg"
+            class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-lg"
           >
-            <i class="fa-solid fa-circle-check"></i>
+            <i class="fa-solid fa-map-location-dot"></i>
           </div>
         </div>
 
+        <!-- Aldeias -->
         <div
           class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
         >
           <div>
             <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Escolas Atendidas
+              Total de Aldeias
             </span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">89</p>
+
+            <p class="text-2xl font-bold text-slate-800 mt-1">
+              {{ totalAldeias }}
+            </p>
           </div>
+
           <div
             class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-lg"
-          >
-            <i class="fa-solid fa-school"></i>
-          </div>
-        </div>
-
-        <div
-          class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
-        >
-          <div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-              Aldeias Vinculadas
-            </span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">145</p>
-          </div>
-          <div
-            class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-lg"
           >
             <i class="fa-solid fa-tents"></i>
           </div>
         </div>
+
+        <!-- Escolas -->
+        <div
+          class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between"
+        >
+          <div>
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+              Escolas Indígenas
+            </span>
+
+            <p class="text-2xl font-bold text-slate-800 mt-1">
+              {{ totalEscolas }}
+            </p>
+          </div>
+
+          <div
+            class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 text-lg"
+          >
+            <i class="fa-solid fa-school"></i>
+          </div>
+        </div>
       </div>
 
+      <!-- Tabela -->
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <!-- Busca -->
+        <div
+          class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-3 justify-between items-center"
+        >
+          <div class="relative w-full md:w-96">
+            <i
+              class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"
+            ></i>
+
+            <input
+              type="text"
+              [(ngModel)]="filtroTexto"
+              (ngModelChange)="filtrarMunicipios()"
+              placeholder="Buscar município por nome..."
+              class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm"
+            />
+          </div>
+        </div>
+
+        <!-- Tabela -->
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
@@ -99,91 +161,327 @@ import { CommonModule } from '@angular/common';
                 class="bg-slate-50/80 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100"
               >
                 <th class="px-6 py-3.5">Município</th>
-                <th class="px-6 py-3.5">Terras Indígenas</th>
-                <th class="px-6 py-3.5">Aldeias</th>
-                <th class="px-6 py-3.5">Escolas</th>
+
+                <th class="px-6 py-3.5 text-center">Terras Indígenas</th>
+
+                <th class="px-6 py-3.5 text-center">Aldeias</th>
+
+                <th class="px-6 py-3.5 text-center">Escolas</th>
+
+                <th class="px-6 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
 
             <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
-              <tr
-                *ngFor="let mun of dummyMunicipios"
-                class="hover:bg-slate-50/60 transition-colors"
-              >
-                <td class="px-6 py-4">
-                  <div class="font-semibold text-slate-800">
+              @for (mun of municipiosPaginados; track mun.id) {
+                <tr class="hover:bg-slate-50/60 transition-colors group">
+                  <!-- Município -->
+                  <td class="px-6 py-4 font-bold text-slate-800">
                     {{ mun.nome }}
-                  </div>
-                  <span class="text-xs text-slate-400"> Região de cobertura SIGEI </span>
-                </td>
+                  </td>
 
-                <td class="px-6 py-4 font-medium text-slate-600">
-                  <i class="fa-solid fa-mountain-sun text-emerald-500 mr-1.5"></i>
-                  {{ mun.totalTerras }}
-                </td>
+                  <!-- Terras -->
+                  <td class="px-6 py-4 text-center font-medium text-slate-600">
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100"
+                    >
+                      <i class="fa-solid fa-map-location-dot text-[10px]"></i>
 
-                <td class="px-6 py-4 font-medium text-slate-600">
-                  <i class="fa-solid fa-tents text-amber-500 mr-1.5"></i>
-                  {{ mun.totalAldeias }}
-                </td>
+                      {{ mun.quantidadeTerrasIndigenas }}
+                    </span>
+                  </td>
 
-                <td class="px-6 py-4 font-medium text-slate-600">
-                  <i class="fa-solid fa-school text-slate-300 mr-1.5"></i>
-                  {{ mun.totalEscolas }}
-                </td>
-              </tr>
+                  <!-- Aldeias -->
+                  <td class="px-6 py-4 text-center font-medium text-slate-600">
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-100"
+                    >
+                      <i class="fa-solid fa-tents text-[10px]"></i>
+
+                      {{ mun.quantidadeAldeias }}
+                    </span>
+                  </td>
+
+                  <!-- Escolas -->
+                  <td class="px-6 py-4 text-center font-medium text-slate-600">
+                    <span
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-100"
+                    >
+                      <i class="fa-solid fa-school text-[10px]"></i>
+
+                      {{ mun.quantidadeEscolas }}
+                    </span>
+                  </td>
+
+                  <!-- Ações -->
+                  <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <a
+                        [routerLink]="['/admin/municipios/editar', mun.id]"
+                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                        title="Editar"
+                      >
+                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
+                    @if (carregando) {
+                      <div class="flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
+
+                        <span> Carregando estatísticas dos municípios... </span>
+                      </div>
+                    } @else if (erroMensagem) {
+                      <span class="text-rose-500 font-semibold">
+                        {{ erroMensagem }}
+                      </span>
+                    } @else {
+                      Nenhum município encontrado.
+                    }
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>
 
+        <!-- Paginação -->
         <div
-          class="px-6 py-4 border-t border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500"
-        ></div>
+          class="px-6 py-4 border-t border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500"
+        >
+          <!-- Informação -->
+          <div>
+            Exibindo
+
+            <strong class="text-slate-700">{{ fimExibicao }} </strong>
+
+            de
+
+            <strong class="text-slate-700">
+              {{ municipiosFiltrados.length }}
+            </strong>
+
+            municípios
+          </div>
+
+          <!-- Controles -->
+          <div class="flex items-center gap-2">
+            <!-- Primeira página -->
+            <button
+              type="button"
+              (click)="irParaPagina(1)"
+              [disabled]="paginaAtual === 1"
+              class="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              title="Primeira página"
+            >
+              <i class="fa-solid fa-angles-left text-[10px]"></i>
+            </button>
+
+            <!-- Página anterior -->
+            <button
+              type="button"
+              (click)="paginaAnterior()"
+              [disabled]="paginaAtual === 1"
+              class="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              title="Página anterior"
+            >
+              <i class="fa-solid fa-chevron-left text-[10px]"></i>
+            </button>
+
+            <!-- Página atual -->
+            <span
+              class="min-w-[100px] text-center px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-semibold"
+            >
+              Página {{ paginaAtual }} de {{ totalPaginas || 1 }}
+            </span>
+
+            <!-- Próxima página -->
+            <button
+              type="button"
+              (click)="proximaPagina()"
+              [disabled]="paginaAtual >= totalPaginas"
+              class="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              title="Próxima página"
+            >
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+
+            <!-- Última página -->
+            <button
+              type="button"
+              (click)="irParaPagina(totalPaginas)"
+              [disabled]="paginaAtual >= totalPaginas"
+              class="w-8 h-8 rounded-lg border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 hover:text-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              title="Última página"
+            >
+              <i class="fa-solid fa-angles-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   `,
 })
-export class MunicipiosListaComponent {
-  dummyMunicipios = [
-    {
-      id: 1,
-      nome: 'Rio Branco',
-      estado: 'AC',
-      totalTerras: 5,
-      totalAldeias: 28,
-      totalEscolas: 14,
-    },
-    {
-      id: 2,
-      nome: 'Cruzeiro do Sul',
-      estado: 'AC',
-      totalTerras: 8,
-      totalAldeias: 41,
-      totalEscolas: 22,
-    },
-    {
-      id: 3,
-      nome: 'Sena Madureira',
-      estado: 'AC',
-      totalTerras: 3,
-      totalAldeias: 17,
-      totalEscolas: 9,
-    },
-    {
-      id: 4,
-      nome: 'Tarauacá',
-      estado: 'AC',
-      totalTerras: 6,
-      totalAldeias: 32,
-      totalEscolas: 18,
-    },
-    {
-      id: 5,
-      nome: 'Feijó',
-      estado: 'AC',
-      totalTerras: 4,
-      totalAldeias: 27,
-      totalEscolas: 12,
-    },
-  ];
+export class MunicipiosListaComponent implements OnInit {
+  private municipioService = inject(MunicipioService);
+  private cdr = inject(ChangeDetectorRef);
+
+
+  municipiosLista: MunicipioEstatistica[] = [];
+  municipiosFiltrados: MunicipioEstatistica[] = [];
+
+  filtroTexto = '';
+
+  carregando = true;
+  erroMensagem = '';
+
+
+  totalMunicipios = 0;
+  totalTerrasIndigenas = 0;
+  totalAldeias = 0;
+  totalEscolas = 0;
+
+
+  
+  readonly itensPorPagina = 6;
+
+
+  paginaAtual = 1;
+
+  get totalPaginas(): number {
+    return Math.ceil(this.municipiosFiltrados.length / this.itensPorPagina);
+  }
+
+ 
+  get municipiosPaginados(): MunicipioEstatistica[] {
+    const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
+
+    const fim = inicio + this.itensPorPagina;
+
+    return this.municipiosFiltrados.slice(inicio, fim);
+  }
+
+  
+  get inicioExibicao(): number {
+    if (this.municipiosFiltrados.length === 0) {
+      return 0;
+    }
+
+    return (this.paginaAtual - 1) * this.itensPorPagina + 1;
+  }
+
+  
+  get fimExibicao(): number {
+    return Math.min(this.paginaAtual * this.itensPorPagina, this.municipiosFiltrados.length);
+  }
+
+
+  ngOnInit(): void {
+    this.carregarEstatisticas();
+  }
+
+
+  carregarEstatisticas(): void {
+    this.carregando = true;
+    this.erroMensagem = '';
+
+    this.municipioService.listarEstatisticas().subscribe({
+      next: (dados) => {
+        console.log('✅ Dados recebidos no componente via Service:', dados);
+
+        this.municipiosLista = dados ?? [];
+
+        this.municipiosFiltrados = [...this.municipiosLista];
+
+        this.calcularTotais(this.municipiosLista);
+
+        this.paginaAtual = 1;
+
+        this.carregando = false;
+
+        this.cdr.markForCheck();
+      },
+
+      error: (erro) => {
+        console.error('❌ Erro no subscribe do componente:', erro);
+
+        this.erroMensagem =
+          'Não foi possível carregar as estatísticas. Verifique a conexão com a API.';
+
+        this.carregando = false;
+
+        this.paginaAtual = 1;
+
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+
+  calcularTotais(dados: MunicipioEstatistica[]): void {
+    this.totalMunicipios = dados.length;
+
+    this.totalTerrasIndigenas = dados.reduce(
+      (acc, mun) => acc + (mun.quantidadeTerrasIndigenas || 0),
+      0,
+    );
+
+    this.totalAldeias = dados.reduce((acc, mun) => acc + (mun.quantidadeAldeias || 0), 0);
+
+    this.totalEscolas = dados.reduce((acc, mun) => acc + (mun.quantidadeEscolas || 0), 0);
+  }
+
+
+  filtrarMunicipios(): void {
+    const termo = this.filtroTexto.trim().toLowerCase();
+
+    if (!termo) {
+      this.municipiosFiltrados = [...this.municipiosLista];
+    } else {
+      this.municipiosFiltrados = this.municipiosLista.filter((municipio) =>
+        municipio.nome?.toLowerCase().includes(termo),
+      );
+    }
+
+    // Quando pesquisar, sempre volta para a primeira página
+    this.paginaAtual = 1;
+  }
+
+ 
+  irParaPagina(pagina: number): void {
+    if (this.totalPaginas === 0) {
+      this.paginaAtual = 1;
+      return;
+    }
+
+    if (pagina < 1) {
+      this.paginaAtual = 1;
+      return;
+    }
+
+    if (pagina > this.totalPaginas) {
+      this.paginaAtual = this.totalPaginas;
+      return;
+    }
+
+    this.paginaAtual = pagina;
+  }
+
+ 
+  paginaAnterior(): void {
+    if (this.paginaAtual > 1) {
+      this.paginaAtual--;
+    }
+  }
+
+ 
+  proximaPagina(): void {
+    if (this.paginaAtual < this.totalPaginas) {
+      this.paginaAtual++;
+    }
+  }
 }

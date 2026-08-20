@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.controllers;
 
 import ac.gov.br.sigei_backend.DTOs.request.TerraIndigenaRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaEstatisticaResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaResponseDTO;
 import ac.gov.br.sigei_backend.services.TerraIndigenaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,6 +45,31 @@ public class TerraIndigenaController {
     public ResponseEntity<List<TerraIndigenaResponseDTO>> buscar() {
         List<TerraIndigenaResponseDTO> terrasIndigenas = terraIndigenaService.buscarTudo();
         return new ResponseEntity<>(terrasIndigenas, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Buscar terra indígena por ID", description = "Retorna os detalhes de uma terra indígena específica através do seu ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Terra indígena encontrada com sucesso"),
+            @ApiResponse(responseCode = "404", description = "Terra indígena não encontrada")
+    })
+    public ResponseEntity<TerraIndigenaResponseDTO> buscarPorId(
+            @Parameter(description = "ID da terra indígena", example = "1") @PathVariable Long id) {
+        TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.buscarPorId(id);
+        return new ResponseEntity<>(terraIndigenaResponseDTO, HttpStatus.OK);
+    }
+
+
+    @GetMapping("/estatisticas")
+    public ResponseEntity<List<TerraIndigenaEstatisticaResponseDTO>> buscarEstatisticas() {
+
+        List<TerraIndigenaEstatisticaResponseDTO> terras =
+                terraIndigenaService.buscarEstatisticas();
+
+        return new ResponseEntity<>(
+                terras,
+                HttpStatus.OK
+        );
     }
 
     @PutMapping("/editar")

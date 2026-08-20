@@ -13,4 +13,5 @@ public interface TerraIndigenaRepository extends JpaRepository<TerraIndigena, Lo
     Optional<TerraIndigena>
     findByNomeIgnoreCaseAndMunicipio(String nome, Municipio municipio);
     boolean existsByNomeIgnoreCaseAndMunicipio(String nome, Municipio municipio);
+    long countByMunicipio_Id(Long municipioId);
 }

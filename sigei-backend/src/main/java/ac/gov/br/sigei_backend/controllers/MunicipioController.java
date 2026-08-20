@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.controllers;
 
 import ac.gov.br.sigei_backend.DTOs.request.MunicipioRequestDTO;
+import ac.gov.br.sigei_backend.DTOs.response.MunicipioEstatisticaResponseDTO;
 import ac.gov.br.sigei_backend.DTOs.response.MunicipioResponseDTO;
 import ac.gov.br.sigei_backend.services.MunicipioService;
 import jakarta.validation.Valid;
@@ -30,6 +31,17 @@ public class MunicipioController {
         return new ResponseEntity<List<MunicipioResponseDTO>>(municipios, HttpStatus.OK);
     }
 
+    @GetMapping("/estatisticas")
+    public ResponseEntity<List<MunicipioEstatisticaResponseDTO>> buscarEstatisticas() {
+
+        List<MunicipioEstatisticaResponseDTO> municipios =
+                municipioService.buscarEstatisticas();
+
+        return new ResponseEntity<>(
+                municipios,
+                HttpStatus.OK
+        );
+    }
 
     @PutMapping("/editar")
     public ResponseEntity<MunicipioResponseDTO> editar(@RequestBody MunicipioRequestDTO municipioDTO){

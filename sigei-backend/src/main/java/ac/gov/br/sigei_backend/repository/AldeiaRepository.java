@@ -13,4 +13,6 @@ public interface AldeiaRepository extends JpaRepository<Aldeia, Long> {
     public Optional<Aldeia> findById(Long id);
     Optional<Aldeia> findByNomeIgnoreCaseAndTerraIndigenaAndPovo(String nome, TerraIndigena terraIndigena, Povo povo);
     boolean existsByNomeIgnoreCaseAndTerraIndigenaAndPovo(String nome, TerraIndigena terraIndigena, Povo povo);
+    long countByTerraIndigena_Municipio_Id(Long municipioId);
+    long countByTerraIndigena_Id(Long terraIndigenaId);
 }

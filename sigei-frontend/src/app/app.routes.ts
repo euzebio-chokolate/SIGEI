@@ -30,16 +30,6 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/municipios/municipios-lista.component').then(m => m.MunicipiosListaComponent),
         title: 'SIGEI - Municípios'
       },
-      {
-        path: 'municipios/novo',
-        loadComponent: () => import('./features/admin/municipios/municipio-form.component').then(m => m.MunicipioFormComponent),
-        title: 'SIGEI - Novo Município'
-      },
-      {
-        path: 'municipios/editar/:id',
-        loadComponent: () => import('./features/admin/municipios/municipio-form.component').then(m => m.MunicipioFormComponent),
-        title: 'SIGEI - Editar Município'
-      },
 
       //Rotas Terras Indigenas
       {
