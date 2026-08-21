@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotNull;
 
 public record AnoReferenciaRequestDTO(
         Long id,
-        @NotNull Integer ano
+
+        @NotNull
+        Integer ano
 ) {
 }
