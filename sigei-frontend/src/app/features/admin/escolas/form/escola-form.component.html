@@ -1,0 +1,1180 @@
+<div class="max-w-4xl mx-auto space-y-5 font-sans pb-10">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+    <a routerLink="/admin/dashboard" class="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+      <i class="fa-solid fa-house text-slate-400"></i>
+      Início
+    </a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+    <a routerLink="/admin/escolas" class="hover:text-emerald-600 transition-colors">
+      Escolas
+    </a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+    <span class="text-slate-800"> Nova Escola </span>
+  </nav>
+
+  <!-- Cabeçalho -->
+  <div class="flex items-center gap-4">
+    <a routerLink="/admin/escolas" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm">
+      <i class="fa-solid fa-arrow-left"></i>
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Cadastrar Escola</h1>
+      <p class="text-sm text-slate-500 mt-0.5">Preencha os dados da escola e do registro anual.</p>
+    </div>
+  </div>
+
+  <!-- Indicador das etapas -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm px-6 py-4">
+    <div class="flex items-center gap-4">
+      <!-- Etapa 1 -->
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+          [class.bg-emerald-600]="etapaAtual >= 1"
+          [class.text-white]="etapaAtual >= 1"
+          [class.bg-slate-100]="etapaAtual < 1"
+          [class.text-slate-400]="etapaAtual < 1"
+        >
+          1
+        </div>
+        <span
+          class="text-sm font-semibold"
+          [class.text-slate-800]="etapaAtual === 1"
+          [class.text-slate-400]="etapaAtual !== 1"
+        >
+          Escola
+        </span>
+      </div>
+
+      <div class="h-px flex-1 bg-slate-200"></div>
+
+      <!-- Etapa 2 -->
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+          [class.bg-emerald-600]="etapaAtual >= 2"
+          [class.text-white]="etapaAtual >= 2"
+          [class.bg-slate-100]="etapaAtual < 2"
+          [class.text-slate-400]="etapaAtual < 2"
+        >
+          2
+        </div>
+        <span
+          class="text-sm font-semibold"
+          [class.text-slate-800]="etapaAtual === 2"
+          [class.text-slate-400]="etapaAtual !== 2"
+        >
+          Registro Anual
+        </span>
+      </div>
+
+      <div class="h-px flex-1 bg-slate-200"></div>
+
+      <!-- Etapa 3 -->
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+          [class.bg-emerald-600]="etapaAtual >= 3"
+          [class.text-white]="etapaAtual >= 3"
+          [class.bg-slate-100]="etapaAtual < 3"
+          [class.text-slate-400]="etapaAtual < 3"
+        >
+          3
+        </div>
+        <span
+          class="text-sm font-semibold"
+          [class.text-slate-800]="etapaAtual === 3"
+          [class.text-slate-400]="etapaAtual !== 3"
+        >
+          Equipe
+        </span>
+      </div>
+
+      <div class="h-px flex-1 bg-slate-200"></div>
+
+      <!-- Etapa 4 -->
+      <div class="flex items-center gap-2">
+        <div
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+          [class.bg-emerald-600]="etapaAtual >= 4"
+          [class.text-white]="etapaAtual >= 4"
+          [class.bg-slate-100]="etapaAtual < 4"
+          [class.text-slate-400]="etapaAtual < 4"
+        >
+          4
+        </div>
+        <span
+          class="text-sm font-semibold"
+          [class.text-slate-800]="etapaAtual === 4"
+          [class.text-slate-400]="etapaAtual !== 4"
+        >
+          Infraestrutura
+        </span>
+      </div>
+
+      <div class="h-px flex-1 bg-slate-200"></div>
+
+<!-- Etapa 5 -->
+<div class="flex items-center gap-2">
+
+  <div
+    class="w-8 h-8 rounded-full
+           flex items-center justify-center
+           text-xs font-bold"
+    [class.bg-emerald-600]="etapaAtual >= 5"
+    [class.text-white]="etapaAtual >= 5"
+    [class.bg-slate-100]="etapaAtual < 5"
+    [class.text-slate-400]="etapaAtual < 5"
+  >
+    5
+  </div>
+
+  <span
+    class="text-sm font-semibold"
+    [class.text-slate-800]="etapaAtual === 5"
+    [class.text-slate-400]="etapaAtual !== 5"
+  >
+    Matrículas
+  </span>
+
+</div>
+
+    </div>
+  </div>
+
+  <!-- ======================== -->
+  <!-- ETAPA 1 - ESCOLA -->
+  <!-- ======================== -->
+  @if (etapaAtual === 1) {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <form [formGroup]="form" (ngSubmit)="avancar()" class="p-8 space-y-6">
+        <!-- Identificação -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Identificação da Escola
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Código -->
+            <div>
+              <label for="codigo" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Código da Escola
+                <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="codigo"
+                type="text"
+                formControlName="codigo"
+                placeholder="Ex: 12033030"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              />
+              @if (form.controls.codigo.invalid && form.controls.codigo.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Informe o código da escola.</p>
+              }
+            </div>
+
+            <!-- Tipo -->
+            <div>
+              <label for="tipoUnidade" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Tipo de Unidade
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="tipoUnidade"
+                formControlName="tipoUnidade"
+                (change)="aoAlterarTipoUnidade()"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              >
+                <option value="">Selecione...</option>
+                <option value="SEDE">Sede</option>
+                <option value="ANEXO">Anexo</option>
+              </select>
+              @if (form.controls.tipoUnidade.invalid && form.controls.tipoUnidade.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Selecione o tipo da unidade.</p>
+              }
+            </div>
+
+            <!-- Nome -->
+            <div class="md:col-span-2">
+              <label for="nome" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Nome da Escola
+                <span class="text-rose-500">*</span>
+              </label>
+              <input
+                id="nome"
+                type="text"
+                formControlName="nome"
+                placeholder="Ex: Escola Indígena Nova Vida"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              />
+              @if (form.controls.nome.invalid && form.controls.nome.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Informe o nome da escola.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Localização -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Localização e Vínculo
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Aldeia -->
+            <div [class.md:col-span-2]="form.controls.tipoUnidade.value !== 'ANEXO'">
+              <label for="aldeiaId" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Aldeia
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="aldeiaId"
+                formControlName="aldeiaId"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              >
+                <option [ngValue]="0">Selecione uma aldeia...</option>
+                @for (aldeia of aldeias; track aldeia.id) {
+                  <option [ngValue]="aldeia.id">
+                    {{ aldeia.nome }} — {{ aldeia.terraIndigena.nome }} — {{ aldeia.terraIndigena.municipio.nome }}
+                  </option>
+                }
+              </select>
+
+              @if (carregandoAldeias) {
+                <p class="text-xs text-slate-400 mt-1.5">
+                  <i class="fa-solid fa-circle-notch animate-spin mr-1"></i>
+                  Carregando aldeias...
+                </p>
+              }
+
+              @if (form.controls.aldeiaId.invalid && form.controls.aldeiaId.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Selecione uma aldeia.</p>
+              }
+            </div>
+
+            <!-- Escola Sede -->
+            @if (form.controls.tipoUnidade.value === 'ANEXO') {
+              <div>
+                <label for="escolaSedeId" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Escola Sede
+                  <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  id="escolaSedeId"
+                  formControlName="escolaSedeId"
+                  class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+                >
+                  <option [ngValue]="null">Selecione a escola sede...</option>
+                  @for (escola of escolasSede; track escola.id) {
+                    <option [ngValue]="escola.id">{{ escola.nome }} — {{ escola.codigo }}</option>
+                  }
+                </select>
+                @if (form.controls.escolaSedeId.invalid && form.controls.escolaSedeId.touched) {
+                  <p class="text-xs text-rose-500 mt-1.5">Selecione a escola sede do anexo.</p>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Erro -->
+        @if (erroMensagem) {
+          <div class="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-sm">
+            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+            <span>
+              {{ erroMensagem }}
+            </span>
+          </div>
+        }
+
+        <!-- Botões etapa 1 -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+          <a routerLink="/admin/escolas" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all">
+            Cancelar
+          </a>
+          <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all">
+            Próximo
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ======================== -->
+  <!-- ETAPA 2 - REGISTRO ANUAL -->
+  <!-- ======================== -->
+  @if (etapaAtual === 2) {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <form [formGroup]="registroForm" (ngSubmit)="avancar()" class="p-8 space-y-6">
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Registro Anual
+          </h3>
+          <p class="text-sm text-slate-500 mb-5">
+            Informe os dados referentes ao ano do registro da escola.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Ano -->
+            <div>
+              <label for="anoReferenciaId" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Ano de Referência
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="anoReferenciaId"
+                formControlName="anoReferenciaId"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              >
+                <option [ngValue]="0">Selecione o ano...</option>
+                @for (ano of anosReferencia; track ano.id) {
+                  <option [ngValue]="ano.id">
+                    {{ ano.ano }}
+                  </option>
+                }
+              </select>
+
+              @if (carregandoAnos) {
+                <p class="text-xs text-slate-400 mt-1.5">
+                  <i class="fa-solid fa-circle-notch animate-spin mr-1"></i>
+                  Carregando anos...
+                </p>
+              }
+
+              @if (registroForm.controls.anoReferenciaId.invalid && registroForm.controls.anoReferenciaId.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Selecione o ano de referência.</p>
+              }
+            </div>
+
+            <!-- Rede -->
+            <div>
+              <label for="rede" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Rede
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="rede"
+                formControlName="rede"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              >
+                <option value="">Selecione...</option>
+                <option value="ESTADUAL">Estadual</option>
+                <option value="MUNICIPAL">Municipal</option>
+              </select>
+              @if (registroForm.controls.rede.invalid && registroForm.controls.rede.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Selecione a rede.</p>
+              }
+            </div>
+
+            <!-- Local de Funcionamento -->
+            <div class="md:col-span-2">
+              <label for="localFuncionamento" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Local de Funcionamento
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="localFuncionamento"
+                formControlName="localFuncionamento"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              >
+                <option value="">Selecione...</option>
+                <option value="RURAL">Rural</option>
+                <option value="URBANA">Urbana</option>
+              </select>
+              @if (registroForm.controls.localFuncionamento.invalid && registroForm.controls.localFuncionamento.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Selecione o local de funcionamento.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Erro -->
+        @if (erroMensagem) {
+          <div class="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-sm">
+            <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+            <span>
+              {{ erroMensagem }}
+            </span>
+          </div>
+        }
+
+        <!-- Botões etapa 2 -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+          <button type="button" (click)="voltarEtapa()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all">
+            <i class="fa-solid fa-arrow-left mr-2 text-xs"></i>
+            Voltar
+          </button>
+          <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all">
+            Próximo
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ======================== -->
+  <!-- ETAPA 3 - EQUIPE -->
+  <!-- ======================== -->
+  @if (etapaAtual === 3) {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <form [formGroup]="equipeForm" (ngSubmit)="avancar()" class="p-8 space-y-6">
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Equipe da Escola
+          </h3>
+          <p class="text-sm text-slate-500 mb-6">
+            Informe quais profissionais e serviços estão disponíveis para a escola no ano selecionado.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Professor responsável -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <i class="fa-solid fa-chalkboard-user"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-700">Professor Responsável</p>
+                  <p class="text-xs text-slate-400">A escola possui professor responsável?</p>
+                </div>
+              </div>
+              <input type="checkbox" formControlName="temProfessorResponsavel" class="w-5 h-5 rounded accent-emerald-600" />
+            </label>
+
+            <!-- Equipe gestora -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                  <i class="fa-solid fa-people-group"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-700">Equipe Gestora</p>
+                  <p class="text-xs text-slate-400">Possui equipe gestora?</p>
+                </div>
+              </div>
+              <input type="checkbox" formControlName="temEquipeGestora" class="w-5 h-5 rounded accent-emerald-600" />
+            </label>
+
+            <!-- Merendeira -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-700">Merendeira</p>
+                  <p class="text-xs text-slate-400">Possui merendeira?</p>
+                </div>
+              </div>
+              <input type="checkbox" formControlName="temMerendeira" class="w-5 h-5 rounded accent-emerald-600" />
+            </label>
+
+            <!-- Zeladora -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                  <i class="fa-solid fa-broom"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-700">Zeladora</p>
+                  <p class="text-xs text-slate-400">Possui zeladora?</p>
+                </div>
+              </div>
+              <input type="checkbox" formControlName="temZeladora" class="w-5 h-5 rounded accent-emerald-600" />
+            </label>
+
+            <!-- Barqueiro -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                  <i class="fa-solid fa-ship"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-700">Barqueiro</p>
+                  <p class="text-xs text-slate-400">Possui barqueiro?</p>
+                </div>
+              </div>
+              <input type="checkbox" formControlName="temBarqueiro" class="w-5 h-5 rounded accent-emerald-600" />
+            </label>
+
+            <!-- Transporte -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                  <i class="fa-solid fa-bus"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-slate-700">Necessita Transporte</p>
+                  <p class="text-xs text-slate-400">A escola necessita de transporte?</p>
+                </div>
+              </div>
+              <input type="checkbox" formControlName="necessitaTransporte" class="w-5 h-5 rounded accent-emerald-600" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Navegação -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+          <button type="button" (click)="voltarEtapa()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all">
+            <i class="fa-solid fa-arrow-left mr-2 text-xs"></i>
+            Voltar
+          </button>
+          <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all">
+            Próximo
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ======================== -->
+  <!-- ETAPA 4 - INFRAESTRUTURA -->
+  <!-- ======================== -->
+  @if (etapaAtual === 4) {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <form [formGroup]="infraestruturaForm" (ngSubmit)="avancar()" class="p-8 space-y-7">
+        <!-- Dados físicos -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Infraestrutura da Escola
+          </h3>
+          <p class="text-sm text-slate-500 mb-6">
+            Informe os dados físicos e de funcionamento da escola para o ano selecionado.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Ano de construção -->
+            <div>
+              <label for="anoConstrucao" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Ano de Construção
+              </label>
+              <input
+                id="anoConstrucao"
+                type="number"
+                formControlName="anoConstrucao"
+                placeholder="Ex: 2018"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              />
+            </div>
+
+            <!-- Número de salas -->
+            <div>
+              <label for="numSalas" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Número de Salas
+              </label>
+              <input
+                id="numSalas"
+                type="number"
+                min="0"
+                formControlName="numSalas"
+                placeholder="Ex: 4"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 transition-all shadow-sm"
+              />
+            </div>
+
+            <!-- Situação -->
+            <div>
+              <label for="situacao" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Situação
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="situacao"
+                formControlName="situacao"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 shadow-sm"
+              >
+                <option value="">Selecione...</option>
+                <option value="FUNCIONANDO">Funcionando</option>
+                <option value="PARALISADA">Paralisada</option>
+                <option value="DESATIVADA">Desativada</option>
+              </select>
+              @if (infraestruturaForm.controls.situacao.invalid && infraestruturaForm.controls.situacao.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Selecione a situação da escola.</p>
+              }
+            </div>
+
+            <!-- Tipo de acesso -->
+            <div>
+              <label for="tipoAcesso" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Tipo de Acesso
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="tipoAcesso"
+                formControlName="tipoAcesso"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 shadow-sm"
+              >
+                <option value="">Selecione...</option>
+                <option value="TERRESTRE">Terrestre</option>
+                <option value="FLUVIAL">Fluvial</option>
+                <option value="AEREO">Aéreo</option>
+                <option value="MISTO">Misto</option>
+              </select>
+              @if (infraestruturaForm.controls.tipoAcesso.invalid && infraestruturaForm.controls.tipoAcesso.touched) {
+                <p class="text-xs text-rose-500 mt-1.5">Selecione o tipo de acesso.</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Coordenadas -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Geolocalização
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Latitude -->
+            <div>
+              <label for="latitude" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Latitude
+              </label>
+              <input
+                id="latitude"
+                type="number"
+                step="any"
+                formControlName="latitude"
+                placeholder="Ex: -10.9234444"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 shadow-sm"
+              />
+            </div>
+
+            <!-- Longitude -->
+            <div>
+              <label for="longitude" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Longitude
+              </label>
+              <input
+                id="longitude"
+                type="number"
+                step="any"
+                formControlName="longitude"
+                placeholder="Ex: -69.949"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 shadow-sm"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Serviços -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Serviços e Recursos
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Água -->
+            <div>
+              <label for="tipoAgua" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Abastecimento de Água
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="tipoAgua"
+                formControlName="tipoAgua"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 shadow-sm"
+              >
+                <option value="">Selecione...</option>
+                <option value="REDE_PUBLICA">Rede Pública</option>
+                <option value="POCO">Poço</option>
+                <option value="RIO/VERTENTE">Rio / Vertente</option>
+                <option value="OUTRO">Outro</option>
+                <option value="NAO">Não possui</option>
+              </select>
+            </div>
+
+            <!-- Energia -->
+            <div>
+              <label for="tipoEnergia" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                Energia
+                <span class="text-rose-500">*</span>
+              </label>
+              <select
+                id="tipoEnergia"
+                formControlName="tipoEnergia"
+                class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 text-slate-800 shadow-sm"
+              >
+                <option value="">Selecione...</option>
+                <option value="REDE_PUBLICA">Rede Pública</option>
+                <option value="GERADOR">Gerador</option>
+                <option value="SOLAR">Solar</option>
+                <option value="OUTRO">Outro</option>
+                <option value="NÃO">Não possui</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sim / Não -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+            Características
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Prédio -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <div>
+                <p class="text-sm font-semibold text-slate-700">Prédio Escolar</p>
+                <p class="text-xs text-slate-400">Possui prédio próprio?</p>
+              </div>
+              <input type="checkbox" formControlName="temPredio" class="w-5 h-5 accent-emerald-600" />
+            </label>
+
+            <!-- Internet -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <div>
+                <p class="text-sm font-semibold text-slate-700">Internet</p>
+                <p class="text-xs text-slate-400">Possui acesso à internet?</p>
+              </div>
+              <input type="checkbox" formControlName="temInternet" class="w-5 h-5 accent-emerald-600" />
+            </label>
+
+            <!-- Registro fotográfico -->
+            <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <div>
+                <p class="text-sm font-semibold text-slate-700">Registro Fotográfico</p>
+                <p class="text-xs text-slate-400">Possui registro fotográfico?</p>
+              </div>
+              <input type="checkbox" formControlName="temRegistroFotografico" class="w-5 h-5 accent-emerald-600" />
+            </label>
+          </div>
+        </div>
+
+        <!-- Navegação -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+          <button type="button" (click)="voltarEtapa()" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all">
+            <i class="fa-solid fa-arrow-left mr-2 text-xs"></i>
+            Voltar
+          </button>
+          <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all">
+            Próximo
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- ======================== -->
+<!-- ETAPA 5 - MATRÍCULAS NÍVEL -->
+<!-- ======================== -->
+
+@if (etapaAtual === 5) {
+
+  <div
+    class="bg-white rounded-2xl
+           border border-slate-200/80
+           shadow-sm overflow-hidden"
+  >
+
+    <form
+      [formGroup]="matriculasNivelForm"
+      (ngSubmit)="avancar()"
+      class="p-8 space-y-6"
+    >
+
+      <!-- Cabeçalho -->
+      <div>
+
+        <h3
+          class="text-xs font-bold text-slate-400
+                 uppercase tracking-wider mb-4 pb-2
+                 border-b border-slate-100"
+        >
+          Matrículas por Nível
+        </h3>
+
+        <p class="text-sm text-slate-500">
+          Informe a quantidade de alunos matriculados
+          por nível de ensino.
+        </p>
+
+      </div>
+
+      <!-- Tabela -->
+      <div
+        class="border border-slate-200
+               rounded-2xl overflow-hidden"
+      >
+
+        <div class="overflow-x-auto">
+
+          <table class="w-full">
+
+            <thead>
+
+              <tr
+                class="bg-slate-50 border-b
+                       border-slate-200"
+              >
+
+                <th
+                  class="text-left px-5 py-3
+                         text-xs font-bold
+                         uppercase tracking-wider
+                         text-slate-500"
+                >
+                  Nível de Ensino
+                </th>
+
+                <th
+                  class="text-center px-4 py-3
+                         text-xs font-bold
+                         uppercase tracking-wider
+                         text-slate-500"
+                >
+                  Masculino
+                </th>
+
+                <th
+                  class="text-center px-4 py-3
+                         text-xs font-bold
+                         uppercase tracking-wider
+                         text-slate-500"
+                >
+                  Feminino
+                </th>
+
+                <th
+                  class="text-center px-4 py-3
+                         text-xs font-bold
+                         uppercase tracking-wider
+                         text-slate-500"
+                >
+                  Total
+                </th>
+
+              </tr>
+
+            </thead>
+
+            <tbody
+              formArrayName="matriculas"
+              class="divide-y divide-slate-100"
+            >
+
+              @for (
+                matricula of matriculasNivel.controls;
+                track $index;
+                let i = $index
+              ) {
+
+                <tr
+                  [formGroupName]="i"
+                  class="hover:bg-slate-50/60
+                         transition-colors"
+                >
+
+                  <!-- Nível -->
+                  <td class="px-5 py-4">
+
+                    <div class="flex items-center gap-3">
+
+                      <div
+                        class="w-9 h-9 rounded-lg
+                               bg-emerald-50
+                               text-emerald-600
+                               flex items-center
+                               justify-center shrink-0"
+                      >
+                        <i
+                          class="fa-solid
+                                 fa-graduation-cap
+                                 text-xs"
+                        ></i>
+                      </div>
+
+                      <div>
+
+                        <p
+                          class="text-sm font-semibold
+                                 text-slate-700"
+                        >
+                          {{ getDescricaoNivel(i) }}
+                        </p>
+
+                        <p
+                          class="text-[11px]
+                                 text-slate-400 mt-0.5"
+                        >
+                          {{
+                            matricula.get('nivel')?.value
+                          }}
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                  </td>
+
+                  <!-- Masculino -->
+                  <td class="px-4 py-4">
+
+                    <input
+                      type="number"
+                      min="0"
+                      formControlName="qtdMasculino"
+                      placeholder="0"
+                      class="w-24 mx-auto block
+                             px-3 py-2
+                             text-center
+                             bg-white
+                             border border-slate-200
+                             rounded-lg text-sm
+                             focus:outline-none
+                             focus:ring-2
+                             focus:ring-emerald-500/20
+                             focus:border-emerald-500"
+                    >
+
+                  </td>
+
+                  <!-- Feminino -->
+                  <td class="px-4 py-4">
+
+                    <input
+                      type="number"
+                      min="0"
+                      formControlName="qtdFeminino"
+                      placeholder="0"
+                      class="w-24 mx-auto block
+                             px-3 py-2
+                             text-center
+                             bg-white
+                             border border-slate-200
+                             rounded-lg text-sm
+                             focus:outline-none
+                             focus:ring-2
+                             focus:ring-emerald-500/20
+                             focus:border-emerald-500"
+                    >
+
+                  </td>
+
+                  <!-- Total -->
+                  <td class="px-4 py-4 text-center">
+
+                    <span
+                      class="inline-flex
+                             min-w-12
+                             justify-center
+                             px-3 py-1.5
+                             bg-slate-100
+                             text-slate-700
+                             font-bold
+                             rounded-lg text-sm"
+                    >
+                      {{ calcularTotalNivel(i) }}
+                    </span>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+            <!-- Total Geral -->
+            <tfoot>
+
+              <tr
+                class="bg-emerald-50
+                       border-t border-emerald-100"
+              >
+
+                <td class="px-5 py-4">
+
+                  <div class="flex items-center gap-2">
+
+                    <i
+                      class="fa-solid fa-calculator
+                             text-emerald-600"
+                    ></i>
+
+                    <span
+                      class="font-bold
+                             text-emerald-800 text-sm"
+                    >
+                      Total Geral
+                    </span>
+
+                  </div>
+
+                </td>
+
+                <td
+                  class="px-4 py-4
+                         text-center font-bold
+                         text-emerald-800"
+                >
+                  {{ calcularTotalMasculino() }}
+                </td>
+
+                <td
+                  class="px-4 py-4
+                         text-center font-bold
+                         text-emerald-800"
+                >
+                  {{ calcularTotalFeminino() }}
+                </td>
+
+                <td class="px-4 py-4 text-center">
+
+                  <span
+                    class="inline-flex
+                           min-w-14 justify-center
+                           px-3 py-1.5
+                           rounded-lg
+                           bg-emerald-600
+                           text-white font-bold"
+                  >
+                    {{ calcularTotalGeral() }}
+                  </span>
+
+                </td>
+
+              </tr>
+
+            </tfoot>
+
+          </table>
+
+        </div>
+
+      </div>
+
+      <!-- Resumo -->
+      <div
+        class="grid grid-cols-1
+               sm:grid-cols-3 gap-3"
+      >
+
+        <div
+          class="p-4 rounded-xl
+                 bg-sky-50 border border-sky-100"
+        >
+
+          <p
+            class="text-xs font-semibold
+                   text-sky-600 uppercase"
+          >
+            Masculino
+          </p>
+
+          <p
+            class="text-xl font-bold
+                   text-sky-800 mt-1"
+          >
+            {{ calcularTotalMasculino() }}
+          </p>
+
+        </div>
+
+        <div
+          class="p-4 rounded-xl
+                 bg-violet-50
+                 border border-violet-100"
+        >
+
+          <p
+            class="text-xs font-semibold
+                   text-violet-600 uppercase"
+          >
+            Feminino
+          </p>
+
+          <p
+            class="text-xl font-bold
+                   text-violet-800 mt-1"
+          >
+            {{ calcularTotalFeminino() }}
+          </p>
+
+        </div>
+
+        <div
+          class="p-4 rounded-xl
+                 bg-emerald-50
+                 border border-emerald-100"
+        >
+
+          <p
+            class="text-xs font-semibold
+                   text-emerald-600 uppercase"
+          >
+            Total de Alunos
+          </p>
+
+          <p
+            class="text-xl font-bold
+                   text-emerald-800 mt-1"
+          >
+            {{ calcularTotalGeral() }}
+          </p>
+
+        </div>
+
+      </div>
+
+      <!-- Navegação -->
+      <div
+        class="pt-4 border-t border-slate-100
+               flex items-center justify-between gap-3"
+      >
+
+        <button
+          type="button"
+          (click)="voltarEtapa()"
+          class="px-5 py-2.5 rounded-xl
+                 text-sm font-semibold
+                 text-slate-600
+                 hover:text-slate-800
+                 hover:bg-slate-100
+                 transition-all"
+        >
+
+          <i
+            class="fa-solid fa-arrow-left
+                   mr-2 text-xs"
+          ></i>
+
+          Voltar
+
+        </button>
+
+        <button
+          type="submit"
+          class="bg-emerald-600
+                 hover:bg-emerald-700
+                 text-white px-6 py-2.5
+                 rounded-xl text-sm
+                 font-semibold
+                 shadow-sm hover:shadow
+                 flex items-center gap-2
+                 transition-all"
+        >
+
+          Próximo
+
+          <i
+            class="fa-solid fa-arrow-right
+                   text-xs"
+          ></i>
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+}
+</div>

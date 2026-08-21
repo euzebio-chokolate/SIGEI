@@ -121,7 +121,7 @@ export const routes: Routes = [
       {
         path: 'escolas/novo',
         loadComponent: () =>
-          import('./features/admin/escolas/escola-form.component').then(
+          import('./features/admin/escolas/form/escola-form.component').then(
             (m) => m.EscolaFormComponent,
           ),
         title: 'SIGEI - Nova Escola',
@@ -129,7 +129,7 @@ export const routes: Routes = [
       {
         path: 'escolas/editar/:id',
         loadComponent: () =>
-          import('./features/admin/escolas/escola-form.component').then(
+          import('./features/admin/escolas/form/escola-form.component').then(
             (m) => m.EscolaFormComponent,
           ),
         title: 'SIGEI - Editar Escola',

@@ -23,7 +23,7 @@ import * as L from 'leaflet';
 
       <app-mapa-filtros (filtrosAlterados)="aoMudarFiltros($event)"> </app-mapa-filtros>
 
-      <div class="absolute bottom-6 left-4 z-[1010] flex flex-col gap-2">
+      <div class="absolute bottom-6 left-4 z-1010 flex flex-col gap-2">
         <div
           class="bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-gray-100 flex flex-col gap-1 transition-all duration-300 origin-bottom-left"
           [class.opacity-0]="!menuCamadasAberto"
@@ -230,7 +230,7 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
         const marcador = L.marker([item.latitude, item.longitude], { icon: iconeUsado });
 
         const popupConteudo = `
-          <div class="font-sans min-w-[220px]">
+          <div class="font-sans min-w-55">
             <h3 class="font-bold text-gray-800 text-base leading-tight mb-1">${item.escola?.nome || 'Escola sem Nome'}</h3>
             <p class="text-xs font-mono text-gray-500 mb-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded border border-gray-200">
               INEP: ${item.escola?.codigo || 'Sem INEP'}

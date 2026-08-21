@@ -151,7 +151,7 @@ import { EscolaResponse, EscolaService } from '../../../core/services/escola.ser
                  flex flex-col md:flex-row
                  gap-3 justify-between items-center"
         >
-          <div class="relative w-full md:w-[420px]">
+          <div class="relative w-full md:w-105">
             <i
               class="fa-solid fa-search absolute left-3.5 top-1/2
                      -translate-y-1/2 text-slate-400 text-sm"
@@ -192,9 +192,7 @@ import { EscolaResponse, EscolaService } from '../../../core/services/escola.ser
                 <th class="px-6 py-3.5">Terra Indígena</th>
 
                 <th class="px-6 py-3.5">Município</th>
-                <th class="px-6 py-3.5">
-  Povo
-</th>
+                <th class="px-6 py-3.5">Povo</th>
 
                 <th class="px-6 py-3.5 text-right">Ações</th>
               </tr>
@@ -282,23 +280,19 @@ import { EscolaResponse, EscolaService } from '../../../core/services/escola.ser
                   </td>
 
                   <!-- Povo -->
-<td class="px-6 py-4">
-
-  <span
-    class="inline-flex items-center gap-1.5
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center gap-1.5
            px-2.5 py-1 rounded-md
            text-xs font-semibold
            bg-violet-50 text-violet-700
            border border-violet-100"
-  >
+                    >
+                      <i class="fa-solid fa-people-group text-[10px]"></i>
 
-    <i class="fa-solid fa-people-group text-[10px]"></i>
-
-    {{ escola.aldeia.povo.nome }}
-
-  </span>
-
-</td>
+                      {{ escola.aldeia.povo.nome }}
+                    </span>
+                  </td>
 
                   <!-- Ações -->
                   <td class="px-6 py-4 text-right">
@@ -481,74 +475,34 @@ export class EscolasListaComponent implements OnInit {
   }
 
   filtrarEscolas(): void {
+    const termo = this.filtroTexto.trim().toLowerCase();
 
-  const termo =
-    this.filtroTexto
-      .trim()
-      .toLowerCase();
+    this.paginaAtual = 1;
 
-  this.paginaAtual = 1;
+    if (!termo) {
+      this.escolasFiltradas = [...this.escolasLista];
 
-  if (!termo) {
+      return;
+    }
 
-    this.escolasFiltradas = [
-      ...this.escolasLista
-    ];
+    this.escolasFiltradas = this.escolasLista.filter((escola) => {
+      const nome = escola.nome.toLowerCase().includes(termo);
 
-    return;
-  }
+      const codigo = escola.codigo.toLowerCase().includes(termo);
 
-  this.escolasFiltradas =
-    this.escolasLista.filter(escola => {
+      const tipo = escola.tipoUnidade.toLowerCase().includes(termo);
 
-      const nome =
-        escola.nome
-          .toLowerCase()
-          .includes(termo);
+      const aldeia = escola.aldeia.nome.toLowerCase().includes(termo);
 
-      const codigo =
-        escola.codigo
-          .toLowerCase()
-          .includes(termo);
+      const terra = escola.aldeia.terraIndigena.nome.toLowerCase().includes(termo);
 
-      const tipo =
-        escola.tipoUnidade
-          .toLowerCase()
-          .includes(termo);
+      const municipio = escola.aldeia.terraIndigena.municipio.nome.toLowerCase().includes(termo);
 
-      const aldeia =
-        escola.aldeia.nome
-          .toLowerCase()
-          .includes(termo);
+      const povo = escola.aldeia.povo.nome.toLowerCase().includes(termo);
 
-      const terra =
-        escola.aldeia.terraIndigena.nome
-          .toLowerCase()
-          .includes(termo);
-
-      const municipio =
-        escola.aldeia.terraIndigena.municipio.nome
-          .toLowerCase()
-          .includes(termo);
-
-      const povo =
-        escola.aldeia.povo.nome
-          .toLowerCase()
-          .includes(termo);
-
-      return (
-        nome ||
-        codigo ||
-        tipo ||
-        aldeia ||
-        terra ||
-        municipio ||
-        povo
-      );
-
+      return nome || codigo || tipo || aldeia || terra || municipio || povo;
     });
-
-}
+  }
 
   get escolasPaginadas(): EscolaResponse[] {
     const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
