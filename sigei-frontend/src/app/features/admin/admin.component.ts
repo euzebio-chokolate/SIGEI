@@ -56,6 +56,15 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             <i class="fa-solid fa-map text-lg w-5 text-center"></i>
             Terras Indígenas
           </a>
+          
+          <a
+            routerLink="/admin/povos"
+            routerLinkActive="bg-verde-claro text-white/100"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
+          >
+            <i class="fa-solid fa-users-rays text-lg w-5 text-center"></i>
+            Povos Indígenas
+          </a>
 
           <a
             routerLink="/admin/aldeias"
@@ -67,15 +76,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
           </a>
 
           <a
-            routerLink="/admin/povos"
-            routerLinkActive="bg-verde-claro text-white/100"
-            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-          >
-            <i class="fa-solid fa-users-rays text-lg w-5 text-center"></i>
-            Povos Indígenas
-          </a>
-
-          <a
             routerLink="/admin/escolas"
             routerLinkActive="bg-verde-claro text-white/100"
             class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
@@ -83,7 +83,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             <i class="fa-solid fa-school text-lg w-5 text-center"></i>
             Escolas
           </a>
-
         </nav>
 
         <div class="p-4 border-t border-gray-100">

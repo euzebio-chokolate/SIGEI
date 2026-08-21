@@ -3,6 +3,7 @@ package ac.gov.br.sigei_backend.controllers;
 import ac.gov.br.sigei_backend.DTOs.request.PovoRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.PovoResponseDTO;
 import ac.gov.br.sigei_backend.services.PovoService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,12 @@ public class PovoController {
     public ResponseEntity buscarTudo(){
         List<PovoResponseDTO> povos = povoService.buscarTudo();
         return new ResponseEntity<List<PovoResponseDTO>>(povos, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PovoResponseDTO> buscarPorId(@Parameter(description = "ID de povo", example = "1") @PathVariable Long id){
+        PovoResponseDTO povoResponseDTO = povoService.buscarPorId(id);
+        return new ResponseEntity<>(povoResponseDTO, HttpStatus.OK);
     }
 
     @PutMapping("/editar")

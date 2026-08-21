@@ -22,53 +22,34 @@ export interface MunicipioEstatistica {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class MunicipioService {
-
   private readonly http = inject(HttpClient);
 
-  private readonly apiUrl =
-    `${environment.apiUrl}/municipio`;
+  private readonly apiUrl = `${environment.apiUrl}/municipio`;
 
   listarEstatisticas(): Observable<MunicipioEstatistica[]> {
-    return this.http.get<MunicipioEstatistica[]>(
-      `${this.apiUrl}/estatisticas`
-    );
+    return this.http.get<MunicipioEstatistica[]>(`${this.apiUrl}/estatisticas`);
   }
 
   listar(): Observable<Municipio[]> {
-    return this.http.get<Municipio[]>(
-      `${this.apiUrl}/buscarTudo`
-    );
+    return this.http.get<Municipio[]>(`${this.apiUrl}/buscarTudo`);
   }
 
   buscarPorId(id: number): Observable<Municipio> {
-    return this.http.get<Municipio>(
-      `${this.apiUrl}/${id}`
-    );
+    return this.http.get<Municipio>(`${this.apiUrl}/${id}`);
   }
 
   salvar(dados: MunicipioRequest): Observable<Municipio> {
-    return this.http.post<Municipio>(
-      this.apiUrl,
-      dados
-    );
+    return this.http.post<Municipio>(this.apiUrl, dados);
   }
 
-  editar(
-    id: number,
-    dados: MunicipioRequest
-  ): Observable<Municipio> {
-    return this.http.put<Municipio>(
-      `${this.apiUrl}/${id}`,
-      dados
-    );
+  editar(id: number, dados: MunicipioRequest): Observable<Municipio> {
+    return this.http.put<Municipio>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.apiUrl}/${id}`
-    );
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

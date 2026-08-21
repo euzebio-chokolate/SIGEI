@@ -1,8 +1,8 @@
-@import "leaflet/dist/leaflet.css";
-@import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
+@import 'tailwindcss';
 
 @theme {
-  --color-verde-escuro: #17261F;
-  --color-verde-claro: #3FA676;
-  --color-verde-fundo: #E6F2EE;
+  --color-verde-escuro: #17261f;
+  --color-verde-claro: #3fa676;
+  --color-verde-fundo: #e6f2ee;
 }
