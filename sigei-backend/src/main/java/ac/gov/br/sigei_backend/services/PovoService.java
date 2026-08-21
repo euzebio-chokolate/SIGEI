@@ -40,6 +40,13 @@ public class PovoService {
         return povoResponseDTOS;
     }
 
+    public PovoResponseDTO buscarPorId(Long id) {
+        Povo povo = povoRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Povo não encontrado com ID fornecido"));
+
+        return povoMapper.converter(povo);
+    }
+
     public PovoResponseDTO editar(PovoRequestDTO povoDTO) {
         povoRepository.findById(povoDTO.id())
                 .orElseThrow(() -> new NoSuchElementException("Povo não encontrado"));

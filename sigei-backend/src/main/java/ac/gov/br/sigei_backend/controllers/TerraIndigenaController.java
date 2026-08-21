@@ -53,8 +53,7 @@ public class TerraIndigenaController {
             @ApiResponse(responseCode = "200", description = "Terra indígena encontrada com sucesso"),
             @ApiResponse(responseCode = "404", description = "Terra indígena não encontrada")
     })
-    public ResponseEntity<TerraIndigenaResponseDTO> buscarPorId(
-            @Parameter(description = "ID da terra indígena", example = "1") @PathVariable Long id) {
+    public ResponseEntity<TerraIndigenaResponseDTO> buscarPorId(@Parameter(description = "ID da terra indígena", example = "1") @PathVariable Long id) {
         TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.buscarPorId(id);
         return new ResponseEntity<>(terraIndigenaResponseDTO, HttpStatus.OK);
     }

@@ -1,267 +1,576 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
+import { EscolaResponse, EscolaService } from '../../../core/services/escola.service';
 
 @Component({
   selector: 'app-escolas-lista',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, FormsModule],
   template: `
     <div class="space-y-5 font-sans pb-10">
-      
+      <!-- Breadcrumb -->
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
-        <a routerLink="/admin/dashboard" class="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
-          <i class="fa-solid fa-house text-slate-400"></i> Início
+        <a
+          routerLink="/admin/dashboard"
+          class="hover:text-emerald-600 transition-colors flex items-center gap-1.5"
+        >
+          <i class="fa-solid fa-house text-slate-400"></i>
+          Início
         </a>
+
         <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
-        <span class="text-slate-800">Escolas</span>
+
+        <span class="text-slate-800"> Escolas </span>
       </nav>
 
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <!-- Cabeçalho -->
+      <div
+        class="flex flex-col sm:flex-row
+               justify-between items-start sm:items-center gap-4"
+      >
         <div>
-          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Gestão de Escolas</h1>
-          <p class="text-sm text-slate-500 mt-1">Administre as unidades, sua infraestrutura e equipe lotada.</p>
+          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Escolas Indígenas</h1>
+
+          <p class="text-sm text-slate-500 mt-1">
+            Consulte as escolas indígenas e suas respectivas localizações.
+          </p>
         </div>
-        
-        <a routerLink="/admin/escolas/novo" 
-           class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all">
+
+        <a
+          routerLink="/admin/escolas/novo"
+          class="bg-emerald-600 hover:bg-emerald-700
+                 text-white px-4 py-2.5 rounded-xl
+                 text-sm font-semibold shadow-sm hover:shadow
+                 flex items-center gap-2 transition-all shrink-0"
+        >
           <i class="fa-solid fa-plus text-xs"></i>
           Nova Escola
         </a>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <!-- Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Escolas -->
+        <div
+          class="bg-white p-5 rounded-2xl
+                 border border-slate-200/80 shadow-sm
+                 flex items-center justify-between"
+        >
           <div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total de Unidades</span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">89</p>
+            <span
+              class="text-xs font-semibold text-slate-400
+                     uppercase tracking-wider"
+            >
+              Escolas Cadastradas
+            </span>
+
+            <p class="text-2xl font-bold text-slate-800 mt-1">
+              {{ totalEscolas }}
+            </p>
           </div>
-          <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 text-lg">
+
+          <div
+            class="w-12 h-12 bg-sky-50 rounded-xl
+                   flex items-center justify-center
+                   text-sky-600 text-lg"
+          >
             <i class="fa-solid fa-school"></i>
           </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <!-- Aldeias -->
+        <div
+          class="bg-white p-5 rounded-2xl
+                 border border-slate-200/80 shadow-sm
+                 flex items-center justify-between"
+        >
           <div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Com Internet</span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">42</p>
-          </div>
-          <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 text-lg">
-            <i class="fa-solid fa-wifi"></i>
-          </div>
-        </div>
+            <span
+              class="text-xs font-semibold text-slate-400
+                     uppercase tracking-wider"
+            >
+              Aldeias Atendidas
+            </span>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-          <div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">S/ Prédio Próprio</span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">15</p>
+            <p class="text-2xl font-bold text-slate-800 mt-1">
+              {{ totalAldeias }}
+            </p>
           </div>
-          <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-lg">
+
+          <div
+            class="w-12 h-12 bg-amber-50 rounded-xl
+                   flex items-center justify-center
+                   text-amber-600 text-lg"
+          >
             <i class="fa-solid fa-tents"></i>
           </div>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+        <!-- Terras -->
+        <div
+          class="bg-white p-5 rounded-2xl
+                 border border-slate-200/80 shadow-sm
+                 flex items-center justify-between"
+        >
           <div>
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Requer Transporte</span>
-            <p class="text-2xl font-bold text-slate-800 mt-1">28</p>
+            <span
+              class="text-xs font-semibold text-slate-400
+                     uppercase tracking-wider"
+            >
+              Terras Indígenas
+            </span>
+
+            <p class="text-2xl font-bold text-slate-800 mt-1">
+              {{ totalTerras }}
+            </p>
           </div>
-          <div class="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 text-lg">
-            <i class="fa-solid fa-van-shuttle"></i>
+
+          <div
+            class="w-12 h-12 bg-emerald-50 rounded-xl
+                   flex items-center justify-center
+                   text-emerald-600 text-lg"
+          >
+            <i class="fa-solid fa-map-location-dot"></i>
           </div>
         </div>
       </div>
 
-      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        
-        <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-3 justify-between items-center">
-          <div class="relative w-full md:w-96">
-            <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-            <input type="text" placeholder="Buscar por nome ou código INEP..." 
-                   class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm">
-          </div>
+      <!-- Tabela -->
+      <div
+        class="bg-white rounded-2xl
+               border border-slate-200/80
+               shadow-sm overflow-hidden"
+      >
+        <!-- Busca -->
+        <div
+          class="p-5 border-b border-slate-100
+                 bg-slate-50/50
+                 flex flex-col md:flex-row
+                 gap-3 justify-between items-center"
+        >
+          <div class="relative w-full md:w-[420px]">
+            <i
+              class="fa-solid fa-search absolute left-3.5 top-1/2
+                     -translate-y-1/2 text-slate-400 text-sm"
+            ></i>
 
-          <div class="flex items-center gap-2 w-full md:w-auto">
-            <select class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm">
-              <option value="">Tipo: Todos</option>
-              <option value="sede">Escola Sede</option>
-              <option value="anexo">Anexo / Extensão</option>
-            </select>
+            <input
+              type="text"
+              [(ngModel)]="filtroTexto"
+              (ngModelChange)="filtrarEscolas()"
+              placeholder="Buscar escola, código, aldeia, terra ou município..."
+              class="w-full pl-10 pr-4 py-2.5
+                     bg-white border border-slate-200
+                     rounded-xl text-sm
+                     focus:outline-none focus:ring-2
+                     focus:ring-emerald-500/20
+                     focus:border-emerald-500
+                     transition-all text-slate-700
+                     placeholder:text-slate-400 shadow-sm"
+            />
           </div>
         </div>
 
+        <!-- Conteúdo -->
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
-              <tr class="bg-slate-50/80 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100">
-                <th class="px-6 py-3.5">Escola e Código</th>
-                <th class="px-6 py-3.5">Localização</th>
+              <tr
+                class="bg-slate-50/80 text-slate-400
+                       text-[11px] font-bold uppercase tracking-wider
+                       border-b border-slate-100"
+              >
+                <th class="px-6 py-3.5">Escola</th>
+
                 <th class="px-6 py-3.5">Tipo</th>
-                <th class="px-6 py-3.5">Infra e Logística</th>
+
+                <th class="px-6 py-3.5">Aldeia</th>
+
+                <th class="px-6 py-3.5">Terra Indígena</th>
+
+                <th class="px-6 py-3.5">Município</th>
+                <th class="px-6 py-3.5">
+  Povo
+</th>
+
                 <th class="px-6 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
+
             <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
-              
-              <tr *ngFor="let escola of dummyEscolas" class="hover:bg-slate-50/60 transition-colors group">
-                
-                <td class="px-6 py-4">
-                  <div class="font-bold text-slate-800">{{ escola.nome }}</div>
-                  <div class="mt-1 flex items-center gap-2">
-                    <span *ngIf="escola.inep" class="font-mono text-[11px] font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                      INEP: {{ escola.inep }}
-                    </span>
-                    <span *ngIf="!escola.inep" class="text-rose-400 text-[10px] font-bold uppercase tracking-wider bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">
-                      Sem INEP
-                    </span>
-                  </div>
-                </td>
-                
-                <td class="px-6 py-4">
-                  <span class="font-medium text-slate-600 block">
-                    <i class="fa-solid fa-tents text-slate-300 mr-1.5"></i> {{ escola.aldeia }}
-                  </span>
-                  <span *ngIf="escola.escolaSede" class="text-[10px] text-slate-400 flex items-center gap-1 mt-1">
-                    <i class="fa-solid fa-link text-slate-300"></i> Vinculada a: {{ escola.escolaSede }}
-                  </span>
-                </td>
+              @for (escola of escolasPaginadas; track escola.id) {
+                <tr class="hover:bg-slate-50/60 transition-colors">
+                  <!-- Escola -->
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div
+                        class="w-9 h-9 rounded-lg
+                               bg-sky-50 text-sky-600
+                               flex items-center justify-center shrink-0"
+                      >
+                        <i class="fa-solid fa-school text-xs"></i>
+                      </div>
 
-                <td class="px-6 py-4">
-                  <span *ngIf="escola.tipo === 'Sede'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                    <i class="fa-solid fa-building-flag text-[10px]"></i> Sede
-                  </span>
-                  <span *ngIf="escola.tipo === 'Anexo'" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-50 text-amber-700 border border-amber-100">
-                    <i class="fa-solid fa-house-chimney text-[10px]"></i> Anexo
-                  </span>
-                </td>
+                      <div>
+                        <p class="font-bold text-slate-800">
+                          {{ escola.nome }}
+                        </p>
 
-                <td class="px-6 py-4">
-                  <div class="flex flex-col gap-1.5">
-                    
-                    <div class="flex gap-1.5" *ngIf="escola.infraestrutura">
-                      
-                      <span [title]="escola.infraestrutura.temInternet ? 'Possui Internet' : 'Sem Internet'"
-                            [class]="escola.infraestrutura.temInternet ? 'bg-sky-50 text-sky-600 border border-sky-100' : 'bg-slate-50 text-slate-300 border border-slate-100'"
-                            class="w-6 h-6 rounded-md flex items-center justify-center text-[10px] transition-colors">
-                        <i class="fa-solid fa-wifi"></i>
-                      </span>
-                      
-                      <span [title]="escola.infraestrutura.temEnergia ? 'Possui Energia Elétrica' : 'Sem Energia'"
-                            [class]="escola.infraestrutura.temEnergia ? 'bg-amber-50 text-amber-500 border border-amber-100' : 'bg-slate-50 text-slate-300 border border-slate-100'"
-                            class="w-6 h-6 rounded-md flex items-center justify-center text-[10px] transition-colors">
-                        <i class="fa-solid fa-bolt"></i>
-                      </span>
-
-                      <span [title]="escola.infraestrutura.temAgua ? 'Possui Água Potável' : 'Sem Água'"
-                            [class]="escola.infraestrutura.temAgua ? 'bg-blue-50 text-blue-500 border border-blue-100' : 'bg-slate-50 text-slate-300 border border-slate-100'"
-                            class="w-6 h-6 rounded-md flex items-center justify-center text-[10px] transition-colors">
-                        <i class="fa-solid fa-faucet-drip"></i>
-                      </span>
+                        <p class="text-xs text-slate-400 mt-0.5">Código: {{ escola.codigo }}</p>
+                      </div>
                     </div>
+                  </td>
 
-                    <div *ngIf="escola.equipe?.necessitaTransporte">
-                      <span class="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">
-                        <i class="fa-solid fa-van-shuttle"></i> Necessita Transporte
-                      </span>
+                  <!-- Tipo -->
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center
+                             px-2.5 py-1 rounded-md
+                             text-xs font-semibold
+                             bg-slate-100 text-slate-600"
+                    >
+                      {{ escola.tipoUnidade }}
+                    </span>
+                  </td>
+
+                  <!-- Aldeia -->
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center gap-1.5
+                             px-2.5 py-1 rounded-md
+                             text-xs font-semibold
+                             bg-amber-50 text-amber-700
+                             border border-amber-100"
+                    >
+                      <i class="fa-solid fa-tents text-[10px]"></i>
+
+                      {{ escola.aldeia.nome }}
+                    </span>
+                  </td>
+
+                  <!-- Terra -->
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center gap-1.5
+                             px-2.5 py-1 rounded-md
+                             text-xs font-semibold
+                             bg-emerald-50 text-emerald-700
+                             border border-emerald-100"
+                    >
+                      <i class="fa-solid fa-map-location-dot text-[10px]"></i>
+
+                      {{ escola.aldeia.terraIndigena.nome }}
+                    </span>
+                  </td>
+
+                  <!-- Município -->
+                  <td class="px-6 py-4">
+                    <span
+                      class="inline-flex items-center gap-1.5
+                             px-2.5 py-1 rounded-md
+                             text-xs font-semibold
+                             bg-indigo-50 text-indigo-700
+                             border border-indigo-100"
+                    >
+                      <i class="fa-solid fa-city text-[10px]"></i>
+
+                      {{ escola.aldeia.terraIndigena.municipio.nome }}
+                    </span>
+                  </td>
+
+                  <!-- Povo -->
+<td class="px-6 py-4">
+
+  <span
+    class="inline-flex items-center gap-1.5
+           px-2.5 py-1 rounded-md
+           text-xs font-semibold
+           bg-violet-50 text-violet-700
+           border border-violet-100"
+  >
+
+    <i class="fa-solid fa-people-group text-[10px]"></i>
+
+    {{ escola.aldeia.povo.nome }}
+
+  </span>
+
+</td>
+
+                  <!-- Ações -->
+                  <td class="px-6 py-4 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <a
+                        [routerLink]="['/admin/escolas/editar', escola.id]"
+                        class="w-8 h-8 rounded-lg
+                               flex items-center justify-center
+                               text-slate-400
+                               hover:text-blue-600
+                               hover:bg-blue-50
+                               transition-all"
+                        title="Editar"
+                      >
+                        <i class="fa-solid fa-pen-to-square text-xs"></i>
+                      </a>
                     </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td
+                    colspan="7"
+                    class="px-6 py-8 text-center
+                           text-slate-400 text-sm"
+                  >
+                    @if (carregando) {
+                      <div class="flex items-center justify-center gap-2">
+                        <i
+                          class="fa-solid fa-circle-notch
+                                 animate-spin text-emerald-600"
+                        ></i>
 
-                  </div>
-                </td>
-
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-1">
-                    <a [routerLink]="['/admin/escolas/editar', escola.id]" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Editar Unidade">
-                      <i class="fa-solid fa-pen-to-square text-xs"></i>
-                    </a>
-                    <button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all" title="Excluir Unidade">
-                      <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
-                  </div>
-                </td>
-
-              </tr>
-
+                        <span> Carregando escolas... </span>
+                      </div>
+                    } @else if (erroMensagem) {
+                      <span class="text-rose-500 font-semibold">
+                        {{ erroMensagem }}
+                      </span>
+                    } @else {
+                      Nenhuma escola encontrada.
+                    }
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>
 
-        <div class="px-6 py-4 border-t border-slate-100 bg-slate-50/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-          <span>Mostrando <strong>1</strong> a <strong>4</strong> de <strong>89</strong> registos</span>
-          <div class="flex items-center gap-1">
-            <button class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 disabled:opacity-50 transition-colors">
-              <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
-            </button>
-            <button class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors">
-              Próximo <i class="fa-solid fa-chevron-right ml-1"></i>
-            </button>
-          </div>
-        </div>
+        <!-- Paginação -->
+        <div
+          class="px-6 py-4 border-t border-slate-100 bg-slate-50/30
+                 flex flex-col sm:flex-row items-center justify-between
+                 gap-3 text-xs text-slate-500"
+        >
+          <span>
+            Exibindo
+            <strong>{{ escolasPaginadas.length }}</strong>
+            de
+            <strong>{{ escolasFiltradas.length }}</strong>
+            escolas
+          </span>
 
+          @if (totalPaginas > 1) {
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                (click)="paginaAnterior()"
+                [disabled]="paginaAtual === 1"
+                class="w-8 h-8 rounded-lg
+                       border border-slate-200 bg-white
+                       flex items-center justify-center
+                       text-slate-500 hover:bg-slate-50
+                       disabled:opacity-40
+                       disabled:cursor-not-allowed
+                       transition-all"
+              >
+                <i class="fa-solid fa-chevron-left text-[10px]"></i>
+              </button>
+
+              <span class="px-2">
+                Página
+
+                <strong class="text-slate-700">
+                  {{ paginaAtual }}
+                </strong>
+
+                de
+
+                <strong class="text-slate-700">
+                  {{ totalPaginas }}
+                </strong>
+              </span>
+
+              <button
+                type="button"
+                (click)="proximaPagina()"
+                [disabled]="paginaAtual === totalPaginas"
+                class="w-8 h-8 rounded-lg
+                       border border-slate-200 bg-white
+                       flex items-center justify-center
+                       text-slate-500 hover:bg-slate-50
+                       disabled:opacity-40
+                       disabled:cursor-not-allowed
+                       transition-all"
+              >
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+              </button>
+            </div>
+          }
+        </div>
       </div>
     </div>
-  `
+  `,
 })
-export class EscolasListaComponent {
-  
-  // Agora usamos a tipagem enriquecida com equipe e infra
-  dummyEscolas: Escola[] = [
-    { 
-      id: 1, 
-      inep: '12003456', 
-      nome: 'Escola Indígena Ixã', 
-      tipo: 'Sede', 
-      aldeia: 'Aldeia Mutum',
-      infraestrutura: { temInternet: true, temEnergia: true, temAgua: true, situacao: 'boa' },
-      equipe: { temProfessor: true, necessitaTransporte: false }
-    },
-    { 
-      id: 2, 
-      inep: null, 
-      nome: 'Sala Anexa Xinã', 
-      tipo: 'Anexo', 
-      aldeia: 'Aldeia Nova Esperança', 
-      escolaSede: 'Escola Indígena Ixã',
-      infraestrutura: { temInternet: false, temEnergia: false, temAgua: true, situacao: 'regular' },
-      equipe: { temProfessor: true, necessitaTransporte: true } // Destaca o transporte
-    },
-    { 
-      id: 3, 
-      inep: '12009876', 
-      nome: 'Escola Yawanawá', 
-      tipo: 'Sede', 
-      aldeia: 'Aldeia Amparo',
-      infraestrutura: { temInternet: false, temEnergia: true, temAgua: true, situacao: 'boa' },
-      equipe: { temProfessor: true, necessitaTransporte: false }
-    },
-    { 
-      id: 4, 
-      inep: '12005555', 
-      nome: 'Escola Kaxinawá', 
-      tipo: 'Sede', 
-      aldeia: 'Aldeia Caucho',
-      infraestrutura: { temInternet: false, temEnergia: false, temAgua: false, situacao: 'ruim' },
-      equipe: { temProfessor: false, necessitaTransporte: true }
-    }
-  ];
+export class EscolasListaComponent implements OnInit {
+  private readonly escolaService = inject(EscolaService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  escolasLista: EscolaResponse[] = [];
+  escolasFiltradas: EscolaResponse[] = [];
+
+  filtroTexto = '';
+
+  paginaAtual = 1;
+  itensPorPagina = 10;
+
+  carregando = true;
+  erroMensagem = '';
+
+  totalEscolas = 0;
+  totalAldeias = 0;
+  totalTerras = 0;
+
+  ngOnInit(): void {
+    this.carregarEscolas();
+  }
+
+  carregarEscolas(): void {
+    this.carregando = true;
+    this.erroMensagem = '';
+
+    this.escolaService.listar().subscribe({
+      next: (dados) => {
+        this.escolasLista = [...(dados ?? [])].sort((a, b) => a.nome.localeCompare(b.nome));
+
+        this.escolasFiltradas = [...this.escolasLista];
+
+        this.calcularTotais();
+
+        this.carregando = false;
+
+        this.cdr.markForCheck();
+      },
+
+      error: (erro) => {
+        console.error('Erro ao carregar escolas:', erro);
+
+        this.erroMensagem = 'Não foi possível carregar as escolas.';
+
+        this.carregando = false;
+
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  calcularTotais(): void {
+    this.totalEscolas = this.escolasLista.length;
+
+    this.totalAldeias = new Set(
+      this.escolasLista.map((escola) => escola.aldeia?.id).filter((id) => id !== undefined),
+    ).size;
+
+    this.totalTerras = new Set(
+      this.escolasLista
+        .map((escola) => escola.aldeia?.terraIndigena?.id)
+        .filter((id) => id !== undefined),
+    ).size;
+  }
+
+  filtrarEscolas(): void {
+
+  const termo =
+    this.filtroTexto
+      .trim()
+      .toLowerCase();
+
+  this.paginaAtual = 1;
+
+  if (!termo) {
+
+    this.escolasFiltradas = [
+      ...this.escolasLista
+    ];
+
+    return;
+  }
+
+  this.escolasFiltradas =
+    this.escolasLista.filter(escola => {
+
+      const nome =
+        escola.nome
+          .toLowerCase()
+          .includes(termo);
+
+      const codigo =
+        escola.codigo
+          .toLowerCase()
+          .includes(termo);
+
+      const tipo =
+        escola.tipoUnidade
+          .toLowerCase()
+          .includes(termo);
+
+      const aldeia =
+        escola.aldeia.nome
+          .toLowerCase()
+          .includes(termo);
+
+      const terra =
+        escola.aldeia.terraIndigena.nome
+          .toLowerCase()
+          .includes(termo);
+
+      const municipio =
+        escola.aldeia.terraIndigena.municipio.nome
+          .toLowerCase()
+          .includes(termo);
+
+      const povo =
+        escola.aldeia.povo.nome
+          .toLowerCase()
+          .includes(termo);
+
+      return (
+        nome ||
+        codigo ||
+        tipo ||
+        aldeia ||
+        terra ||
+        municipio ||
+        povo
+      );
+
+    });
+
 }
 
-// CONTRATO DE TIPAGEM ATUALIZADO
-interface Escola {
-  id: number;
-  inep: string | null;
-  nome: string;
-  tipo: 'Sede' | 'Anexo';
-  aldeia: string;
-  escolaSede?: string; 
-  // Adição das novas tabelas relacionadas:
-  infraestrutura?: {
-    temInternet: boolean;
-    temEnergia: boolean;
-    temAgua: boolean;
-    situacao: string;
-  };
-  equipe?: {
-    temProfessor: boolean;
-    necessitaTransporte: boolean;
-  };
+  get escolasPaginadas(): EscolaResponse[] {
+    const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
+
+    const fim = inicio + this.itensPorPagina;
+
+    return this.escolasFiltradas.slice(inicio, fim);
+  }
+
+  get totalPaginas(): number {
+    return Math.ceil(this.escolasFiltradas.length / this.itensPorPagina);
+  }
+
+  paginaAnterior(): void {
+    if (this.paginaAtual > 1) {
+      this.paginaAtual--;
+    }
+  }
+
+  proximaPagina(): void {
+    if (this.paginaAtual < this.totalPaginas) {
+      this.paginaAtual++;
+    }
+  }
 }

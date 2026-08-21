@@ -10,6 +10,7 @@ export interface MunicipioResumo {
 }
 
 export interface TerraIndigenaRequest {
+  id?: number;
   nome: string;
   municipioId: number;
 }
@@ -29,49 +30,35 @@ export interface TerraIndigenaEstatistica {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TerraIndigenaService {
-
   private readonly http = inject(HttpClient);
 
-  private readonly apiUrl =
-    `${environment.apiUrl}/terra`;
+  private readonly apiUrl = `${environment.apiUrl}/terra`;
 
   listarEstatisticas(): Observable<TerraIndigenaEstatistica[]> {
-    return this.http.get<TerraIndigenaEstatistica[]>(
-      `${this.apiUrl}/estatisticas`
-    );
+    return this.http.get<TerraIndigenaEstatistica[]>(`${this.apiUrl}/estatisticas`);
   }
 
   buscarPorId(id: number): Observable<TerraIndigenaResponse> {
-    return this.http.get<TerraIndigenaResponse>(
-      `${this.apiUrl}/${id}`
-    );
+    return this.http.get<TerraIndigenaResponse>(`${this.apiUrl}/${id}`);
   }
 
-  salvar(
-    dados: TerraIndigenaRequest
-  ): Observable<TerraIndigenaResponse> {
-    return this.http.post<TerraIndigenaResponse>(
-      `${this.apiUrl}/salvar`,
-      dados
-    );
+  salvar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
+    return this.http.post<TerraIndigenaResponse>(`${this.apiUrl}/salvar`, dados);
   }
 
-  editar(
-    id: number,
+   editar(
     dados: TerraIndigenaRequest
   ): Observable<TerraIndigenaResponse> {
     return this.http.put<TerraIndigenaResponse>(
-      `${this.apiUrl}/${id}`,
+      `${this.apiUrl}/editar`,
       dados
     );
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.apiUrl}/excluir/${id}`
-    );
+    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
   }
 }

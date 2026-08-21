@@ -2,7 +2,9 @@ package ac.gov.br.sigei_backend.controllers;
 
 import ac.gov.br.sigei_backend.DTOs.request.AldeiaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
+import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.services.AldeiaService;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +30,12 @@ public class AldeiaController {
     public ResponseEntity<List<AldeiaResponseDTO>> buscar(){
         List<AldeiaResponseDTO> aldeias = aldeiaService.buscarTudo();
         return new ResponseEntity<List<AldeiaResponseDTO>>(aldeias, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AldeiaResponseDTO> buscarPorId(@Parameter(description = "ID de aldeia", example = "1") @PathVariable Long id){
+        AldeiaResponseDTO aldeiaResponseDTO = aldeiaService.buscarPorId(id);
+        return new ResponseEntity<>(aldeiaResponseDTO, HttpStatus.OK);
     }
 
     @PutMapping("/editar")

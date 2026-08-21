@@ -59,6 +59,13 @@ public class AldeiaService {
         return aldeiaResponseDTOS;
     }
 
+    public AldeiaResponseDTO buscarPorId(Long id){
+        Aldeia aldeia = aldeiaRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada com ID fornecido"));
+
+        return aldeiaMapper.converter(aldeia);
+    }
+
     public AldeiaResponseDTO editar(AldeiaRequestDTO dto) {
 
         aldeiaRepository.findById(dto.id())

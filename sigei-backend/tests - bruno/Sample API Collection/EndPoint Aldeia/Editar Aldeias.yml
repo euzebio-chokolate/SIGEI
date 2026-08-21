@@ -6,6 +6,15 @@ info:
 http:
   method: PUT
   url: http://localhost:8080/aldeia/editar
+  body:
+    type: json
+    data: |-
+      {
+        "id": 184,
+        "nome": "teste editado",
+        "terraIndigenaId": 1,
+        "povoId": 1
+      }
   auth: inherit
 
 settings:

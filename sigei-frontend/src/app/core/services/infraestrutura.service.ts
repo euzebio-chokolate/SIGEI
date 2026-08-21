@@ -27,18 +27,14 @@ export interface InfraestruturaEscola {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InfraestruturaService {
-
-  private readonly apiUrl =
-    `${environment.apiUrl}/infraestrutura`;
+  private readonly apiUrl = `${environment.apiUrl}/infraestrutura`;
 
   private http = inject(HttpClient);
 
   listarTodas(): Observable<InfraestruturaEscola[]> {
-    return this.http.get<InfraestruturaEscola[]>(
-      this.apiUrl
-    );
+    return this.http.get<InfraestruturaEscola[]>(this.apiUrl);
   }
 }
