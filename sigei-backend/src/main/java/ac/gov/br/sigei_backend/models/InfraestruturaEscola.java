@@ -24,6 +24,8 @@ public class InfraestruturaEscola {
     private Boolean temInternet;
     private String tipoEnergia;
     private Boolean temRegistroFotografico;
+    private String fotoUrl;
+    private String fotoPublicId;
 
     public Long getId() {
         return id;
@@ -127,5 +129,21 @@ public class InfraestruturaEscola {
 
     public void setTemRegistroFotografico(Boolean temRegistroFotografico) {
         this.temRegistroFotografico = temRegistroFotografico;
+    }
+
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
+    }
+
+    public String getFotoPublicId() {
+        return fotoPublicId;
+    }
+
+    public void setFotoPublicId(String fotoPublicId) {
+        this.fotoPublicId = fotoPublicId;
     }
 }

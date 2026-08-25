@@ -18,7 +18,8 @@ public record InfraestruturaEscolaResponseDTO(
         String tipoAgua,
         Boolean temInternet,
         String tipoEnergia,
-        Boolean temRegistroFotografico
+        Boolean temRegistroFotografico,
+        String fotoUrl
 
 ) {
 }

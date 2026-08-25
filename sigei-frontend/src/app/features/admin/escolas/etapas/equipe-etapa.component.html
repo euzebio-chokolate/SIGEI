@@ -1,0 +1,143 @@
+<div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+  <form [formGroup]="form" (ngSubmit)="emitirAvancar()" class="p-8 space-y-6">
+    <div>
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+        Equipe da Escola
+      </h3>
+
+      <p class="text-sm text-slate-500 mb-6">
+        Informe quais profissionais e serviços estão disponíveis para a escola no ano selecionado.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Professor Responsável -->
+        <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+              <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-700">Professor Responsável</p>
+              <p class="text-xs text-slate-400">A escola possui professor responsável?</p>
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            formControlName="temProfessorResponsavel"
+            class="w-5 h-5 rounded accent-emerald-600"
+          >
+        </label>
+
+        <!-- Equipe Gestora -->
+        <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+              <i class="fa-solid fa-people-group"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-700">Equipe Gestora</p>
+              <p class="text-xs text-slate-400">Possui equipe gestora?</p>
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            formControlName="temEquipeGestora"
+            class="w-5 h-5 rounded accent-emerald-600"
+          >
+        </label>
+
+        <!-- Merendeira -->
+        <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+              <i class="fa-solid fa-utensils"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-700">Merendeira</p>
+              <p class="text-xs text-slate-400">Possui merendeira?</p>
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            formControlName="temMerendeira"
+            class="w-5 h-5 rounded accent-emerald-600"
+          >
+        </label>
+
+        <!-- Zeladora -->
+        <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+              <i class="fa-solid fa-broom"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-700">Zeladora</p>
+              <p class="text-xs text-slate-400">Possui zeladora?</p>
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            formControlName="temZeladora"
+            class="w-5 h-5 rounded accent-emerald-600"
+          >
+        </label>
+
+        <!-- Barqueiro -->
+        <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
+              <i class="fa-solid fa-ship"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-700">Barqueiro</p>
+              <p class="text-xs text-slate-400">Possui barqueiro?</p>
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            formControlName="temBarqueiro"
+            class="w-5 h-5 rounded accent-emerald-600"
+          >
+        </label>
+
+        <!-- Necessita Transporte -->
+        <label class="flex items-center justify-between gap-4 p-4 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition-all">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+              <i class="fa-solid fa-bus"></i>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-700">Necessita Transporte</p>
+              <p class="text-xs text-slate-400">A escola necessita de transporte?</p>
+            </div>
+          </div>
+          <input
+            type="checkbox"
+            formControlName="necessitaTransporte"
+            class="w-5 h-5 rounded accent-emerald-600"
+          >
+        </label>
+      </div>
+    </div>
+
+    <!-- Navegação -->
+    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button
+        type="button"
+        (click)="emitirVoltar()"
+        class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all"
+      >
+        <i class="fa-solid fa-arrow-left mr-2 text-xs"></i>
+        Voltar
+      </button>
+
+      <button
+        type="submit"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all"
+      >
+        Próximo
+        <i class="fa-solid fa-arrow-right text-xs"></i>
+      </button>
+    </div>
+  </form>
+</div>

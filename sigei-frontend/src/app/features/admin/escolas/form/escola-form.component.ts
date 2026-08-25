@@ -1,22 +1,34 @@
 import {
   ChangeDetectorRef,
   Component,
-  OnInit,
-  inject
+  inject,
+  OnInit
 } from '@angular/core';
+
+import {
+  forkJoin,
+  map,
+  of,
+  switchMap
+} from 'rxjs';
 
 import {
   FormArray,
   FormBuilder,
+  FormControl,
+  FormGroup,
   ReactiveFormsModule,
   Validators
 } from '@angular/forms';
 
 import {
+  Router,
   RouterLink
 } from '@angular/router';
 
-import { EscolaService } from '../../../../core/services/escola.service';
+import {
+  EscolaService
+} from '../../../../core/services/escola.service';
 
 import {
   AldeiaResponse,
@@ -28,94 +40,127 @@ import {
   AnoReferenciaService
 } from '../../../../core/services/ano-referencia.service';
 
+import {
+  RegistroAnualService
+} from '../../../../core/services/registro-anual.service';
+
+import {
+  EquipeEscolaService
+} from '../../../../core/services/equipe-escola.service';
+
+import {
+  InfraestruturaService
+} from '../../../../core/services/infraestrutura.service';
+
+import {
+  MatriculaNivelService
+} from '../../../../core/services/matricula-nivel.service';
+
+import {
+  MatriculaSerieService
+} from '../../../../core/services/matricula-serie.service';
+
+import {
+  EscolaEtapaComponent
+} from './../etapas/escola-etapa.component';
+
+import {
+  RegistroAnualEtapaComponent
+} from './../etapas/registro-anual-etapa.component';
+
+import {
+  EquipeEtapaComponent
+} from './../etapas/equipe-etapa.component';
+
+import {
+  InfraestruturaEtapaComponent
+} from './../etapas/infraestrutura-etapa.component';
+
+import {
+  MatriculasNivelEtapaComponent
+} from './../etapas/matriculas-nivel-etapa.component';
+
+import {
+  MatriculasSerieEtapaComponent
+} from './../etapas/matriculas-serie-etapa.component';
+
+import {
+  RevisaoEtapaComponent
+} from './../etapas/revisao-etapa.component';
+
 @Component({
   selector: 'app-escola-form',
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    RouterLink
+    RouterLink,
+    EscolaEtapaComponent,
+    RegistroAnualEtapaComponent,
+    EquipeEtapaComponent,
+    InfraestruturaEtapaComponent,
+    MatriculasNivelEtapaComponent,
+    MatriculasSerieEtapaComponent,
+    RevisaoEtapaComponent
   ],
-  templateUrl: './escola-form.component.html',
+  templateUrl: './escola-form.component.html'
 })
 export class EscolaFormComponent implements OnInit {
 
   private readonly fb = inject(FormBuilder);
-
-  private readonly escolaService =
-    inject(EscolaService);
-
-  private readonly aldeiaService =
-    inject(AldeiaService);
-
-  private readonly anoReferenciaService =
-    inject(AnoReferenciaService);
-
-  private readonly cdr =
-    inject(ChangeDetectorRef);
+  private readonly escolaService = inject(EscolaService);
+  private readonly aldeiaService = inject(AldeiaService);
+  private readonly anoReferenciaService = inject(AnoReferenciaService);
+  private readonly registroAnualService = inject(RegistroAnualService);
+  private readonly equipeEscolaService = inject(EquipeEscolaService);
+  private readonly infraestruturaService = inject(InfraestruturaService);
+  private readonly matriculaNivelService = inject(MatriculaNivelService);
+  private readonly matriculaSerieService = inject(MatriculaSerieService);
+  private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   etapaAtual = 1;
+  salvando = false;
+  carregandoAldeias = false;
+  carregandoAnos = false;
+
+  erroMensagem = '';
+  erroAnos = '';
+  fotoEscola: File | null = null;
 
   aldeias: AldeiaResponse[] = [];
-
   anosReferencia: AnoReferencia[] = [];
-
   escolasSede: {
     id: number;
     codigo: string;
     nome: string;
   }[] = [];
 
-  carregandoAldeias = false;
-  carregandoAnos = false;
-
-  erroMensagem = '';
-
-  // ==========================
-  // ETAPA 1 - ESCOLA
-  // ==========================
-
+  /*
+   * ETAPA 1
+   * Escola
+   */
   form = this.fb.group({
-
-    codigo: this.fb.nonNullable.control(
-      '',
-      [
-        Validators.required,
-        Validators.minLength(2)
-      ]
-    ),
-
-    nome: this.fb.nonNullable.control(
-      '',
-      [
-        Validators.required,
-        Validators.minLength(2)
-      ]
-    ),
-
-    tipoUnidade: this.fb.nonNullable.control(
-      '',
-      Validators.required
-    ),
-
-    aldeiaId: this.fb.nonNullable.control(
-      0,
-      [
-        Validators.required,
-        Validators.min(1)
-      ]
-    ),
-
-    escolaSedeId:
-      this.fb.control<number | null>(null)
-
+    codigo: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.minLength(2)
+    ]),
+    nome: this.fb.nonNullable.control('', [
+      Validators.required,
+      Validators.minLength(2)
+    ]),
+    tipoUnidade: this.fb.nonNullable.control('', Validators.required),
+    aldeiaId: this.fb.nonNullable.control(0, [
+      Validators.required,
+      Validators.min(1)
+    ]),
+    escolaSedeId: this.fb.control<number | null>(null)
   });
 
-  // ==========================
-  // ETAPA 2 - REGISTRO ANUAL
-  // ==========================
-
+  /*
+   * ETAPA 2
+   * Registro Anual
+   */
   registroForm = this.fb.nonNullable.group({
-
     anoReferenciaId: [
       0,
       [
@@ -123,570 +168,717 @@ export class EscolaFormComponent implements OnInit {
         Validators.min(1)
       ]
     ],
-
-    rede: [
-      '',
-      Validators.required
-    ],
-
-    localFuncionamento: [
-      '',
-      Validators.required
-    ]
-
+    rede: ['', Validators.required],
+    localFuncionamento: ['', Validators.required]
   });
 
-  // ==========================
-  // ETAPA 3 - EQUIPE
-  // ==========================
-
+  /*
+   * ETAPA 3
+   * Equipe
+   */
   equipeForm = this.fb.nonNullable.group({
-
     temProfessorResponsavel: [false],
-
     temEquipeGestora: [false],
-
     temMerendeira: [false],
-
     temZeladora: [false],
-
     temBarqueiro: [false],
-
     necessitaTransporte: [false]
-
   });
 
-  // ==========================
-// ETAPA 4 - INFRAESTRUTURA
-// ==========================
+  /*
+   * ETAPA 4
+   * Infraestrutura
+   */
+  infraestruturaForm = this.fb.group({
+    anoConstrucao: this.fb.control<number | null>(null),
+    numSalas: this.fb.control<number | null>(null),
+    latitude: this.fb.control<number | null>(null),
+    longitude: this.fb.control<number | null>(null),
+    situacao: this.fb.nonNullable.control('', Validators.required),
+    tipoAcesso: this.fb.nonNullable.control('', Validators.required),
+    temPredio: this.fb.nonNullable.control(false),
+    tipoAgua: this.fb.nonNullable.control('', Validators.required),
+    temInternet: this.fb.nonNullable.control(false),
+    tipoEnergia: this.fb.nonNullable.control('', Validators.required),
+    temRegistroFotografico: this.fb.nonNullable.control(false)
+  });
 
-infraestruturaForm = this.fb.group({
+  /*
+   * ETAPA 5
+   * Matrículas por nível
+   */
+  readonly niveisMatricula = [
+    {
+      nivel: 'ENSINO_INFANTIL',
+      descricao: 'Ensino Infantil'
+    },
+    {
+      nivel: 'FUNDAMENTAL_ANOS_INICIAIS',
+      descricao: 'Fundamental - Anos Iniciais'
+    },
+    {
+      nivel: 'FUNDAMENTAL_ANOS_FINAIS',
+      descricao: 'Fundamental - Anos Finais'
+    },
+    {
+      nivel: 'ENSINO_MEDIO',
+      descricao: 'Ensino Médio'
+    },
+    {
+      nivel: 'EJA',
+      descricao: 'EJA'
+    },
+    {
+      nivel: 'AEE',
+      descricao: 'AEE'
+    }
+  ];
 
-  anoConstrucao: this.fb.control<number | null>(
-    null
-  ),
-
-  numSalas: this.fb.control<number | null>(
-    null
-  ),
-
-  latitude: this.fb.control<number | null>(
-    null
-  ),
-
-  longitude: this.fb.control<number | null>(
-    null
-  ),
-
-  situacao: this.fb.nonNullable.control(
-    '',
-    Validators.required
-  ),
-
-  tipoAcesso: this.fb.nonNullable.control(
-    '',
-    Validators.required
-  ),
-
-  temPredio: this.fb.nonNullable.control(
-    false
-  ),
-
-  tipoAgua: this.fb.nonNullable.control(
-    '',
-    Validators.required
-  ),
-
-  temInternet: this.fb.nonNullable.control(
-    false
-  ),
-
-  tipoEnergia: this.fb.nonNullable.control(
-    '',
-    Validators.required
-  ),
-
-  temRegistroFotografico:
-    this.fb.nonNullable.control(
-      false
+  matriculasNivelForm = this.fb.group({
+    matriculas: this.fb.array(
+      this.niveisMatricula.map(item =>
+        this.fb.group({
+          nivel: this.fb.nonNullable.control(item.nivel),
+          qtdMasculino: this.fb.control<number | null>(null, [
+            Validators.min(0)
+          ]),
+          qtdFeminino: this.fb.control<number | null>(null, [
+            Validators.min(0)
+          ])
+        })
+      )
     )
+  });
 
-});
+  /*
+   * ETAPA 6
+   * Matrículas por série
+   */
+  readonly seriesMatricula = [
+    {
+      denominacao: '1º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_INICIAIS'
+    },
+    {
+      denominacao: '2º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_INICIAIS'
+    },
+    {
+      denominacao: '3º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_INICIAIS'
+    },
+    {
+      denominacao: '4º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_INICIAIS'
+    },
+    {
+      denominacao: '5º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_INICIAIS'
+    },
+    {
+      denominacao: '6º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_FINAIS'
+    },
+    {
+      denominacao: '7º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_FINAIS'
+    },
+    {
+      denominacao: '8º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_FINAIS'
+    },
+    {
+      denominacao: '9º ANO',
+      etapaEnsino: 'FUNDAMENTAL_ANOS_FINAIS'
+    },
+    {
+      denominacao: '1ª SÉRIE',
+      etapaEnsino: 'ENSINO_MEDIO'
+    },
+    {
+      denominacao: '2ª SÉRIE',
+      etapaEnsino: 'ENSINO_MEDIO'
+    },
+    {
+      denominacao: '3ª SÉRIE',
+      etapaEnsino: 'ENSINO_MEDIO'
+    }
+  ];
+
+  matriculasSerieForm = this.fb.group({
+    matriculas: this.fb.array(
+      this.seriesMatricula.map(item =>
+        this.fb.group({
+          denominacao: this.fb.nonNullable.control(item.denominacao),
+          etapaEnsino: this.fb.nonNullable.control(item.etapaEnsino),
+          qtdMasculino: this.fb.control<number | null>(null, [
+            Validators.min(0)
+          ]),
+          qtdFeminino: this.fb.control<number | null>(null, [
+            Validators.min(0)
+          ])
+        })
+      )
+    )
+  });
 
   ngOnInit(): void {
-
     this.carregarAldeias();
-
-    this.carregarEscolasSede();
-
     this.carregarAnosReferencia();
+    this.carregarEscolasSede();
+  }
 
+  /*
+   * GETTER MATRÍCULA NÍVEL
+   */
+  get matriculasNivel(): FormArray<
+    FormGroup<{
+      nivel: FormControl<string>;
+      qtdMasculino: FormControl<number | null>;
+      qtdFeminino: FormControl<number | null>;
+    }>
+  > {
+    return this.matriculasNivelForm.controls.matriculas;
+  }
+
+  /*
+   * GETTER MATRÍCULA SÉRIE
+   */
+  get matriculasSerie(): FormArray<
+    FormGroup<{
+      denominacao: FormControl<string>;
+      etapaEnsino: FormControl<string>;
+      qtdMasculino: FormControl<number | null>;
+      qtdFeminino: FormControl<number | null>;
+    }>
+  > {
+    return this.matriculasSerieForm.controls.matriculas;
   }
 
   carregarAldeias(): void {
-
     this.carregandoAldeias = true;
 
-    this.aldeiaService
-      .listar()
-      .subscribe({
-
-        next: (dados) => {
-
-          this.aldeias =
-            [...(dados ?? [])]
-              .sort(
-                (a, b) =>
-                  a.nome.localeCompare(b.nome)
-              );
-
-          this.carregandoAldeias = false;
-
-          this.cdr.markForCheck();
-
-        },
-
-        error: (erro) => {
-
-          console.error(
-            'Erro ao carregar aldeias:',
-            erro
-          );
-
-          this.erroMensagem =
-            'Não foi possível carregar as aldeias.';
-
-          this.carregandoAldeias = false;
-
-          this.cdr.markForCheck();
-
-        }
-
-      });
-
-  }
-
-  carregarEscolasSede(): void {
-
-    this.escolaService
-      .listar()
-      .subscribe({
-
-        next: (dados) => {
-
-          this.escolasSede =
-            (dados ?? [])
-              .filter(
-                escola =>
-                  escola.tipoUnidade === 'SEDE'
-              )
-              .map(escola => ({
-                id: escola.id,
-                codigo: escola.codigo,
-                nome: escola.nome
-              }))
-              .sort(
-                (a, b) =>
-                  a.nome.localeCompare(b.nome)
-              );
-
-          this.cdr.markForCheck();
-
-        },
-
-        error: (erro) => {
-
-          console.error(
-            'Erro ao carregar escolas sede:',
-            erro
-          );
-
-        }
-
-      });
-
+    this.aldeiaService.listar().subscribe({
+      next: (dados) => {
+        this.aldeias = dados ?? [];
+        this.carregandoAldeias = false;
+        this.cdr.markForCheck();
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar aldeias:', erro);
+        this.erroMensagem = 'Não foi possível carregar as aldeias.';
+        this.carregandoAldeias = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   carregarAnosReferencia(): void {
-
     this.carregandoAnos = true;
+    this.erroAnos = '';
 
-    this.anoReferenciaService
-      .listar()
-      .subscribe({
+    this.anoReferenciaService.listar().subscribe({
+      next: (dados) => {
+        this.anosReferencia = [...(dados ?? [])].sort(
+          (a, b) => b.ano - a.ano
+        );
+        this.carregandoAnos = false;
+        this.cdr.markForCheck();
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar anos de referência:', erro);
+        this.erroAnos = 'Não foi possível carregar os anos de referência.';
+        this.carregandoAnos = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
-        next: (dados) => {
+  carregarEscolasSede(): void {
+    this.escolaService.listar().subscribe({
+      next: (dados) => {
+        this.escolasSede = (dados ?? [])
+          .filter(escola => escola.tipoUnidade === 'SEDE')
+          .map(escola => ({
+            id: escola.id,
+            codigo: escola.codigo,
+            nome: escola.nome
+          }));
 
-          this.anosReferencia =
-            [...(dados ?? [])]
-              .sort(
-                (a, b) =>
-                  b.ano - a.ano
-              );
-
-          this.carregandoAnos = false;
-
-          this.cdr.markForCheck();
-
-        },
-
-        error: (erro) => {
-
-          console.error(
-            'Erro ao carregar anos de referência:',
-            erro
-          );
-
-          this.erroMensagem =
-            'Não foi possível carregar os anos de referência.';
-
-          this.carregandoAnos = false;
-
-          this.cdr.markForCheck();
-
-        }
-
-      });
-
+        this.cdr.markForCheck();
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar escolas sede:', erro);
+      }
+    });
   }
 
   aoAlterarTipoUnidade(): void {
-
-    const tipo =
-      this.form.controls.tipoUnidade.value;
-
-    const escolaSedeControl =
-      this.form.controls.escolaSedeId;
+    const tipo = this.form.controls.tipoUnidade.value;
+    const escolaSedeControl = this.form.controls.escolaSedeId;
 
     if (tipo === 'ANEXO') {
-
-      escolaSedeControl.setValidators([
-        Validators.required
-      ]);
-
+      escolaSedeControl.setValidators(Validators.required);
     } else {
-
       escolaSedeControl.clearValidators();
-
       escolaSedeControl.setValue(null);
-
     }
 
-    escolaSedeControl
-      .updateValueAndValidity();
-
+    escolaSedeControl.updateValueAndValidity();
   }
 
-  avancar(): void {
-
-    this.erroMensagem = '';
-
-    if (this.etapaAtual === 1) {
-
-      if (this.form.invalid) {
-
-        this.form.markAllAsTouched();
-
-        return;
-
-      }
-
-      this.etapaAtual = 2;
-
-      this.cdr.markForCheck();
-
-      return;
-
-    }
-
-    if (this.etapaAtual === 2) {
-
-      if (this.registroForm.invalid) {
-
-        this.registroForm
-          .markAllAsTouched();
-
-        return;
-
-      }
-
-      this.etapaAtual = 3;
-
-      this.cdr.markForCheck();
-
-      return;
-
-    }
-
-    if (this.etapaAtual === 3) {
-
-  this.etapaAtual = 4;
-
-  this.cdr.markForCheck();
-
-  return;
-
-}
-
-// ==========================
-// ETAPA 4
-// ==========================
-
-if (this.etapaAtual === 4) {
-
-  if (this.infraestruturaForm.invalid) {
-
-    this.infraestruturaForm
-      .markAllAsTouched();
-
-    return;
-
+  aoAlterarFoto(foto: File | null): void {
+    this.fotoEscola = foto;
   }
-
-  this.etapaAtual = 5;
-
-  this.cdr.markForCheck();
-
-  return;
-
-}
-
-// ==========================
-// ETAPA 5
-// ==========================
-
-if (this.etapaAtual === 5) {
-
-  if (this.matriculasNivelForm.invalid) {
-
-    this.matriculasNivelForm
-      .markAllAsTouched();
-
-    return;
-
-  }
-
-  console.log(
-    'Escola:',
-    this.form.getRawValue()
-  );
-
-  console.log(
-    'Registro Anual:',
-    this.registroForm.getRawValue()
-  );
-
-  console.log(
-    'Equipe:',
-    this.equipeForm.getRawValue()
-  );
-
-  console.log(
-    'Infraestrutura:',
-    this.infraestruturaForm.getRawValue()
-  );
-
-  console.log(
-    'Matrículas por Nível:',
-    this.montarMatriculasNivel()
-  );
 
   /*
-   * Próxima:
-   * Etapa 6 - Matrículas por Série
+   * NAVEGAÇÃO
    */
+  avancar(): void {
+    this.erroMensagem = '';
 
-  return;
-
-}
-
-
-
-  }
-  montarMatriculasNivel() {
-
-  const matriculas =
-    this.matriculasNivel.controls.map(
-      (grupo, index) => ({
-        nivel:
-          grupo.get('nivel')?.value,
-
-        qtdMasculino:
-          grupo.get('qtdMasculino')?.value,
-
-        qtdFeminino:
-          grupo.get('qtdFeminino')?.value,
-
-        total:
-          this.calcularTotalNivel(index)
-      })
-    );
-
-  return [
-
-    {
-      nivel: 'TOTAL_GERAL',
-
-      qtdMasculino:
-        this.calcularTotalMasculino(),
-
-      qtdFeminino:
-        this.calcularTotalFeminino(),
-
-      total:
-        this.calcularTotalGeral()
-    },
-
-    ...matriculas
-
-  ];
-
-}
-  
-
-  // ==========================
-// ETAPA 5 - MATRÍCULAS POR NÍVEL
-// ==========================
-
-readonly niveisMatricula = [
-  {
-    nivel: 'ENSINO_INFANTIL',
-    descricao: 'Ensino Infantil'
-  },
-  {
-    nivel: 'FUNDAMENTAL_ANOS_INICIAIS',
-    descricao: 'Fundamental - Anos Iniciais'
-  },
-  {
-    nivel: 'FUNDAMENTAL_ANOS_FINAIS',
-    descricao: 'Fundamental - Anos Finais'
-  },
-  {
-    nivel: 'ENSINO_MEDIO',
-    descricao: 'Ensino Médio'
-  },
-  {
-    nivel: 'EJA',
-    descricao: 'EJA'
-  },
-  {
-    nivel: 'AEE',
-    descricao: 'AEE'
-  }
-];
-
-matriculasNivelForm = this.fb.group({
-
-  matriculas: this.fb.array(
-    this.niveisMatricula.map(
-      item =>
-        this.fb.group({
-
-          nivel:
-            this.fb.nonNullable.control(
-              item.nivel
-            ),
-
-          qtdMasculino:
-            this.fb.control<number | null>(
-              null,
-              [
-                Validators.min(0)
-              ]
-            ),
-
-          qtdFeminino:
-            this.fb.control<number | null>(
-              null,
-              [
-                Validators.min(0)
-              ]
-            )
-
-        })
-    )
-  )
-
-});
-
-get matriculasNivel(): FormArray {
-  return this.matriculasNivelForm.controls.matriculas;
-}
-
-getDescricaoNivel(index: number): string {
-
-  return this.niveisMatricula[index]?.descricao ?? '';
-
-}
-
-calcularTotalNivel(index: number): number {
-
-  const grupo =
-    this.matriculasNivel.at(index);
-
-  const masculino =
-    Number(
-      grupo.get('qtdMasculino')?.value ?? 0
-    );
-
-  const feminino =
-    Number(
-      grupo.get('qtdFeminino')?.value ?? 0
-    );
-
-  return masculino + feminino;
-
-}
-
-calcularTotalMasculino(): number {
-
-  return this.matriculasNivel.controls
-    .reduce(
-      (total, grupo) =>
-        total +
-        Number(
-          grupo.get('qtdMasculino')?.value ?? 0
-        ),
-      0
-    );
-
-}
-
-calcularTotalFeminino(): number {
-
-  return this.matriculasNivel.controls
-    .reduce(
-      (total, grupo) =>
-        total +
-        Number(
-          grupo.get('qtdFeminino')?.value ?? 0
-        ),
-      0
-    );
-
-}
-
-calcularTotalGeral(): number {
-
-  return (
-    this.calcularTotalMasculino() +
-    this.calcularTotalFeminino()
-  );
-
-}
-
-  voltarEtapa(): void {
-
-    if (this.etapaAtual > 1) {
-
-      this.etapaAtual--;
-
-      this.erroMensagem = '';
-
+    /*
+     * ETAPA 1
+     */
+    if (this.etapaAtual === 1) {
+      if (this.form.invalid) {
+        this.form.markAllAsTouched();
+        return;
+      }
+      this.etapaAtual = 2;
       this.cdr.markForCheck();
-
+      return;
     }
 
+    /*
+     * ETAPA 2
+     */
+    if (this.etapaAtual === 2) {
+      if (this.registroForm.invalid) {
+        this.registroForm.markAllAsTouched();
+        return;
+      }
+      this.etapaAtual = 3;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    /*
+     * ETAPA 3
+     */
+    if (this.etapaAtual === 3) {
+      this.etapaAtual = 4;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    /*
+     * ETAPA 4
+     */
+    if (this.etapaAtual === 4) {
+      if (this.infraestruturaForm.invalid) {
+        this.infraestruturaForm.markAllAsTouched();
+        return;
+      }
+
+      /*
+       * Se marcou que tem registro fotográfico, obriga escolher foto.
+       */
+      if (
+        this.infraestruturaForm.controls.temRegistroFotografico.value &&
+        !this.fotoEscola
+      ) {
+        this.erroMensagem = 'Selecione a foto do registro fotográfico.';
+        this.cdr.markForCheck();
+        return;
+      }
+
+      this.etapaAtual = 5;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    /*
+     * ETAPA 5
+     */
+    if (this.etapaAtual === 5) {
+      if (this.matriculasNivelForm.invalid) {
+        this.matriculasNivelForm.markAllAsTouched();
+        return;
+      }
+      this.etapaAtual = 6;
+      this.cdr.markForCheck();
+      return;
+    }
+
+    /*
+     * ETAPA 6
+     */
+    if (this.etapaAtual === 6) {
+      if (this.matriculasSerieForm.invalid) {
+        this.matriculasSerieForm.markAllAsTouched();
+        return;
+      }
+      this.etapaAtual = 7;
+      this.cdr.markForCheck();
+      return;
+    }
+  }
+
+  voltarEtapa(): void {
+    if (this.etapaAtual > 1) {
+      this.etapaAtual--;
+    }
+
+    this.erroMensagem = '';
+    this.cdr.markForCheck();
+  }
+
+  /*
+   * MATRÍCULAS POR NÍVEL
+   */
+  calcularTotalNivel(index: number): number {
+    const grupo = this.matriculasNivel.at(index);
+
+    const masculino = Number(
+      grupo.controls.qtdMasculino.value ?? 0
+    );
+
+    const feminino = Number(
+      grupo.controls.qtdFeminino.value ?? 0
+    );
+
+    return masculino + feminino;
+  }
+
+  calcularTotalMasculino(): number {
+    return this.matriculasNivel.controls.reduce(
+      (total, grupo) =>
+        total + Number(grupo.controls.qtdMasculino.value ?? 0),
+      0
+    );
+  }
+
+  calcularTotalFeminino(): number {
+    return this.matriculasNivel.controls.reduce(
+      (total, grupo) =>
+        total + Number(grupo.controls.qtdFeminino.value ?? 0),
+      0
+    );
+  }
+
+  calcularTotalGeral(): number {
+    return (
+      this.calcularTotalMasculino() + this.calcularTotalFeminino()
+    );
+  }
+
+  montarMatriculasNivel() {
+    const matriculas = this.matriculasNivel.controls.map((grupo, index) => ({
+      nivel: grupo.controls.nivel.value,
+      qtdMasculino: grupo.controls.qtdMasculino.value,
+      qtdFeminino: grupo.controls.qtdFeminino.value,
+      total: this.calcularTotalNivel(index)
+    }));
+
+    return [
+      {
+        nivel: 'TOTAL_GERAL',
+        qtdMasculino: this.calcularTotalMasculino(),
+        qtdFeminino: this.calcularTotalFeminino(),
+        total: this.calcularTotalGeral()
+      },
+      ...matriculas
+    ];
+  }
+
+  /*
+   * MATRÍCULAS POR SÉRIE
+   */
+  calcularTotalSerie(index: number): number {
+    const grupo = this.matriculasSerie.at(index);
+
+    const masculino = Number(
+      grupo.controls.qtdMasculino.value ?? 0
+    );
+
+    const feminino = Number(
+      grupo.controls.qtdFeminino.value ?? 0
+    );
+
+    return masculino + feminino;
+  }
+
+  calcularTotalSerieMasculino(): number {
+    return this.matriculasSerie.controls.reduce(
+      (total, grupo) =>
+        total + Number(grupo.controls.qtdMasculino.value ?? 0),
+      0
+    );
+  }
+
+  calcularTotalSerieFeminino(): number {
+    return this.matriculasSerie.controls.reduce(
+      (total, grupo) =>
+        total + Number(grupo.controls.qtdFeminino.value ?? 0),
+      0
+    );
+  }
+
+  calcularTotalSeries(): number {
+    return (
+      this.calcularTotalSerieMasculino() +
+      this.calcularTotalSerieFeminino()
+    );
+  }
+
+  montarMatriculasSerie() {
+    return this.matriculasSerie.controls.map((grupo, index) => ({
+      denominacao: grupo.controls.denominacao.value,
+      etapaEnsino: grupo.controls.etapaEnsino.value,
+      qtdMasculino: grupo.controls.qtdMasculino.value,
+      qtdFeminino: grupo.controls.qtdFeminino.value,
+      total: this.calcularTotalSerie(index)
+    }));
+  }
+
+  /*
+   * DADOS DA REVISÃO
+   */
+  get nomeAldeiaSelecionada(): string {
+    const aldeiaId = this.form.controls.aldeiaId.value;
+    return (
+      this.aldeias.find(aldeia => aldeia.id === aldeiaId)?.nome ?? '-'
+    );
+  }
+
+  get nomeEscolaSedeSelecionada(): string {
+    const escolaSedeId = this.form.controls.escolaSedeId.value;
+
+    if (!escolaSedeId) {
+      return '-';
+    }
+
+    return (
+      this.escolasSede.find(escola => escola.id === escolaSedeId)?.nome ??
+      '-'
+    );
+  }
+
+  get anoReferenciaSelecionado(): string {
+    const id = this.registroForm.controls.anoReferenciaId.value;
+    const ano = this.anosReferencia.find(item => item.id === id);
+
+    return ano ? String(ano.ano) : '-';
+  }
+
+  /*
+   * SALVAMENTO
+   */
+  salvarCadastro(): void {
+    if (this.salvando) {
+      return;
+    }
+
+    this.salvando = true;
+    this.erroMensagem = '';
+
+    /*
+     * ========================================
+     * 1. ESCOLA
+     * ========================================
+     */
+    const dadosEscola = {
+      codigo: this.form.controls.codigo.value,
+      nome: this.form.controls.nome.value,
+      tipoUnidade: this.form.controls.tipoUnidade.value,
+      escolaSedeId: this.form.controls.escolaSedeId.value,
+      aldeiaId: this.form.controls.aldeiaId.value
+    };
+
+    this.escolaService
+      .salvar(dadosEscola)
+      .pipe(
+        /*
+         * ====================================
+         * 2. REGISTRO ANUAL
+         * ====================================
+         */
+        switchMap(escolaCriada => {
+          const dadosRegistro = {
+            escolaId: escolaCriada.id,
+            anoReferenciaId: this.registroForm.controls.anoReferenciaId.value,
+            rede: this.registroForm.controls.rede.value,
+            localFuncionamento: this.registroForm.controls.localFuncionamento.value
+          };
+
+          return this.registroAnualService
+            .salvar(dadosRegistro)
+            .pipe(
+              map(registroCriado => ({
+                escola: escolaCriada,
+                registro: registroCriado
+              }))
+            );
+        }),
+
+        /*
+         * ====================================
+         * 3. DADOS DEPENDENTES DO REGISTRO
+         * ====================================
+         */
+        switchMap(({ escola, registro }) => {
+          const registroId = registro.id;
+
+          /*
+           * EQUIPE
+           */
+          const dadosEquipe = {
+            registroAnualId: registroId,
+            temProfessorResponsavel: this.equipeForm.controls.temProfessorResponsavel.value,
+            temEquipeGestora: this.equipeForm.controls.temEquipeGestora.value,
+            temMerendeira: this.equipeForm.controls.temMerendeira.value,
+            temZeladora: this.equipeForm.controls.temZeladora.value,
+            temBarqueiro: this.equipeForm.controls.temBarqueiro.value,
+            necessitaTransporte: this.equipeForm.controls.necessitaTransporte.value
+          };
+
+          const equipe$ = this.equipeEscolaService.salvar(dadosEquipe);
+
+          /*
+           * INFRAESTRUTURA
+           */
+          const dadosInfraestrutura = {
+            registroAnualId: registroId,
+            anoConstrucao: this.infraestruturaForm.controls.anoConstrucao.value,
+            numSalas: this.infraestruturaForm.controls.numSalas.value,
+            latitude: this.infraestruturaForm.controls.latitude.value,
+            longitude: this.infraestruturaForm.controls.longitude.value,
+            situacao: this.infraestruturaForm.controls.situacao.value,
+            tipoAcesso: this.infraestruturaForm.controls.tipoAcesso.value,
+            temPredio: this.infraestruturaForm.controls.temPredio.value,
+            tipoAgua: this.infraestruturaForm.controls.tipoAgua.value,
+            temInternet: this.infraestruturaForm.controls.temInternet.value,
+            tipoEnergia: this.infraestruturaForm.controls.tipoEnergia.value,
+            temRegistroFotografico: this.infraestruturaForm.controls.temRegistroFotografico.value
+          };
+
+          /*
+           * Primeiro salva infraestrutura.
+           * Depois, caso tenha foto, usa o ID criado para fazer upload.
+           */
+          const infraestrutura$ = this.infraestruturaService
+            .salvar(dadosInfraestrutura)
+            .pipe(
+              switchMap(infraestruturaCriada => {
+                const temFoto = this.infraestruturaForm.controls.temRegistroFotografico.value;
+
+                if (temFoto && this.fotoEscola) {
+                  return this.infraestruturaService.adicionarFoto(
+                    infraestruturaCriada.id,
+                    this.fotoEscola
+                  );
+                }
+
+                return of(infraestruturaCriada);
+              })
+            );
+
+          /*
+           * MATRÍCULAS POR NÍVEL
+           */
+          const chamadasNivel = this.montarMatriculasNivel().map(matricula => {
+            return this.matriculaNivelService.salvar({
+              registroId,
+              nivel: matricula.nivel,
+              qtdMasculino: matricula.qtdMasculino,
+              qtdFeminino: matricula.qtdFeminino,
+              total: matricula.total
+            });
+          });
+
+          const matriculasNivel$ = forkJoin(chamadasNivel);
+
+          /*
+           * MATRÍCULAS POR SÉRIE
+           */
+          const chamadasSerie = this.montarMatriculasSerie().map(matricula => {
+            return this.matriculaSerieService.salvar({
+              registroId,
+              denominacao: matricula.denominacao,
+              etapaEnsino: matricula.etapaEnsino,
+              qtdMasculino: matricula.qtdMasculino,
+              qtdFeminino: matricula.qtdFeminino,
+              total: matricula.total
+            });
+          });
+
+          const matriculasSerie$ = forkJoin(chamadasSerie);
+
+          /*
+           * Executa tudo que depende do Registro Anual.
+           */
+          return forkJoin({
+            equipe: equipe$,
+            infraestrutura: infraestrutura$,
+            matriculasNivel: matriculasNivel$,
+            matriculasSerie: matriculasSerie$
+          }).pipe(
+            map(resultado => ({
+              escola,
+              registro,
+              ...resultado
+            }))
+          );
+        })
+      )
+      /*
+       * ========================================
+       * FINALIZAÇÃO
+       * ========================================
+       */
+      .subscribe({
+        next: resultado => {
+          console.log('Cadastro realizado com sucesso:', resultado);
+          this.salvando = false;
+          this.cdr.markForCheck();
+          this.router.navigate(['/admin/escolas']);
+        },
+        error: erro => {
+          console.error('Erro ao cadastrar escola:', erro);
+          this.salvando = false;
+          this.erroMensagem = this.obterMensagemErroCadastro(erro);
+          this.cdr.markForCheck();
+        }
+      });
+  }
+
+  private obterMensagemErroCadastro(erro: any): string {
+    if (erro?.error?.message) {
+      return erro.error.message;
+    }
+
+    if (typeof erro?.error === 'string') {
+      return erro.error;
+    }
+
+    if (erro?.status === 0) {
+      return 'Não foi possível conectar ao servidor.';
+    }
+
+    if (erro?.status === 400) {
+      return 'Algum dado informado é inválido. Confira o cadastro e tente novamente.';
+    }
+
+    if (erro?.status === 404) {
+      return 'Um dos registros relacionados não foi encontrado.';
+    }
+
+    if (erro?.status >= 500) {
+      return 'Ocorreu um erro no servidor ao realizar o cadastro.';
+    }
+
+    return 'Não foi possível concluir o cadastro da escola.';
   }
 
 }

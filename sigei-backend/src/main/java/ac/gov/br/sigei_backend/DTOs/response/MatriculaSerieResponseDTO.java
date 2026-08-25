@@ -7,7 +7,8 @@ public record MatriculaSerieResponseDTO(
         String denominacao,
         String etapaEnsino,
         Integer qtdMasculino,
-        Integer qtdFeminino
+        Integer qtdFeminino,
+        Integer total
 
 ) {
 }

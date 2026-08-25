@@ -17,7 +17,7 @@ export class AnoReferenciaService {
   private readonly http = inject(HttpClient);
 
   private readonly apiUrl =
-    `${environment.apiUrl}/anoReferencia`;
+    `${environment.apiUrl}/anos`;
 
   listar(): Observable<AnoReferencia[]> {
     return this.http.get<AnoReferencia[]>(

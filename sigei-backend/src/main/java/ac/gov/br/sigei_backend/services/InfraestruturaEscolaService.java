@@ -9,12 +9,18 @@ import ac.gov.br.sigei_backend.repository.InfraestruturaEscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
 public class InfraestruturaEscolaService {
+
+    @Autowired
+    CloudinaryService cloudinaryService;
 
     @Autowired
     RegistroAnualRepository registroAnualRepository;
@@ -69,6 +75,34 @@ public class InfraestruturaEscolaService {
         infraestrutura.setRegistroAnual(registroAnual);
 
         InfraestruturaEscola infraestruturaSalva = infraestruturaRepository.save(infraestrutura);
+
+        return infraestruturaMapper.converter(infraestruturaSalva);
+    }
+
+    public InfraestruturaEscolaResponseDTO adicionarFoto(
+            Long infraestruturaId,
+            MultipartFile foto
+    ) throws IOException {
+
+        InfraestruturaEscola infraestrutura =
+                infraestruturaRepository.findById(infraestruturaId)
+                        .orElseThrow(() ->
+                                new NoSuchElementException(
+                                        "Infraestrutura não encontrada"
+                                ));
+
+        Map resultado = cloudinaryService.uploadImagem(foto);
+
+        infraestrutura.setFotoUrl(
+                resultado.get("secure_url").toString()
+        );
+
+        infraestrutura.setFotoPublicId(
+                resultado.get("public_id").toString()
+        );
+
+        InfraestruturaEscola infraestruturaSalva =
+                infraestruturaRepository.save(infraestrutura);
 
         return infraestruturaMapper.converter(infraestruturaSalva);
     }
