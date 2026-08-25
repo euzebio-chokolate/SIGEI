@@ -6,19 +6,23 @@
         Escolas
       </a>
       <i class="fa-solid fa-chevron-right text-[9px]"></i>
-      <span class="text-slate-600">
-        Nova Escola
-      </span>
+        <span class="text-slate-600">
+         {{ editando ? 'Editar Escola' : 'Nova Escola' }}
+        </span>
     </div>
 
     <!-- Cabeçalho -->
     <div class="mb-7">
       <h1 class="text-2xl font-bold text-slate-800">
-        Cadastrar Escola
+        {{ editando ? 'Editar Escola' : 'Cadastrar Escola' }}
       </h1>
-      <p class="text-sm text-slate-500 mt-1">
-        Preencha os dados da escola e seu registro anual.
-      </p>
+       <p class="text-sm text-slate-500 mt-1">
+        {{
+          editando
+            ? 'Atualize os dados da escola e do registro anual.'
+            : 'Preencha os dados da escola e seu registro anual.'
+        }}
+        </p>
     </div>
 
     <!-- INDICADOR -->
