@@ -1,0 +1,169 @@
+<div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+  <div class="p-8 space-y-6">
+    <!-- Cabeçalho -->
+    <div>
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+        Matrículas por Nível
+      </h3>
+
+      <p class="text-sm text-slate-500">
+        Informe a quantidade de alunos matriculados por nível de ensino.
+      </p>
+    </div>
+
+    <!-- Tabela -->
+    <div class="border border-slate-200 rounded-2xl overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200">
+              <th class="text-left px-5 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Nível de Ensino
+              </th>
+              <th class="text-center px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Masculino
+              </th>
+              <th class="text-center px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Feminino
+              </th>
+              <th class="text-center px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+                Total
+              </th>
+            </tr>
+          </thead>
+
+          <tbody class="divide-y divide-slate-100">
+            @for (matricula of matriculas.controls; track $index; let i = $index) {
+              <tr [formGroup]="matricula" class="hover:bg-slate-50/60 transition-colors">
+                <!-- Nível -->
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-graduation-cap text-xs"></i>
+                    </div>
+                    <div>
+                      <p class="text-sm font-semibold text-slate-700">
+                        {{ getDescricaoNivel(i) }}
+                      </p>
+                      <p class="text-[11px] text-slate-400 mt-0.5">
+                        {{ matricula.controls.nivel.value }}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Masculino -->
+                <td class="px-4 py-4">
+                  <input
+                    type="number"
+                    min="0"
+                    formControlName="qtdMasculino"
+                    placeholder="0"
+                    class="w-24 mx-auto block px-3 py-2 text-center bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                </td>
+
+                <!-- Feminino -->
+                <td class="px-4 py-4">
+                  <input
+                    type="number"
+                    min="0"
+                    formControlName="qtdFeminino"
+                    placeholder="0"
+                    class="w-24 mx-auto block px-3 py-2 text-center bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  >
+                </td>
+
+                <!-- Total -->
+                <td class="px-4 py-4 text-center">
+                  <span class="inline-flex min-w-12 justify-center px-3 py-1.5 bg-slate-100 text-slate-700 font-bold rounded-lg text-sm">
+                    {{ calcularTotalNivel(i) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+
+          <!-- Total Geral -->
+          <tfoot>
+            <tr class="bg-emerald-50 border-t border-emerald-100">
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-calculator text-emerald-600"></i>
+                  <span class="font-bold text-emerald-800 text-sm">
+                    Total Geral
+                  </span>
+                </div>
+              </td>
+
+              <td class="px-4 py-4 text-center font-bold text-emerald-800">
+                {{ totalMasculino }}
+              </td>
+
+              <td class="px-4 py-4 text-center font-bold text-emerald-800">
+                {{ totalFeminino }}
+              </td>
+
+              <td class="px-4 py-4 text-center">
+                <span class="inline-flex min-w-14 justify-center px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-bold">
+                  {{ totalGeral }}
+                </span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="p-4 rounded-xl bg-sky-50 border border-sky-100">
+        <p class="text-xs font-semibold text-sky-600 uppercase">
+          Masculino
+        </p>
+        <p class="text-xl font-bold text-sky-800 mt-1">
+          {{ totalMasculino }}
+        </p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-violet-50 border border-violet-100">
+        <p class="text-xs font-semibold text-violet-600 uppercase">
+          Feminino
+        </p>
+        <p class="text-xl font-bold text-violet-800 mt-1">
+          {{ totalFeminino }}
+        </p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+        <p class="text-xs font-semibold text-emerald-600 uppercase">
+          Total de Alunos
+        </p>
+        <p class="text-xl font-bold text-emerald-800 mt-1">
+          {{ totalGeral }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Navegação -->
+    <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+      <button
+        type="button"
+        (click)="emitirVoltar()"
+        class="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-all"
+      >
+        <i class="fa-solid fa-arrow-left mr-2 text-xs"></i>
+        Voltar
+      </button>
+
+      <button
+        type="submit"
+        (click)="emitirAvancar()"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all"
+      >
+        Próximo
+        <i class="fa-solid fa-arrow-right text-xs"></i>
+      </button>
+    </div>
+  </div>
+</div>
