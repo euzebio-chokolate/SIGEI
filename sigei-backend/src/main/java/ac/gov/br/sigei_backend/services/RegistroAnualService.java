@@ -72,6 +72,15 @@ public class RegistroAnualService {
         return registroAnualMapper.converter(registro);
     }
 
+    public List<RegistroAnualResponseDTO> buscarPorAno(Integer ano) {
+
+        return registroAnualRepository
+                .findByAnoReferencia_Ano(ano)
+                .stream()
+                .map(registroAnualMapper::converter)
+                .toList();
+    }
+
     public RegistroAnualResponseDTO editar(RegistroAnualRequestDTO dto) {
 
         RegistroAnual registro = registroAnualRepository.findById(dto.id())
