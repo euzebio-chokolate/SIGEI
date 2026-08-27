@@ -14,6 +14,9 @@ import java.util.NoSuchElementException;
 public class AuthService {
 
     @Autowired
+    JwtService jwtService;
+
+    @Autowired
     UsuarioRepository usuarioRepository;
 
     @Autowired
@@ -46,11 +49,13 @@ public class AuthService {
             );
         }
 
+        String token = jwtService.gerarToken(usuario);
         return new LoginResponseDTO(
                 usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
-                usuario.getPerfil()
+                usuario.getPerfil(),
+                token
         );
     }
 }

@@ -1,11 +1,18 @@
 info:
-  name: Untitled
+  name: Fazer Login
   type: http
   seq: 1
 
 http:
   method: POST
   url: http://localhost:8080/auth/login
+  body:
+    type: json
+    data: |-
+      {
+        "email": "admin@sigei.com",
+        "senha": "123456"
+      }
   auth: inherit
 
 settings:
