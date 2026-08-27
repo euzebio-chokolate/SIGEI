@@ -203,6 +203,8 @@ public class AtualizacaoAnualService {
         novaInfraestrutura.setTemRegistroFotografico(
                 infraestruturaAnterior.getTemRegistroFotografico()
         );
+        novaInfraestrutura.setFotoUrl(
+                infraestruturaAnterior.getFotoUrl());
 
         novoRegistro.setInfraestrutura(novaInfraestrutura);
     }
