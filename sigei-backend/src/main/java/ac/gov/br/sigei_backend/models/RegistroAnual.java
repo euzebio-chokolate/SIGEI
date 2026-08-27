@@ -33,25 +33,29 @@ public class RegistroAnual {
 
     @OneToOne(
             mappedBy = "registroAnual",
-            cascade = CascadeType.ALL
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
     private EquipeEscola equipe;
 
     @OneToOne(
             mappedBy = "registroAnual",
-            cascade = CascadeType.ALL
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
     private InfraestruturaEscola infraestrutura;
 
     @OneToMany(
             mappedBy = "registro",
-            cascade = CascadeType.ALL
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
     private List<MatriculaNivel> matriculasNivel = new ArrayList<>();
 
     @OneToMany(
             mappedBy = "registro",
-            cascade = CascadeType.ALL
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
     private List<MatriculaSerie> matriculasSerie = new ArrayList<>();
 
