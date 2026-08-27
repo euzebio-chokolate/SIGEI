@@ -1,0 +1,64 @@
+@if (aberto) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <!-- Cabeçalho -->
+      <div class="p-6 border-b border-slate-100">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-calendar-plus text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-slate-800">Iniciar Novo Ano</h2>
+            <p class="text-sm text-slate-500 mt-1">Será criada uma nova referência anual a partir dos dados atuais.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conteúdo -->
+      <div class="p-6 space-y-4">
+        <div class="p-4 bg-amber-50 border border-amber-100 rounded-xl">
+          <div class="flex gap-3">
+            <i class="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
+            <div class="text-sm text-amber-800">
+              <p class="font-semibold">O que acontecerá?</p>
+              <p class="mt-1 leading-relaxed">Os dados das escolas serão copiados para o próximo ano.</p>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-600 leading-relaxed">
+          Os registros do ano anterior continuarão armazenados e poderão ser consultados normalmente.
+        </p>
+
+        <p class="text-sm font-semibold text-slate-700">Deseja continuar?</p>
+      </div>
+
+      <!-- Ações -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          (click)="emitirCancelar()"
+          [disabled]="carregando"
+          class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-200 disabled:opacity-50 transition-all"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          (click)="emitirConfirmar()"
+          [disabled]="carregando"
+          class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
+        >
+          @if (carregando) {
+            <i class="fa-solid fa-circle-notch animate-spin"></i>
+            Processando...
+          } @else {
+            <i class="fa-solid fa-calendar-check"></i>
+            Iniciar Novo Ano
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
