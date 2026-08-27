@@ -8,7 +8,7 @@ export class AtualizacaoAnualService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/atualizacao-anual`;
 
-  iniciar(): Observable<any> {
-    return this.http.post(`${this.apiUrl}/iniciar`, {});
+  iniciar(): Observable<string> {
+    return this.http.post(`${this.apiUrl}/iniciar`, {}, { responseType: 'text' });
   }
 }

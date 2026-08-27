@@ -1,0 +1,88 @@
+@if (aberto) {
+
+  <div
+    class="fixed inset-0 z-[60]
+           flex items-center justify-center
+           bg-slate-900/50
+           backdrop-blur-sm
+           p-4"
+  >
+
+    <div
+      class="w-full max-w-md
+             bg-white
+             rounded-2xl
+             shadow-xl
+             border border-slate-200
+             overflow-hidden"
+    >
+
+      <div class="p-7 text-center">
+
+        <div
+          class="w-16 h-16
+                 rounded-full
+                 bg-emerald-50
+                 text-emerald-600
+                 flex items-center
+                 justify-center
+                 mx-auto"
+        >
+          <i
+            class="fa-solid fa-check
+                   text-2xl"
+          ></i>
+        </div>
+
+        <h2
+          class="text-xl
+                 font-bold
+                 text-slate-800
+                 mt-5"
+        >
+          {{ titulo }}
+        </h2>
+
+        <p
+          class="text-sm
+                 text-slate-500
+                 mt-2
+                 leading-relaxed"
+        >
+          {{ mensagem }}
+        </p>
+
+      </div>
+
+      <div
+        class="px-6 py-4
+               bg-slate-50
+               border-t border-slate-100
+               flex justify-center"
+      >
+
+        <button
+          type="button"
+          (click)="emitirFechar()"
+          class="bg-emerald-600
+                 hover:bg-emerald-700
+                 text-white
+                 px-6 py-2.5
+                 rounded-xl
+                 text-sm font-semibold
+                 shadow-sm
+                 flex items-center gap-2
+                 transition-all"
+        >
+          <i class="fa-solid fa-check text-xs"></i>
+
+          {{ textoBotao }}
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}
