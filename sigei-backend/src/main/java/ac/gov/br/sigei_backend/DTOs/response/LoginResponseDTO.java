@@ -8,7 +8,8 @@ public record LoginResponseDTO(
         Long id,
         String nome,
         String email,
-        PerfilUsuario perfil
+        PerfilUsuario perfil,
+        String token
 
 ) {
 }

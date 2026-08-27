@@ -5,7 +5,17 @@ info:
 
 http:
   method: POST
-  url: ""
+  url: http://localhost:8080/usuario/salvar
+  body:
+    type: json
+    data: |-
+      {
+        "nome": "Administrador",
+        "email": "admin@sigei.com",
+        "senha": "123456",
+        "perfil": "ADMIN",
+        "ativo": true
+      }
   auth: inherit
 
 settings:
