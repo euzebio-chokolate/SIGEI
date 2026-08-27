@@ -22,6 +22,7 @@ import {
 } from '@angular/forms';
 
 import {
+  ActivatedRoute,
   Router,
   RouterLink
 } from '@angular/router';
@@ -117,11 +118,27 @@ export class EscolaFormComponent implements OnInit {
   private readonly matriculaSerieService = inject(MatriculaSerieService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly route = inject(ActivatedRoute);
 
   etapaAtual = 1;
+
   salvando = false;
   carregandoAldeias = false;
   carregandoAnos = false;
+
+  editando = false;
+  escolaId: number | null = null;
+  carregandoEdicao = false;
+
+  registroAnualId: number | null = null;
+  equipeId: number | null = null;
+  infraestruturaId: number | null = null;
+
+  matriculasNivelIds =
+  new Map<string, number>();
+
+  matriculasSerieIds =
+  new Map<string, number>();
 
   erroMensagem = '';
   erroAnos = '';
@@ -323,10 +340,32 @@ export class EscolaFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.carregarAldeias();
-    this.carregarAnosReferencia();
-    this.carregarEscolasSede();
+
+  this.carregarAldeias();
+
+  this.carregarAnosReferencia();
+
+  this.carregarEscolasSede();
+
+  const idParam =
+    this.route.snapshot.paramMap.get('id');
+
+  if (idParam) {
+
+    const id = Number(idParam);
+
+    if (!Number.isNaN(id)) {
+
+      this.editando = true;
+      this.escolaId = id;
+
+      this.carregarEscolaParaEdicao(id);
+
+    }
+
   }
+
+}
 
   /*
    * GETTER MATRÍCULA NÍVEL
@@ -354,6 +393,314 @@ export class EscolaFormComponent implements OnInit {
   > {
     return this.matriculasSerieForm.controls.matriculas;
   }
+
+  carregarEscolaParaEdicao(
+  id: number
+): void {
+
+  this.carregandoEdicao = true;
+
+  this.erroMensagem = '';
+
+  this.escolaService
+    .buscarPorId(id)
+    .subscribe({
+
+      next: escola => {
+
+        /*
+         * ==========================
+         * ETAPA 1 - ESCOLA
+         * ==========================
+         */
+
+        this.form.patchValue({
+
+          codigo:
+            escola.codigo,
+
+          nome:
+            escola.nome,
+
+          tipoUnidade:
+            escola.tipoUnidade,
+
+          aldeiaId:
+            escola.aldeia?.id ?? 0,
+
+          escolaSedeId:
+            escola.escolaSede?.id ?? null
+
+        });
+
+        this.aoAlterarTipoUnidade();
+
+        /*
+         * Se não houver registro anual,
+         * podemos parar aqui.
+         */
+        if (!escola.registroAnual) {
+
+          this.carregandoEdicao = false;
+
+          this.cdr.markForCheck();
+
+          return;
+
+        }
+
+        const registro =
+          escola.registroAnual;
+
+        this.registroAnualId =
+          registro.id;
+
+        /*
+         * ==========================
+         * ETAPA 2 - REGISTRO ANUAL
+         * ==========================
+         */
+
+        this.registroForm.patchValue({
+
+          anoReferenciaId:
+            registro.anoReferencia?.id ?? 0,
+
+          rede:
+            registro.rede ?? '',
+
+          localFuncionamento:
+            registro.localFuncionamento ?? ''
+
+        });
+
+        /*
+         * ==========================
+         * ETAPA 3 - EQUIPE
+         * ==========================
+         */
+
+        if (registro.equipe) {
+          this.equipeId =
+            registro.equipe.id;
+
+          this.equipeForm.patchValue({
+
+            temProfessorResponsavel:
+              registro.equipe
+                .temProfessorResponsavel,
+
+            temEquipeGestora:
+              registro.equipe
+                .temEquipeGestora,
+
+            temMerendeira:
+              registro.equipe
+                .temMerendeira,
+
+            temZeladora:
+              registro.equipe
+                .temZeladora,
+
+            temBarqueiro:
+              registro.equipe
+                .temBarqueiro,
+
+            necessitaTransporte:
+              registro.equipe
+                .necessitaTransporte
+
+          });
+
+        }
+
+        /*
+         * ==========================
+         * ETAPA 4 - INFRAESTRUTURA
+         * ==========================
+         */
+
+        if (registro.infraestrutura) {
+
+          this.fotoUrlAtual =
+            registro.infraestrutura.fotoUrl ?? null;
+
+          this.infraestruturaId =
+            registro.infraestrutura.id;
+
+          this.infraestruturaForm.patchValue({
+
+            anoConstrucao:
+              registro.infraestrutura
+                .anoConstrucao,
+
+            numSalas:
+              registro.infraestrutura
+                .numSalas,
+
+            latitude:
+              registro.infraestrutura
+                .latitude,
+
+            longitude:
+              registro.infraestrutura
+                .longitude,
+
+            situacao:
+              registro.infraestrutura
+                .situacao ?? '',
+
+            tipoAcesso:
+              registro.infraestrutura
+                .tipoAcesso ?? '',
+
+            temPredio:
+              registro.infraestrutura
+                .temPredio,
+
+            tipoAgua:
+              registro.infraestrutura
+                .tipoAgua ?? '',
+
+            temInternet:
+              registro.infraestrutura
+                .temInternet,
+
+            tipoEnergia:
+              registro.infraestrutura
+                .tipoEnergia ?? '',
+
+            temRegistroFotografico:
+              registro.infraestrutura
+                .temRegistroFotografico
+
+          });
+
+        }
+
+        /*
+         * ==========================
+         * ETAPA 5 - MATRÍCULAS NÍVEL
+         * ==========================
+         */
+
+        this.matriculasNivelIds.clear();
+
+for (
+  const grupo of
+  this.matriculasNivel.controls
+) {
+
+  const nivel =
+    grupo.controls.nivel.value;
+
+  const encontrada =
+    registro.matriculasNivel?.find(
+      item =>
+        item.nivel === nivel
+    );
+
+  if (encontrada) {
+
+    this.matriculasNivelIds.set(
+      nivel,
+      encontrada.id
+    );
+
+    grupo.patchValue({
+
+      qtdMasculino:
+        encontrada.qtdMasculino,
+
+      qtdFeminino:
+        encontrada.qtdFeminino
+
+    });
+
+  }
+
+}
+
+        /*
+         * ==========================
+         * ETAPA 6 - MATRÍCULAS SÉRIE
+         * ==========================
+         */
+
+        this.matriculasSerieIds.clear();
+
+for (
+  const grupo of
+  this.matriculasSerie.controls
+) {
+
+  const denominacao =
+    grupo.controls
+      .denominacao.value;
+
+  const etapaEnsino =
+    grupo.controls
+      .etapaEnsino.value;
+
+  const encontrada =
+    registro.matriculasSerie?.find(
+      item =>
+        item.denominacao === denominacao &&
+        item.etapaEnsino === etapaEnsino
+    );
+
+  if (encontrada) {
+
+    const chave =
+      `${denominacao}|${etapaEnsino}`;
+
+    this.matriculasSerieIds.set(
+      chave,
+      encontrada.id
+    );
+
+    grupo.patchValue({
+
+      qtdMasculino:
+        encontrada.qtdMasculino,
+
+      qtdFeminino:
+        encontrada.qtdFeminino
+
+    });
+
+  }
+
+}
+
+        this.carregandoEdicao = false;
+
+        this.cdr.markForCheck();
+
+      },
+
+      error: erro => {
+
+        console.error(
+          'Erro ao carregar escola para edição:',
+          erro
+        );
+
+        this.erroMensagem =
+          'Não foi possível carregar os dados da escola.';
+
+        this.carregandoEdicao = false;
+
+        this.cdr.markForCheck();
+
+      }
+
+    });
+
+}
+
+fotoUrlAtual: string | null = null;
+
 
   carregarAldeias(): void {
     this.carregandoAldeias = true;
