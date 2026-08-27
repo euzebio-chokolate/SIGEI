@@ -38,6 +38,9 @@ export class InfraestruturaEtapaComponent {
   @Input({ required: true })
   form!: FormGroup<InfraestruturaFormControls>;
 
+  @Input()
+  fotoUrlAtual: string | null = null;
+
   @Output()
   avancar = new EventEmitter<void>();
 
@@ -101,6 +104,17 @@ export class InfraestruturaEtapaComponent {
     reader.readAsDataURL(arquivo);
   }
 
+  get imagemExibida(): string | null {
+    if (this.fotoPreview) {
+      return this.fotoPreview;
+    }
+    return this.fotoUrlAtual;
+  }
+
+  get possuiImagem(): boolean {
+    return !!this.imagemExibida;
+  }
+
   removerFoto(): void {
     this.fotoSelecionada = null;
     this.fotoPreview = null;
@@ -109,11 +123,13 @@ export class InfraestruturaEtapaComponent {
   }
 
   aoAlterarRegistroFotografico(): void {
-    const possuiRegistro = this.form.controls.temRegistroFotografico.value;
+  const possuiRegistro = this.form.controls.temRegistroFotografico.value;
 
-    if (!possuiRegistro) {
-      this.removerFoto();
-    }
+  if (!possuiRegistro) {
+    this.fotoSelecionada = null;
+    this.fotoPreview = null;
+    this.fotoAlterada.emit(null);
   }
+}
 
 }

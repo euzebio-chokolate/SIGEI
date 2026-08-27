@@ -3,50 +3,41 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export interface MunicipioResumo {
+export interface AnoReferenciaResumo {
   id: number;
-  nome: string;
+  ano: number;
 }
 
-export interface TerraIndigenaRequest {
+export interface RegistroAnualRequest {
   id?: number;
-  nome: string;
-  municipioId: number;
+  escolaId: number;
+  anoReferenciaId: number;
+  rede: string;
+  localFuncionamento: string;
 }
 
-export interface TerraIndigenaResponse {
+export interface RegistroAnualResponse {
   id: number;
-  nome: string;
-  municipio: MunicipioResumo;
-}
-
-export interface TerraIndigenaEstatistica {
-  id: number;
-  nome: string;
-  municipio: MunicipioResumo;
-  quantidadeAldeias: number;
-  quantidadeEscolas: number;
+  anoReferencia: AnoReferenciaResumo;
+  rede: string;
+  localFuncionamento: string;
 }
 
 @Injectable({ providedIn: 'root' })
-export class TerraIndigenaService {
+export class RegistroAnualService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/terra`;
+  private readonly apiUrl = `${environment.apiUrl}/registroAnual`;
 
-  listarEstatisticas(): Observable<TerraIndigenaEstatistica[]> {
-    return this.http.get<TerraIndigenaEstatistica[]>(`${this.apiUrl}/estatisticas`);
+  listar(): Observable<RegistroAnualResponse[]> {
+    return this.http.get<RegistroAnualResponse[]>(this.apiUrl);
   }
 
-  buscarPorId(id: number): Observable<TerraIndigenaResponse> {
-    return this.http.get<TerraIndigenaResponse>(`${this.apiUrl}/${id}`);
+  salvar(dados: RegistroAnualRequest): Observable<RegistroAnualResponse> {
+    return this.http.post<RegistroAnualResponse>(`${this.apiUrl}/salvar`, dados);
   }
 
-  salvar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
-    return this.http.post<TerraIndigenaResponse>(`${this.apiUrl}/salvar`, dados);
-  }
-
-  editar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
-    return this.http.put<TerraIndigenaResponse>(`${this.apiUrl}/editar`, dados);
+  editar(dados: RegistroAnualRequest): Observable<RegistroAnualResponse> {
+    return this.http.put<RegistroAnualResponse>(`${this.apiUrl}/editar`, dados);
   }
 
   excluir(id: number): Observable<void> {

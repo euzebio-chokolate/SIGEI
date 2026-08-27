@@ -152,4 +152,21 @@ export class EscolaService {
   buscarPorId(id: number): Observable<EscolaDetalheResponse> {
     return this.http.get<EscolaDetalheResponse>(`${this.apiUrl}/${id}`);
   }
+
+  editar(
+    dados: {
+      id?: number;
+      codigo: string;
+      nome: string;
+      tipoUnidade: string;
+      escolaSedeId: number | null;
+      aldeiaId: number;
+    }
+    ): Observable<EscolaResponse> {
+        return this.http.put<EscolaResponse>(`${this.apiUrl}/editar`,dados);
+  }
+
+  excluir(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+  }
 }
