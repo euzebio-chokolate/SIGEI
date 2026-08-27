@@ -6,6 +6,7 @@ import ac.gov.br.sigei_backend.models.RegistroAnual;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -15,4 +16,5 @@ public interface RegistroAnualRepository extends JpaRepository<RegistroAnual, Lo
     Optional<RegistroAnual> findTopByEscolaOrderByAnoReferencia_AnoDesc(Escola escola);
     Optional<RegistroAnual> findByEscolaAndAnoReferencia(Escola escola, AnoReferencia anoReferencia);
     Optional<RegistroAnual> findByEscolaAndAnoReferencia_Ano(Escola escola, Integer ano);
+    List<RegistroAnual> findByAnoReferencia_Ano(Integer ano);
 }
