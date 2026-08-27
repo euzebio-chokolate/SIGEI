@@ -24,24 +24,12 @@ export interface EquipeEscolaResponse {
   necessitaTransporte: boolean;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class EquipeEscolaService {
-
   private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/equipe`;
 
-  private readonly apiUrl =
-    `${environment.apiUrl}/equipe`;
-
-  salvar(
-    dados: EquipeEscolaRequest
-  ): Observable<EquipeEscolaResponse> {
-
-    return this.http.post<EquipeEscolaResponse>(
-      `${this.apiUrl}/salvar`,
-      dados
-    );
+  salvar(dados: EquipeEscolaRequest): Observable<EquipeEscolaResponse> {
+    return this.http.post<EquipeEscolaResponse>(`${this.apiUrl}/salvar`, dados);
   }
-
 }

@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { environment } from '../../environments/environment';
 
 export interface Municipio {
@@ -21,12 +20,9 @@ export interface MunicipioEstatistica {
   quantidadeEscolas: number;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class MunicipioService {
   private readonly http = inject(HttpClient);
-
   private readonly apiUrl = `${environment.apiUrl}/municipio`;
 
   listarEstatisticas(): Observable<MunicipioEstatistica[]> {

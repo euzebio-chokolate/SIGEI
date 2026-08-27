@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { environment } from '../../environments/environment';
 
 export interface AnoReferencia {
@@ -9,20 +8,12 @@ export interface AnoReferencia {
   ano: number;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AnoReferenciaService {
-
   private readonly http = inject(HttpClient);
-
-  private readonly apiUrl =
-    `${environment.apiUrl}/anos`;
+  private readonly apiUrl = `${environment.apiUrl}/anos`;
 
   listar(): Observable<AnoReferencia[]> {
-    return this.http.get<AnoReferencia[]>(
-      this.apiUrl
-    );
+    return this.http.get<AnoReferencia[]>(this.apiUrl);
   }
-
 }
