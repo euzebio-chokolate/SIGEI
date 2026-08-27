@@ -1,19 +1,7 @@
-import {
-  Injectable,
-  inject
-} from '@angular/core';
-
-import {
-  HttpClient
-} from '@angular/common/http';
-
-import {
-  Observable
-} from 'rxjs';
-
-import {
-  environment
-} from '../../environments/environment';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface MunicipioResumo {
   id: number;
@@ -50,17 +38,14 @@ export interface EscolaResponse {
   nome: string;
   tipoUnidade: string;
   escolaSede: EscolaResumo | null;
-
   aldeia: {
     id: number;
     nome: string;
-
     terraIndigena: {
       id: number;
       nome: string;
       municipio: MunicipioResumo;
     };
-
     povo: PovoResumo;
   };
 }
@@ -131,27 +116,20 @@ export interface EscolaDetalheResponse {
   tipoUnidade: string;
   escolaSede: EscolaResumo | null;
   municipio: MunicipioResumo;
-
   terraIndigena: {
     id: number;
     nome: string;
   };
-
   aldeia: {
     id: number;
     nome: string;
   };
-
   registroAnual: RegistroAnualDetalhe | null;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class EscolaService {
-
   private readonly http = inject(HttpClient);
-
   private readonly apiUrl = `${environment.apiUrl}/escola`;
 
   salvar(
@@ -163,22 +141,14 @@ export class EscolaService {
       aldeiaId: number;
     }
   ): Observable<EscolaResponse> {
-    return this.http.post<EscolaResponse>(
-      `${this.apiUrl}/salvar`,
-      dados
-    );
+    return this.http.post<EscolaResponse>(`${this.apiUrl}/salvar`, dados);
   }
 
   listar(): Observable<EscolaResponse[]> {
-    return this.http.get<EscolaResponse[]>(
-      this.apiUrl
-    );
+    return this.http.get<EscolaResponse[]>(this.apiUrl);
   }
 
   buscarPorId(id: number): Observable<EscolaDetalheResponse> {
-    return this.http.get<EscolaDetalheResponse>(
-      `${this.apiUrl}/${id}`
-    );
+    return this.http.get<EscolaDetalheResponse>(`${this.apiUrl}/${id}`);
   }
-
 }

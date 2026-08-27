@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
 import { environment } from '../../environments/environment';
 
 export interface AldeiaResumo {
@@ -20,12 +19,9 @@ export interface PovoResponse {
   aldeias: AldeiaResumo[];
 }
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class PovoService {
   private readonly http = inject(HttpClient);
-
   private readonly apiUrl = `${environment.apiUrl}/povo`;
 
   listar(): Observable<PovoResponse[]> {
@@ -40,14 +36,9 @@ export class PovoService {
     return this.http.post<PovoResponse>(`${this.apiUrl}/salvar`, dados);
   }
 
-  editar(
-      dados: PovoRequest
-    ): Observable<PovoResponse> {
-      return this.http.put<PovoResponse>(
-        `${this.apiUrl}/editar`,
-        dados
-      );
-    }
+  editar(dados: PovoRequest): Observable<PovoResponse> {
+    return this.http.put<PovoResponse>(`${this.apiUrl}/editar`, dados);
+  }
 
   excluir(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);

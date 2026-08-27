@@ -1,79 +1,55 @@
-import {
-  Injectable,
-  inject
-} from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
-import {
-  HttpClient
-} from '@angular/common/http';
-
-import {
-  Observable
-} from 'rxjs';
-
-import {
-  environment
-} from '../../environments/environment';
-
-export interface AnoReferenciaResumo {
+export interface MunicipioResumo {
   id: number;
-  ano: number;
+  nome: string;
 }
 
-export interface RegistroAnualRequest {
+export interface TerraIndigenaRequest {
   id?: number;
-  escolaId: number;
-  anoReferenciaId: number;
-  rede: string;
-  localFuncionamento: string;
+  nome: string;
+  municipioId: number;
 }
 
-export interface RegistroAnualResponse {
+export interface TerraIndigenaResponse {
   id: number;
-  anoReferencia: AnoReferenciaResumo;
-  rede: string;
-  localFuncionamento: string;
+  nome: string;
+  municipio: MunicipioResumo;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
-export class RegistroAnualService {
+export interface TerraIndigenaEstatistica {
+  id: number;
+  nome: string;
+  municipio: MunicipioResumo;
+  quantidadeAldeias: number;
+  quantidadeEscolas: number;
+}
 
+@Injectable({ providedIn: 'root' })
+export class TerraIndigenaService {
   private readonly http = inject(HttpClient);
+  private readonly apiUrl = `${environment.apiUrl}/terra`;
 
-  private readonly apiUrl = `${environment.apiUrl}/registroAnual`;
-
-  listar(): Observable<RegistroAnualResponse[]> {
-    return this.http.get<RegistroAnualResponse[]>(
-      this.apiUrl
-    );
+  listarEstatisticas(): Observable<TerraIndigenaEstatistica[]> {
+    return this.http.get<TerraIndigenaEstatistica[]>(`${this.apiUrl}/estatisticas`);
   }
 
-  salvar(
-    dados: RegistroAnualRequest
-  ): Observable<RegistroAnualResponse> {
-    return this.http.post<RegistroAnualResponse>(
-      `${this.apiUrl}/salvar`,
-      dados
-    );
+  buscarPorId(id: number): Observable<TerraIndigenaResponse> {
+    return this.http.get<TerraIndigenaResponse>(`${this.apiUrl}/${id}`);
   }
 
-  editar(
-    dados: RegistroAnualRequest
-  ): Observable<RegistroAnualResponse> {
-    return this.http.put<RegistroAnualResponse>(
-      `${this.apiUrl}/editar`,
-      dados
-    );
+  salvar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
+    return this.http.post<TerraIndigenaResponse>(`${this.apiUrl}/salvar`, dados);
   }
 
-  excluir(
-    id: number
-  ): Observable<void> {
-    return this.http.delete<void>(
-      `${this.apiUrl}/excluir/${id}`
-    );
+  editar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
+    return this.http.put<TerraIndigenaResponse>(`${this.apiUrl}/editar`, dados);
   }
 
+  excluir(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+  }
 }
