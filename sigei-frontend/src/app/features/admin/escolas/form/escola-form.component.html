@@ -1,4 +1,4 @@
-<div class="min-h-full bg-slate-50">
+
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Breadcrumb -->
     <div class="flex items-center gap-2 text-sm text-slate-400 mb-5">
@@ -218,6 +218,7 @@
     @if (etapaAtual === 4) {
       <app-infraestrutura-etapa
         [form]="infraestruturaForm"
+        [fotoUrlAtual]="fotoUrlAtual"
         (fotoAlterada)="aoAlterarFoto($event)"
         (avancar)="avancar()"
         (voltar)="voltarEtapa()"
@@ -276,4 +277,3 @@
       />
     }
   </div>
-</div>

@@ -244,18 +244,24 @@
             </div>
           }
 
-          @if (fotoPreview) {
+          @if (possuiImagem) {
             <div class="border border-slate-200 rounded-2xl overflow-hidden">
               <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-3">
                 <div class="min-w-0">
                   <p class="text-sm font-semibold text-slate-700">
-                    Foto selecionada
+                    @if (fotoSelecionada) {
+                      Nova foto selecionada
+                    } @else {
+                      Foto atual
+                    }
                   </p>
                   @if (fotoSelecionada) {
-                    <p class="text-xs text-slate-400 truncate mt-0.5">
-                      {{ fotoSelecionada.name }}
-                    </p>
-                  }
+                   <p class="text-xs text-slate-400 truncate mt-0.5">
+                      {{ fotoSelecionada.name }}</p>
+                  } @else {
+                    <p class="text-xs text-slate-400 mt-0.5">
+                      Registro fotográfico já cadastrado</p>
+                    }
                 </div>
 
                 <button
@@ -270,8 +276,8 @@
 
               <div class="p-4">
                 <img
-                  [src]="fotoPreview"
-                  alt="Prévia da foto da escola"
+                  [src]="imagemExibida"
+                  alt="Foto da escola"
                   class="w-full max-h-80 object-contain rounded-xl bg-slate-100"
                 >
               </div>

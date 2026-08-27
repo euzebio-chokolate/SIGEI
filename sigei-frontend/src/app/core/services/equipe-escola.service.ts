@@ -32,4 +32,8 @@ export class EquipeEscolaService {
   salvar(dados: EquipeEscolaRequest): Observable<EquipeEscolaResponse> {
     return this.http.post<EquipeEscolaResponse>(`${this.apiUrl}/salvar`, dados);
   }
+
+  editar(dados: EquipeEscolaRequest): Observable<EquipeEscolaResponse> {
+    return this.http.put<EquipeEscolaResponse>(`${this.apiUrl}/editar`,dados);
+  }
 }
