@@ -1,0 +1,7 @@
+info:
+  name: Endpoint Usuários
+  type: folder
+  seq: 16
+
+request:
+  auth: inherit
