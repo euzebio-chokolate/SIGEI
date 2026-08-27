@@ -5,11 +5,12 @@ import { EscolaResponse, EscolaService } from '../../../core/services/escola.ser
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { AtualizacaoAnualService } from '../../../core/services/atualizacao-anual.service';
 import { AnoModalComponent } from '../../../shared/components/ano-modal/ano-modal.component';
+import { SucessoModalComponent } from '../../../shared/components/sucesso-modal/sucesso-modal.component';
 
 @Component({
   selector: 'app-escolas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent],
   templateUrl: './escolas-lista.component.html'
 })
 export class EscolasListaComponent implements OnInit {
@@ -31,6 +32,9 @@ export class EscolasListaComponent implements OnInit {
   totalTerras = 0;
   modalAtualizacaoAberto = false;
   atualizandoAno = false;
+  modalSucessoAberto = false;
+  tituloSucesso = '';
+  mensagemSucesso = '';
 
   ngOnInit(): void {
     this.carregarEscolas();
@@ -146,22 +150,37 @@ confirmarAtualizacaoAnual(): void {
     .iniciar()
     .subscribe({
 
-      next: (resultado) => {
+      next: resultado => {
 
         console.log(
           'Atualização anual concluída:',
           resultado
         );
 
+        // Para o loading
         this.atualizandoAno = false;
+
+        // Fecha o modal do ano
         this.modalAtualizacaoAberto = false;
 
+        // Prepara mensagem
+        this.tituloSucesso =
+          'Novo ano criado';
+
+        this.mensagemSucesso =
+          resultado ||
+          'A atualização anual foi concluída com sucesso.';
+
+        // Abre modal de sucesso
+        this.modalSucessoAberto = true;
+
+        // Atualiza os dados da página
         this.carregarEscolas();
 
         this.cdr.markForCheck();
       },
 
-      error: (erro) => {
+      error: erro => {
 
         console.error(
           'Erro ao iniciar atualização anual:',
@@ -175,6 +194,9 @@ confirmarAtualizacaoAnual(): void {
 
     });
 }
+  fecharModalSucesso(): void {
+    this.modalSucessoAberto = false;
+  }
 
   get escolasPaginadas(): EscolaResponse[] {
     const inicio = (this.paginaAtual - 1) * this.itensPorPagina;
