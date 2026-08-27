@@ -29,7 +29,11 @@ public class Escola {
     )
     private Aldeia aldeia;
 
-    @OneToMany(mappedBy = "escola")
+    @OneToMany(
+            mappedBy = "escola",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     private List<RegistroAnual> registros = new ArrayList<>();
 
     public Long getId() {
