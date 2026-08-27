@@ -1,0 +1,226 @@
+@if (aberto && registro) {
+  <div class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-5xl max-h-[90vh] bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
+      <!-- Cabeçalho -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold text-slate-400 uppercase">Histórico Escolar</p>
+          <h2 class="text-xl font-bold text-slate-800 mt-1">
+            {{ registro.infraestrutura?.escola?.nome ?? '-' }}
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">Ano {{ registro.anoReferencia.ano }}</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="fecharModal()"
+          class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Conteúdo -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+        <!-- Resumo -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div class="p-4 bg-slate-50 rounded-xl">
+            <p class="text-xs text-slate-400">Código</p>
+            <p class="font-bold text-slate-700 mt-1">
+              {{ registro.infraestrutura?.escola?.codigo ?? '-' }}
+            </p>
+          </div>
+
+          <div class="p-4 bg-emerald-50 rounded-xl">
+            <p class="text-xs text-emerald-600">Ano</p>
+            <p class="font-bold text-emerald-800 mt-1">
+              {{ registro.anoReferencia.ano }}
+            </p>
+          </div>
+
+          <div class="p-4 bg-sky-50 rounded-xl">
+            <p class="text-xs text-sky-600">Rede</p>
+            <p class="font-bold text-sky-800 mt-1">
+              {{ registro.rede }}
+            </p>
+          </div>
+
+          <div class="p-4 bg-violet-50 rounded-xl">
+            <p class="text-xs text-violet-600">Total de Alunos</p>
+            <p class="font-bold text-violet-800 mt-1">
+              {{ obterTotalGeral() }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Equipe -->
+        @if (registro.equipe) {
+          <div>
+            <h3 class="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 mb-4">
+              Equipe Escolar
+            </h3>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div class="p-3 rounded-xl bg-slate-50">
+                <p class="text-xs text-slate-400">Professor responsável</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.equipe.temProfessorResponsavel) }}</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50">
+                <p class="text-xs text-slate-400">Equipe gestora</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.equipe.temEquipeGestora) }}</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50">
+                <p class="text-xs text-slate-400">Merendeira</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.equipe.temMerendeira) }}</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50">
+                <p class="text-xs text-slate-400">Zeladora</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.equipe.temZeladora) }}</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50">
+                <p class="text-xs text-slate-400">Barqueiro</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.equipe.temBarqueiro) }}</p>
+              </div>
+
+              <div class="p-3 rounded-xl bg-slate-50">
+                <p class="text-xs text-slate-400">Necessita transporte</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.equipe.necessitaTransporte) }}</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Infraestrutura -->
+        @if (registro.infraestrutura) {
+          <div>
+            <h3 class="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 mb-4">
+              Infraestrutura
+            </h3>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p class="text-xs text-slate-400">Ano Construção</p>
+                <p class="font-semibold mt-1">{{ registro.infraestrutura.anoConstrucao ?? '-' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs text-slate-400">Salas</p>
+                <p class="font-semibold mt-1">{{ registro.infraestrutura.numSalas ?? '-' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs text-slate-400">Situação</p>
+                <p class="font-semibold mt-1">{{ registro.infraestrutura.situacao ?? '-' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs text-slate-400">Acesso</p>
+                <p class="font-semibold mt-1">{{ registro.infraestrutura.tipoAcesso ?? '-' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs text-slate-400">Água</p>
+                <p class="font-semibold mt-1">{{ registro.infraestrutura.tipoAgua ?? '-' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs text-slate-400">Energia</p>
+                <p class="font-semibold mt-1">{{ registro.infraestrutura.tipoEnergia ?? '-' }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs text-slate-400">Internet</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.infraestrutura.temInternet) }}</p>
+              </div>
+
+              <div>
+                <p class="text-xs text-slate-400">Prédio</p>
+                <p class="font-semibold mt-1">{{ simNao(registro.infraestrutura.temPredio) }}</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Matrículas por nível -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 mb-4">
+            Matrículas por Nível
+          </h3>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50">
+                  <th class="px-4 py-2 text-left">Nível</th>
+                  <th class="px-4 py-2 text-center">Masculino</th>
+                  <th class="px-4 py-2 text-center">Feminino</th>
+                  <th class="px-4 py-2 text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (matricula of registro.matriculasNivel; track matricula.id) {
+                  <tr class="border-t border-slate-100">
+                    <td class="px-4 py-2">{{ formatarNivel(matricula.nivel) }}</td>
+                    <td class="px-4 py-2 text-center">{{ matricula.qtdMasculino ?? 0 }}</td>
+                    <td class="px-4 py-2 text-center">{{ matricula.qtdFeminino ?? 0 }}</td>
+                    <td class="px-4 py-2 text-center font-bold">{{ matricula.total }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Matrículas por série -->
+        <div>
+          <h3 class="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 mb-4">
+            Matrículas por Série
+          </h3>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="bg-slate-50">
+                  <th class="px-4 py-2 text-left">Série</th>
+                  <th class="px-4 py-2 text-left">Etapa</th>
+                  <th class="px-4 py-2 text-center">Masculino</th>
+                  <th class="px-4 py-2 text-center">Feminino</th>
+                  <th class="px-4 py-2 text-center">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (matricula of registro.matriculasSerie; track matricula.id) {
+                  <tr class="border-t border-slate-100">
+                    <td class="px-4 py-2">{{ matricula.denominacao }}</td>
+                    <td class="px-4 py-2">{{ matricula.etapaEnsino }}</td>
+                    <td class="px-4 py-2 text-center">{{ matricula.qtdMasculino ?? 0 }}</td>
+                    <td class="px-4 py-2 text-center">{{ matricula.qtdFeminino ?? 0 }}</td>
+                    <td class="px-4 py-2 text-center font-bold">{{ matricula.total }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Foto -->
+        @if (registro.infraestrutura?.fotoUrl) {
+          <div>
+            <h3 class="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 mb-4">
+              Registro Fotográfico
+            </h3>
+            <img
+              [src]="registro.infraestrutura?.fotoUrl"
+              alt="Foto da escola"
+              class="w-full max-h-96 object-contain rounded-xl bg-slate-100"
+            >
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
