@@ -83,7 +83,17 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             <i class="fa-solid fa-school text-lg w-5 text-center"></i>
             Escolas
           </a>
+
+          <a
+            routerLink="/admin/historico-escolas"
+            routerLinkActive="bg-verde-claro text-white/100"
+            class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
+          >
+            <i class="fa-solid fa-clock-rotate-left text-lg w-5 text-center"></i>
+            Histórico de Escolas
+          </a>
         </nav>
+
 
         <div class="p-4 border-t border-gray-100">
           <a

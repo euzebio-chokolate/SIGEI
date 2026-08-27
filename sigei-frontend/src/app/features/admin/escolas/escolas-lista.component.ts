@@ -3,15 +3,18 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EscolaResponse, EscolaService } from '../../../core/services/escola.service';
 import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { AtualizacaoAnualService } from '../../../core/services/atualizacao-anual.service';
+import { AnoModalComponent } from '../../../shared/components/ano-modal/ano-modal.component';
 
 @Component({
   selector: 'app-escolas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent],
   templateUrl: './escolas-lista.component.html'
 })
 export class EscolasListaComponent implements OnInit {
   private readonly escolaService = inject(EscolaService);
+  private readonly atualizacaoAnualService = inject(AtualizacaoAnualService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   escolasLista: EscolaResponse[] = [];
@@ -26,6 +29,8 @@ export class EscolasListaComponent implements OnInit {
   totalEscolas = 0;
   totalAldeias = 0;
   totalTerras = 0;
+  modalAtualizacaoAberto = false;
+  atualizandoAno = false;
 
   ngOnInit(): void {
     this.carregarEscolas();
@@ -114,6 +119,61 @@ export class EscolasListaComponent implements OnInit {
       this.cdr.markForCheck();
     }
   });
+}
+
+abrirModalAtualizacaoAnual(): void {
+  this.modalAtualizacaoAberto = true;
+}
+
+cancelarAtualizacaoAnual(): void {
+
+  if (this.atualizandoAno) {
+    return;
+  }
+
+  this.modalAtualizacaoAberto = false;
+}
+
+confirmarAtualizacaoAnual(): void {
+
+  if (this.atualizandoAno) {
+    return;
+  }
+
+  this.atualizandoAno = true;
+
+  this.atualizacaoAnualService
+    .iniciar()
+    .subscribe({
+
+      next: (resultado) => {
+
+        console.log(
+          'Atualização anual concluída:',
+          resultado
+        );
+
+        this.atualizandoAno = false;
+        this.modalAtualizacaoAberto = false;
+
+        this.carregarEscolas();
+
+        this.cdr.markForCheck();
+      },
+
+      error: (erro) => {
+
+        console.error(
+          'Erro ao iniciar atualização anual:',
+          erro
+        );
+
+        this.atualizandoAno = false;
+
+        this.cdr.markForCheck();
+      }
+
+    });
 }
 
   get escolasPaginadas(): EscolaResponse[] {
