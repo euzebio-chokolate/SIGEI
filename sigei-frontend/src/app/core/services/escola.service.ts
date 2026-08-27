@@ -80,6 +80,7 @@ export interface InfraestruturaEscolaDetalhe {
   temInternet: boolean;
   tipoEnergia: string | null;
   temRegistroFotografico: boolean;
+  fotoUrl: string | null;
 }
 
 export interface MatriculaNivel {
