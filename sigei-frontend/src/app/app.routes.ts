@@ -135,7 +135,15 @@ export const routes: Routes = [
         title: 'SIGEI - Editar Escola',
       },
 
-      // No futuro, adicionamos aqui: 'municipios', 'escolas', etc.
+      {
+        path: 'historico-escolas',
+        loadComponent: () =>
+          import(
+            './features/admin/historico-escolas/historico-escolas.component'
+          ).then(
+            m => m.HistoricoEscolasComponent
+          )
+      }
     ],
   },
   {
