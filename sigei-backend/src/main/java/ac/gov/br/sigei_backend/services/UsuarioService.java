@@ -25,93 +25,56 @@ public class UsuarioService {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    public UsuarioResponseDTO salvar(UsuarioRequestDTO dto)
-            throws DataIntegrityViolationException {
-
+    public UsuarioResponseDTO salvar(UsuarioRequestDTO dto) {
         if (usuarioRepository.existsByEmail(dto.email())) {
-            throw new DataIntegrityViolationException(
-                    "Já existe um usuário cadastrado com esse e-mail"
-            );
+            throw new DataIntegrityViolationException("Já existe um usuário cadastrado com esse e-mail");
+        }
+        if (dto.senha() == null || dto.senha().isBlank()) {
+            throw new IllegalArgumentException("Senha não pode ser vazia");
         }
 
         Usuario usuario = usuarioMapper.converter(dto);
+        usuario.setSenha(passwordEncoder.encode(dto.senha()));
+        usuario.setAtivo(dto.ativo() == null ? true : dto.ativo());
 
-        usuario.setSenha(
-                passwordEncoder.encode(dto.senha())
-        );
-
-        usuario.setAtivo(
-                dto.ativo() == null ? true : dto.ativo()
-        );
-
-        Usuario usuarioSalvo =
-                usuarioRepository.save(usuario);
-
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
         return usuarioMapper.converter(usuarioSalvo);
     }
 
     public List<UsuarioResponseDTO> buscarTudo() {
-
-        return usuarioRepository.findAll()
-                .stream()
+        return usuarioRepository.findAll().stream()
                 .map(usuarioMapper::converter)
                 .toList();
     }
 
     public UsuarioResponseDTO buscarPorId(Long id) {
-
         Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() ->
-                        new NoSuchElementException(
-                                "Usuário não encontrado"
-                        ));
-
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
         return usuarioMapper.converter(usuario);
     }
 
     public UsuarioResponseDTO editar(UsuarioRequestDTO dto) {
-
         Usuario usuario = usuarioRepository.findById(dto.id())
-                .orElseThrow(() ->
-                        new NoSuchElementException(
-                                "Usuário não encontrado"
-                        ));
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
 
-        if (!usuario.getEmail().equals(dto.email())
-                && usuarioRepository.existsByEmail(dto.email())) {
-
-            throw new DataIntegrityViolationException(
-                    "Já existe um usuário cadastrado com esse e-mail"
-            );
+        if (!usuario.getEmail().equals(dto.email()) && usuarioRepository.existsByEmail(dto.email())) {
+            throw new DataIntegrityViolationException("Já existe um usuário cadastrado com esse e-mail");
         }
 
         usuarioMapper.atualizar(dto, usuario);
 
-        /*
-         * Se uma nova senha foi enviada,
-         * criptografa antes de salvar.
-         */
         if (dto.senha() != null && !dto.senha().isBlank()) {
-
-            usuario.setSenha(
-                    passwordEncoder.encode(dto.senha())
-            );
+            usuario.setSenha(passwordEncoder.encode(dto.senha()));
         }
 
-        Usuario usuarioSalvo =
-                usuarioRepository.save(usuario);
-
+        Usuario usuarioSalvo = usuarioRepository.save(usuario);
         return usuarioMapper.converter(usuarioSalvo);
     }
 
     public void excluir(Long id) {
-
-        usuarioRepository.findById(id)
-                .orElseThrow(() ->
-                        new NoSuchElementException(
-                                "Usuário não encontrado"
-                        ));
-
+        if (!usuarioRepository.existsById(id)) {
+            throw new NoSuchElementException("Usuário não encontrado");
+        }
         usuarioRepository.deleteById(id);
     }
 }

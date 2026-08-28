@@ -16,7 +16,6 @@ public record UsuarioRequestDTO(
         @Email(message = "E-mail inválido")
         String email,
 
-        @NotBlank(message = "Senha não pode ser vazia")
         String senha,
 
         @NotNull(message = "Perfil é obrigatório")
