@@ -1,117 +1,62 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { HeaderComponent } from '../../shared/components/header/header.component';
-import { MapaFiltrosComponent } from './components/mapa-filtros.component';
-import { MapaBuscaComponent } from './components/mapa-busca.component';
-import { InfraestruturaService } from '../../core/services/infraestrutura.service';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import * as L from 'leaflet';
+import { InfraestruturaService } from '../../core/services/infraestrutura.service';
+import { HeaderComponent } from '../../shared/components/header/header.component';
+import { EscolaMapaItem, MapaBuscaComponent } from './components/mapa-busca.component';
+import { MapaFiltros, MapaFiltrosComponent } from './components/mapa-filtros.component';
+
+type CamadaMapa = 'padrao' | 'satelite' | 'terreno' | 'escuro';
 
 @Component({
   selector: 'app-mapa-publico',
   standalone: true,
   imports: [HeaderComponent, MapaFiltrosComponent, MapaBuscaComponent],
-  template: `
-    <div class="relative w-screen h-screen overflow-hidden bg-gray-200">
-      <app-header></app-header>
-
-      <app-mapa-busca
-        [dadosEscolas]="dadosEscolasOriginal"
-        (buscaAlterada)="aoMudarBusca($event)"
-        (escolaSelecionada)="focarEscola($event)"
-      >
-      </app-mapa-busca>
-
-      <app-mapa-filtros (filtrosAlterados)="aoMudarFiltros($event)"> </app-mapa-filtros>
-
-      <div class="absolute bottom-6 left-4 z-1010 flex flex-col gap-2">
-        <div
-          class="bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] border border-gray-100 flex flex-col gap-1 transition-all duration-300 origin-bottom-left"
-          [class.opacity-0]="!menuCamadasAberto"
-          [class.scale-0]="!menuCamadasAberto"
-          [class.pointer-events-none]="!menuCamadasAberto"
-        >
-          <button
-            (click)="mudarCamada('padrao')"
-            [class.bg-green-50]="camadaAtual === 'padrao'"
-            [class.text-green-700]="camadaAtual === 'padrao'"
-            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
-          >
-            Padrão
-          </button>
-          <button
-            (click)="mudarCamada('satelite')"
-            [class.bg-green-50]="camadaAtual === 'satelite'"
-            [class.text-green-700]="camadaAtual === 'satelite'"
-            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
-          >
-            Satélite
-          </button>
-          <button
-            (click)="mudarCamada('terreno')"
-            [class.bg-green-50]="camadaAtual === 'terreno'"
-            [class.text-green-700]="camadaAtual === 'terreno'"
-            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
-          >
-            Terreno
-          </button>
-          <button
-            (click)="mudarCamada('escuro')"
-            [class.bg-green-50]="camadaAtual === 'escuro'"
-            [class.text-green-700]="camadaAtual === 'escuro'"
-            class="text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg font-semibold transition-colors"
-          >
-            Escuro
-          </button>
-        </div>
-
-        <button
-          (click)="menuCamadasAberto = !menuCamadasAberto"
-          class="h-12 px-4 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-100 flex items-center gap-2.5 text-gray-700 hover:bg-gray-50 transition-all self-start pointer-events-auto"
-        >
-          <i class="fa-solid fa-layer-group text-emerald-600"></i>
-          <span class="text-base font-medium text-gray-700">{{ nomesCamadas[camadaAtual] }}</span>
-        </button>
-      </div>
-
-      <div id="map" class="absolute inset-0 z-0"></div>
-    </div>
-  `,
+  templateUrl: './mapa-publico.component.html',
 })
 export class MapaPublicoComponent implements OnInit, OnDestroy {
-  private map!: L.Map;
-  private tileLayerAtual!: L.TileLayer;
-  private http = inject(HttpClient);
+  private readonly infraestruturaService = inject(InfraestruturaService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  private grupoMarcadores = L.layerGroup();
-  private marcadoresPorId: { [key: string]: L.Marker } = {};
+  private map?: L.Map;
+  private tileLayerAtual?: L.TileLayer;
+  private readonly grupoMarcadores = L.layerGroup();
+  private marcadoresPorId = new Map<number, L.Marker>();
 
+  carregando = true;
+  erroMensagem = '';
   menuCamadasAberto = false;
-  camadaAtual = 'padrao';
+  camadaAtual: CamadaMapa = 'padrao';
 
-  nomesCamadas: { [key: string]: string } = {
+  readonly nomesCamadas: Record<CamadaMapa, string> = {
     padrao: 'Padrão',
     satelite: 'Satélite',
     terreno: 'Terreno',
     escuro: 'Escuro',
   };
 
-  private camadas: { [key: string]: L.TileLayer } = {
-    padrao: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }),
-    satelite: L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      { maxZoom: 17 },
-    ),
-    terreno: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 }),
+  private readonly camadas: Record<CamadaMapa, L.TileLayer> = {
+    padrao: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors',
+    }),
+    satelite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 18,
+      attribution: 'Tiles &copy; Esri',
+    }),
+    terreno: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17,
+      attribution: 'Map data &copy; OpenStreetMap contributors, SRTM | Map style &copy; OpenTopoMap',
+    }),
     escuro: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
     }),
   };
 
-  dadosEscolasOriginal: any[] = [];
-  dadosEscolasFiltrados: any[] = [];
-
+  dadosEscolasOriginal: EscolaMapaItem[] = [];
+  dadosEscolasFiltrados: EscolaMapaItem[] = [];
   termoBuscaTexto = '';
-  filtrosAvancados = {
+  filtrosAvancados: MapaFiltros = {
     situacao: '',
     tipoAcesso: '',
     apenasComInternet: false,
@@ -124,63 +69,86 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.map) this.map.remove();
+    this.map?.remove();
   }
 
-  private iniciarMapa(): void {
-    this.map = L.map('map', { zoomControl: false }).setView([-8.5, -72.0], 7);
-    L.control.zoom({ position: 'bottomright' }).addTo(this.map);
-
-    this.tileLayerAtual = this.camadas['padrao'];
-    this.tileLayerAtual.addTo(this.map);
-
-    this.grupoMarcadores.addTo(this.map);
-  }
-
-  private infraestruturaService = inject(InfraestruturaService);
-
-  private buscarDadosDaApi(): void {
-    this.infraestruturaService.listarTodas().subscribe({
-      next: (dadosRecebidos) => {
-        this.dadosEscolasOriginal = dadosRecebidos;
-        this.dadosEscolasFiltrados = [...dadosRecebidos];
-
-        this.adicionarPinsEscolas();
-      },
-
-      error: (erro) => {
-        console.error('Erro ao buscar dados:', erro);
-      },
-    });
-  }
-
-  aoMudarBusca(termo: string) {
+  aoMudarBusca(termo: string): void {
     this.termoBuscaTexto = termo;
     this.processarFiltros();
   }
 
-  aoMudarFiltros(filtros: any) {
-    this.filtrosAvancados = filtros;
+  aoMudarFiltros(filtros: MapaFiltros): void {
+    this.filtrosAvancados = { ...filtros };
     this.processarFiltros();
   }
 
-  private processarFiltros(): void {
-    this.dadosEscolasFiltrados = this.dadosEscolasOriginal.filter((item) => {
-      const termo = this.termoBuscaTexto.toLowerCase();
-      const nomeEscola = item.escola?.nome?.toLowerCase() || '';
-      const codigoInep = item.escola?.codigo?.toLowerCase() || '';
-      const passaBusca = nomeEscola.includes(termo) || codigoInep.includes(termo);
+  focarEscola(item: EscolaMapaItem): void {
+    const coordenadas = this.obterCoordenadas(item);
+    if (!coordenadas || !this.map) return;
 
-      const passaSituacao = this.filtrosAvancados.situacao
-        ? item.situacao === this.filtrosAvancados.situacao
-        : true;
-      const passaAcesso = this.filtrosAvancados.tipoAcesso
-        ? item.tipoAcesso === this.filtrosAvancados.tipoAcesso
-        : true;
-      const passaInternet = this.filtrosAvancados.apenasComInternet
-        ? item.temInternet === true
-        : true;
-      const passaPredio = this.filtrosAvancados.apenasComPredio ? item.temPredio === true : true;
+    this.map.flyTo(coordenadas, 13, { duration: 0.8 });
+    window.setTimeout(() => this.marcadoresPorId.get(item.id)?.openPopup(), 850);
+  }
+
+  mudarCamada(novaCamada: CamadaMapa): void {
+    if (!this.map || this.camadaAtual === novaCamada) {
+      this.menuCamadasAberto = false;
+      return;
+    }
+
+    if (this.tileLayerAtual) this.map.removeLayer(this.tileLayerAtual);
+    this.camadaAtual = novaCamada;
+    this.tileLayerAtual = this.camadas[novaCamada].addTo(this.map);
+    this.tileLayerAtual.bringToBack();
+    this.menuCamadasAberto = false;
+  }
+
+  tentarNovamente(): void {
+    this.buscarDadosDaApi();
+  }
+
+  private iniciarMapa(): void {
+    this.map = L.map('map', { zoomControl: false, minZoom: 5 }).setView([-8.77, -70.55], 7);
+    L.control.zoom({ position: 'bottomright' }).addTo(this.map);
+    L.control.scale({ position: 'bottomright', imperial: false }).addTo(this.map);
+    this.tileLayerAtual = this.camadas.padrao.addTo(this.map);
+    this.grupoMarcadores.addTo(this.map);
+  }
+
+  private buscarDadosDaApi(): void {
+    this.carregando = true;
+    this.erroMensagem = '';
+
+    this.infraestruturaService.listarTodas().subscribe({
+      next: (dadosRecebidos: EscolaMapaItem[]) => {
+        this.dadosEscolasOriginal = dadosRecebidos ?? [];
+        this.processarFiltros();
+        this.carregando = false;
+        this.cdr.markForCheck();
+      },
+      error: (erro) => {
+        console.error('Erro ao carregar escolas do mapa:', erro);
+        this.erroMensagem = 'Não foi possível carregar as escolas no mapa.';
+        this.carregando = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private processarFiltros(): void {
+    const termo = this.normalizar(this.termoBuscaTexto);
+
+    this.dadosEscolasFiltrados = this.dadosEscolasOriginal.filter((item) => {
+      const nome = this.normalizar(item.escola?.nome);
+      const codigo = this.normalizar(item.escola?.codigo);
+      const situacao = this.normalizar(item.situacao).toUpperCase();
+      const acesso = this.normalizar(item.tipoAcesso).toUpperCase();
+
+      const passaBusca = !termo || nome.includes(termo) || codigo.includes(termo);
+      const passaSituacao = !this.filtrosAvancados.situacao || situacao === this.filtrosAvancados.situacao;
+      const passaAcesso = !this.filtrosAvancados.tipoAcesso || acesso === this.filtrosAvancados.tipoAcesso;
+      const passaInternet = !this.filtrosAvancados.apenasComInternet || item.temInternet === true;
+      const passaPredio = !this.filtrosAvancados.apenasComPredio || item.temPredio === true;
 
       return passaBusca && passaSituacao && passaAcesso && passaInternet && passaPredio;
     });
@@ -188,97 +156,82 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     this.adicionarPinsEscolas();
   }
 
-  focarEscola(item: any): void {
-    if (item.latitude && item.longitude) {
-      this.map.setView([item.latitude, item.longitude], 11);
-
-      const marcador = this.marcadoresPorId[item.id];
-      if (marcador) {
-        marcador.openPopup();
-      }
-    }
-  }
-
   private adicionarPinsEscolas(): void {
     this.grupoMarcadores.clearLayers();
-    this.marcadoresPorId = {};
+    this.marcadoresPorId.clear();
 
-    // 1. Ícone Padrão (Verde)
-    const iconePadrao = L.icon({
-      iconUrl: 'assets/markers/escola-marker-green.svg',
-      iconSize: [50, 50],
-      iconAnchor: [25, 50],
-      popupAnchor: [0, -50],
-    });
+    const iconeVerde = this.criarIcone('assets/markers/escola-marker-green.svg');
+    const iconeVermelho = this.criarIcone('assets/markers/escola-marker-red.svg');
 
-    // 2. Ícone para Escolas Paralisadas (Vermelho)
-    const iconeVermelho = L.icon({
-      iconUrl: 'assets/markers/escola-marker-red.svg',
-      iconSize: [50, 50],
-      iconAnchor: [25, 50],
-      popupAnchor: [0, -50],
-    });
+    for (const item of this.dadosEscolasFiltrados) {
+      const coordenadas = this.obterCoordenadas(item);
+      if (!coordenadas) continue;
 
-    this.dadosEscolasFiltrados.forEach((item) => {
-      if (item.latitude && item.longitude) {
-        // Verifica se a situação é PARALISADA ou PARALIZADA (ignora maiúsculas/minúsculas)
-        const situacaoNorm = item.situacao?.toUpperCase() || '';
-        const isParalisada = situacaoNorm === 'PARALISADA' || situacaoNorm === 'PARALIZADA';
+      const paralisada = this.isParalisada(item.situacao);
+      const marcador = L.marker(coordenadas, {
+        icon: paralisada ? iconeVermelho : iconeVerde,
+        title: String(item.escola?.nome || 'Escola indígena'),
+        alt: String(item.escola?.nome || 'Escola indígena'),
+      });
 
-        const iconeUsado = isParalisada ? iconeVermelho : iconePadrao;
+      marcador.bindPopup(this.criarPopup(item, paralisada), { maxWidth: 320, minWidth: 240 });
 
-        const marcador = L.marker([item.latitude, item.longitude], { icon: iconeUsado });
-
-        const popupConteudo = `
-          <div class="font-sans min-w-55">
-            <h3 class="font-bold text-gray-800 text-base leading-tight mb-1">${item.escola?.nome || 'Escola sem Nome'}</h3>
-            <p class="text-xs font-mono text-gray-500 mb-2 bg-gray-100 inline-block px-1.5 py-0.5 rounded border border-gray-200">
-              INEP: ${item.escola?.codigo || 'Sem INEP'}
-            </p>
-            
-            <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[13px] border-t border-gray-100 pt-2 mb-2">
-              <div>
-                <span class="block text-[10px] uppercase font-bold text-gray-400">Situação</span>
-                <span class="font-semibold ${isParalisada ? 'text-red-600' : 'text-green-600'}">${item.situacao || 'N/A'}</span>
-              </div>
-              <div>
-                <span class="block text-[10px] uppercase font-bold text-gray-400">Acesso</span>
-                <span class="font-medium text-gray-700">${item.tipoAcesso || 'N/A'}</span>
-              </div>
-            </div>
-
-            <div class="flex gap-2 pt-2 border-t border-gray-100 mb-3">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.temInternet ? 'bg-sky-50 text-sky-600 border border-sky-100' : 'bg-gray-100 text-gray-400'}">Internet</span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.temPredio ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-gray-100 text-gray-400'}">Prédio</span>
-            </div>
-
-            <button onclick="window.navegarDetalhesEscola(${item.escola?.id})"
-                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95">
-              <span>Ver detalhes completos</span>
-              <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </button>
-          </div>
-        `;
-
-        marcador.bindPopup(popupConteudo);
-        this.grupoMarcadores.addLayer(marcador);
-        this.marcadoresPorId[item.id] = marcador;
-      }
-    });
+      marcador.addTo(this.grupoMarcadores);
+      this.marcadoresPorId.set(item.id, marcador);
+    }
   }
 
-  mudarCamada(novaCamada: string): void {
-    if (this.camadaAtual === novaCamada) {
-      this.menuCamadasAberto = false;
-      return;
-    }
-    this.map.removeLayer(this.tileLayerAtual);
-    this.camadaAtual = novaCamada;
-    this.tileLayerAtual = this.camadas[novaCamada];
-    this.tileLayerAtual.addTo(this.map);
-    this.menuCamadasAberto = false;
-    setTimeout(() => {
-      this.map.invalidateSize();
-    }, 50);
+  private criarPopup(item: EscolaMapaItem, paralisada: boolean): string {
+    const nome = this.escaparHtml(item.escola?.nome || 'Escola sem nome');
+    const codigo = this.escaparHtml(item.escola?.codigo || 'Sem INEP');
+    const situacao = this.escaparHtml(item.situacao || 'Não informada');
+    const acesso = this.escaparHtml(item.tipoAcesso || 'Não informado');
+    return `
+      <article class="min-w-[220px] font-sans">
+        <h3 class="mb-1 text-base font-bold leading-tight text-slate-800">${nome}</h3>
+        <p class="mb-3 inline-block rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">INEP: ${codigo}</p>
+        <div class="mb-3 grid grid-cols-2 gap-3 border-y border-slate-100 py-2">
+          <div><span class="block text-[9px] font-bold uppercase text-slate-400">Situação</span><strong class="text-xs ${paralisada ? 'text-red-600' : 'text-emerald-600'}">${situacao}</strong></div>
+          <div><span class="block text-[9px] font-bold uppercase text-slate-400">Acesso</span><strong class="text-xs text-slate-700">${acesso}</strong></div>
+        </div>
+        <div class="mb-3 flex gap-2">
+          ${this.criarSelo('Internet', Boolean(item.temInternet), 'sky')}
+          ${this.criarSelo('Prédio', Boolean(item.temPredio), 'emerald')}
+        </div>
+      </article>`;
+  }
+
+  private criarSelo(rotulo: string, ativo: boolean, cor: 'sky' | 'emerald'): string {
+    const classe = ativo
+      ? cor === 'sky' ? 'border-sky-100 bg-sky-50 text-sky-700' : 'border-emerald-100 bg-emerald-50 text-emerald-700'
+      : 'border-slate-200 bg-slate-100 text-slate-400';
+    return `<span class="rounded border px-2 py-0.5 text-[10px] font-bold ${classe}">${ativo ? '✓ ' : ''}${rotulo}</span>`;
+  }
+
+  private criarIcone(url: string): L.Icon {
+    return L.icon({ iconUrl: url, iconSize: [46, 46], iconAnchor: [23, 46], popupAnchor: [0, -42] });
+  }
+
+  private obterCoordenadas(item: EscolaMapaItem): L.LatLngTuple | null {
+    const latitude = Number(item.latitude);
+    const longitude = Number(item.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
+    return [latitude, longitude];
+  }
+
+  private isParalisada(valor?: string | null): boolean {
+    const situacao = this.normalizar(valor).toUpperCase();
+    return situacao === 'PARALISADA' || situacao === 'PARALIZADA';
+  }
+
+  private normalizar(valor: unknown): string {
+    return String(valor ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  }
+
+  private escaparHtml(valor: unknown): string {
+    return String(valor ?? '').replace(/[&<>'"]/g, (caractere) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#039;', '"': '&quot;',
+    })[caractere] ?? caractere);
   }
 }

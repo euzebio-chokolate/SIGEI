@@ -1,0 +1,111 @@
+<div
+  class="absolute left-0 top-24 z-[1010] flex transition-transform duration-300 ease-in-out"
+  [class.translate-x-4]="isAberto"
+  [class.-translate-x-full]="!isAberto"
+>
+  <aside
+    class="flex max-h-[calc(100vh-8rem)] w-[calc(100vw-2rem)] max-w-80 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-2xl backdrop-blur-md"
+    aria-label="Filtros do mapa"
+  >
+    <header class="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+      <div>
+        <h2 class="flex items-center gap-2 text-base font-bold text-slate-800">
+          <i class="fa-solid fa-sliders text-emerald-600"></i>
+          Filtros
+          @if (quantidadeFiltrosAtivos > 0) {
+            <span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] text-white">
+              {{ quantidadeFiltrosAtivos }}
+            </span>
+          }
+        </h2>
+        <p class="mt-0.5 text-xs text-slate-500">
+          {{ totalResultados }} {{ totalResultados === 1 ? 'escola encontrada' : 'escolas encontradas' }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="toggleGaveta()"
+        class="grid h-8 w-8 place-items-center rounded-lg text-slate-400 transition hover:bg-slate-200 hover:text-slate-700"
+        aria-label="Fechar filtros"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </header>
+
+    <div class="flex-1 space-y-5 overflow-y-auto p-5">
+      <div>
+        <label for="situacao" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          Situação
+        </label>
+        <select
+          id="situacao"
+          [(ngModel)]="filtros.situacao"
+          (ngModelChange)="emitirFiltros()"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+        >
+          <option value="">Todas as situações</option>
+          <option value="FUNCIONANDO">Funcionando</option>
+          <option value="PARALISADA">Paralisada</option>
+          <option value="EXTINTA">Extinta</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="tipoAcesso" class="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          Tipo de acesso
+        </label>
+        <select
+          id="tipoAcesso"
+          [(ngModel)]="filtros.tipoAcesso"
+          (ngModelChange)="emitirFiltros()"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+        >
+          <option value="">Todos os acessos</option>
+          <option value="TERRESTRE">Terrestre</option>
+          <option value="FLUVIAL">Fluvial</option>
+          <option value="MISTO">Misto</option>
+        </select>
+      </div>
+
+      <div class="space-y-3 border-t border-slate-100 pt-4">
+        <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+          <input type="checkbox" [(ngModel)]="filtros.apenasComInternet" (ngModelChange)="emitirFiltros()" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+          <i class="fa-solid fa-wifi w-4 text-center text-sky-500"></i>
+          Apenas com internet
+        </label>
+
+        <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+          <input type="checkbox" [(ngModel)]="filtros.apenasComPredio" (ngModelChange)="emitirFiltros()" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+          <i class="fa-solid fa-school w-4 text-center text-amber-500"></i>
+          Apenas com prédio próprio
+        </label>
+      </div>
+    </div>
+
+    @if (quantidadeFiltrosAtivos > 0) {
+      <footer class="border-t border-slate-100 p-4">
+        <button type="button" (click)="limparFiltros()" class="w-full rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900">
+          <i class="fa-solid fa-rotate-left mr-2 text-xs"></i>
+          Limpar filtros
+        </button>
+      </footer>
+    }
+  </aside>
+
+  <button
+    type="button"
+    (click)="toggleGaveta()"
+    class="absolute right-0 top-6 grid h-12 w-11 translate-x-full place-items-center rounded-r-xl border-y border-r border-slate-200 bg-white/95 text-slate-600 shadow-lg backdrop-blur-md transition hover:text-emerald-600"
+    [class.opacity-0]="isAberto"
+    [class.pointer-events-none]="isAberto"
+    aria-label="Abrir filtros"
+  >
+    <i class="fa-solid fa-sliders"></i>
+    @if (quantidadeFiltrosAtivos > 0) {
+      <span class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-emerald-600 px-1 text-[10px] font-bold text-white">
+        {{ quantidadeFiltrosAtivos }}
+      </span>
+    }
+  </button>
+</div>

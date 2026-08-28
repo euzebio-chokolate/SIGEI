@@ -1,0 +1,60 @@
+<div class="relative h-screen w-screen overflow-hidden bg-slate-200">
+  <app-header />
+
+  <app-mapa-busca
+    [dadosEscolas]="dadosEscolasOriginal"
+    [carregando]="carregando"
+    (buscaAlterada)="aoMudarBusca($event)"
+    (escolaSelecionada)="focarEscola($event)"
+  />
+
+  <app-mapa-filtros
+    [totalResultados]="dadosEscolasFiltrados.length"
+    (filtrosAlterados)="aoMudarFiltros($event)"
+  />
+
+  @if (carregando) {
+    <div class="pointer-events-none absolute inset-0 z-[1005] grid place-items-center bg-slate-900/10">
+      <div class="rounded-2xl border border-white/60 bg-white/95 px-6 py-4 text-sm font-semibold text-slate-600 shadow-2xl backdrop-blur-md">
+        <i class="fa-solid fa-circle-notch mr-2 animate-spin text-emerald-600"></i>
+        Carregando escolas...
+      </div>
+    </div>
+  }
+
+  @if (erroMensagem) {
+    <div class="absolute bottom-6 left-1/2 z-[1020] flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-red-200 bg-white px-4 py-3 shadow-2xl">
+      <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+      <span class="text-sm text-slate-700">{{ erroMensagem }}</span>
+      <button type="button" (click)="tentarNovamente()" class="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100">Tentar novamente</button>
+    </div>
+  }
+
+  <div class="absolute bottom-6 left-4 z-[1010] flex flex-col gap-2">
+    <div
+      class="origin-bottom-left rounded-xl border border-slate-200/80 bg-white/95 p-2 shadow-2xl backdrop-blur-md transition duration-200"
+      [class.scale-95]="!menuCamadasAberto"
+      [class.opacity-0]="!menuCamadasAberto"
+      [class.pointer-events-none]="!menuCamadasAberto"
+      role="menu"
+    >
+      <button type="button" (click)="mudarCamada('padrao')" [class.bg-emerald-50]="camadaAtual === 'padrao'" [class.text-emerald-700]="camadaAtual === 'padrao'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Padrão</button>
+      <button type="button" (click)="mudarCamada('satelite')" [class.bg-emerald-50]="camadaAtual === 'satelite'" [class.text-emerald-700]="camadaAtual === 'satelite'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Satélite</button>
+      <button type="button" (click)="mudarCamada('terreno')" [class.bg-emerald-50]="camadaAtual === 'terreno'" [class.text-emerald-700]="camadaAtual === 'terreno'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Terreno</button>
+      <button type="button" (click)="mudarCamada('escuro')" [class.bg-emerald-50]="camadaAtual === 'escuro'" [class.text-emerald-700]="camadaAtual === 'escuro'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Escuro</button>
+    </div>
+
+    <button
+      type="button"
+      (click)="menuCamadasAberto = !menuCamadasAberto"
+      class="flex h-12 items-center gap-2.5 self-start rounded-xl border border-slate-200/80 bg-white/95 px-4 text-slate-700 shadow-xl backdrop-blur-md transition hover:bg-white"
+      [attr.aria-expanded]="menuCamadasAberto"
+    >
+      <i class="fa-solid fa-layer-group text-emerald-600"></i>
+      <span class="text-sm font-semibold">{{ nomesCamadas[camadaAtual] }}</span>
+      <i class="fa-solid fa-chevron-up ml-1 text-[9px] text-slate-400 transition-transform" [class.rotate-180]="menuCamadasAberto"></i>
+    </button>
+  </div>
+
+  <div id="map" class="absolute inset-0 z-0" aria-label="Mapa de escolas indígenas"></div>
+</div>

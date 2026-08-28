@@ -1,0 +1,58 @@
+<div class="pointer-events-auto absolute left-1/2 top-4 z-[1010] w-full max-w-lg -translate-x-1/2 px-16 sm:px-4">
+  <div class="relative rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-2xl backdrop-blur-md">
+    <div class="relative flex items-center">
+      @if (carregando) {
+        <i class="fa-solid fa-circle-notch absolute left-3.5 animate-spin text-emerald-600"></i>
+      } @else {
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 text-sm text-slate-400"></i>
+      }
+
+      <input
+        type="search"
+        [(ngModel)]="termoBusca"
+        (ngModelChange)="aoDigitar()"
+        (focus)="mostrarSugestoes = termoBusca.trim().length > 0"
+        (blur)="fecharComAtraso()"
+        (keydown.escape)="limpar()"
+        placeholder="Buscar escola ou código INEP..."
+        autocomplete="off"
+        class="w-full bg-transparent py-2.5 pl-10 pr-10 text-sm text-slate-800 outline-none placeholder:text-slate-400"
+        aria-label="Buscar escola no mapa"
+      />
+
+      @if (termoBusca) {
+        <button type="button" (click)="limpar()" class="absolute right-2.5 grid h-7 w-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Limpar busca">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      }
+    </div>
+
+    @if (mostrarSugestoes) {
+      <div class="absolute left-0 right-0 top-full z-[1020] mt-2 max-h-72 overflow-y-auto rounded-2xl border border-slate-200/80 bg-white/98 shadow-2xl backdrop-blur-md">
+        @for (item of sugestoes; track item.id) {
+          <button type="button" (mousedown)="$event.preventDefault()" (click)="selecionar(item)" class="block w-full border-b border-slate-100 p-3 text-left transition last:border-0 hover:bg-emerald-50/80">
+            <div class="flex items-start gap-3">
+              <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg" [class.bg-red-50]="isParalisada(item.situacao)" [class.text-red-600]="isParalisada(item.situacao)" [class.bg-emerald-50]="!isParalisada(item.situacao)" [class.text-emerald-600]="!isParalisada(item.situacao)">
+                <i class="fa-solid fa-school text-xs"></i>
+              </span>
+              <span class="min-w-0">
+                <span class="block truncate text-sm font-semibold text-slate-800">{{ item.escola?.nome || 'Escola sem nome' }}</span>
+                <span class="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500">
+                  <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono">INEP: {{ item.escola?.codigo || 'N/A' }}</span>
+                  @if (item.situacao) {
+                    <span class="font-semibold" [class.text-red-600]="isParalisada(item.situacao)" [class.text-emerald-600]="!isParalisada(item.situacao)">{{ item.situacao }}</span>
+                  }
+                </span>
+              </span>
+            </div>
+          </button>
+        } @empty {
+          <div class="p-5 text-center text-sm text-slate-500">
+            <i class="fa-solid fa-magnifying-glass mb-2 block text-slate-300"></i>
+            Nenhuma escola encontrada.
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
