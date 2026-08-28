@@ -33,7 +33,7 @@ export class UsuarioFormComponent implements OnInit {
   form = this.fb.nonNullable.group({
     nome: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(4)]],
+    senha: ['', [Validators.minLength(4)]],
     perfil: ['USUARIO' as PerfilUsuario, [Validators.required]],
     ativo: [true]
   });
@@ -45,6 +45,9 @@ export class UsuarioFormComponent implements OnInit {
       this.editando = true;
       this.usuarioId = id;
       this.carregarUsuario(id);
+    } else {
+      this.form.controls.senha.addValidators(Validators.required);
+      this.form.controls.senha.updateValueAndValidity();
     }
   }
 

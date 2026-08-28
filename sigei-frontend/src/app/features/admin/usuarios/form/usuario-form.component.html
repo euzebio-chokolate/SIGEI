@@ -81,14 +81,24 @@
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">
             Senha
+            @if (editando) {
+              <span class="text-slate-400 font-normal">
+                (opcional)
+              </span>
+            }
           </label>
           <div class="relative">
             <input
               [type]="mostrarSenha ? 'text' : 'password'"
               formControlName="senha"
-              placeholder="Digite a senha"
+              [placeholder]="editando ? 'Deixe em branco para manter a senha atual' : 'Digite a senha'"
               class="w-full px-4 pr-12 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
             >
+            @if (editando) {
+              <p class="text-xs text-slate-400 mt-1.5">
+                Deixe em branco para manter a senha atual.
+              </p>
+            }
             <button
               type="button"
               (click)="alternarSenha()"
@@ -103,7 +113,11 @@
           </div>
           @if (form.controls.senha.touched && form.controls.senha.invalid) {
             <p class="text-xs text-rose-500 mt-1.5">
-              Informe uma senha válida.
+              @if (form.controls.senha.hasError('required')) {
+                  Informe a senha.
+                } @else if (form.controls.senha.hasError('minlength')) {
+                  A senha deve ter pelo menos 4 caracteres.
+                }
             </p>
           }
         </div>
