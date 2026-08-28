@@ -20,6 +20,8 @@ import { MatriculasNivelEtapaComponent } from './../etapas/matriculas-nivel-etap
 import { MatriculasSerieEtapaComponent } from './../etapas/matriculas-serie-etapa.component';
 import { RevisaoEtapaComponent } from './../etapas/revisao-etapa.component';
 
+import { SucessoModalComponent } from '../../../../shared/components/sucesso-modal/sucesso-modal.component';
+
 @Component({
   selector: 'app-escola-form',
   standalone: true,
@@ -32,7 +34,8 @@ import { RevisaoEtapaComponent } from './../etapas/revisao-etapa.component';
     InfraestruturaEtapaComponent,
     MatriculasNivelEtapaComponent,
     MatriculasSerieEtapaComponent,
-    RevisaoEtapaComponent
+    RevisaoEtapaComponent,
+    SucessoModalComponent
   ],
   templateUrl: './escola-form.component.html'
 })
@@ -74,6 +77,10 @@ export class EscolaFormComponent implements OnInit {
   aldeias: AldeiaResponse[] = [];
   anosReferencia: AnoReferencia[] = [];
   escolasSede: { id: number; codigo: string; nome: string; }[] = [];
+
+  modalSucessoAberto = false;
+  tituloSucesso = '';
+  mensagemSucesso = '';
 
   form = this.fb.group({
     codigo: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
@@ -714,13 +721,16 @@ if (
       })
     ).subscribe({
       next: resultado => {
-        console.log(
-          this.editando ? 'Escola atualizada com sucesso:' : 'Escola cadastrada com sucesso:',
-          resultado
-        );
+        console.log(this.editando ? 'Escola atualizada com sucesso:' : 'Escola cadastrada com sucesso:', resultado);
         this.salvando = false;
+
+        this.tituloSucesso = this.editando ? 'Escola atualizada' : 'Escola cadastrada';
+        this.mensagemSucesso = this.editando
+          ? 'Os dados da escola foram atualizados com sucesso.'
+          : 'A nova escola foi cadastrada com sucesso.';
+
+        this.modalSucessoAberto = true;
         this.cdr.markForCheck();
-        this.router.navigate(['/admin/escolas']);
       },
       error: erro => {
         console.error(
@@ -732,6 +742,11 @@ if (
         this.cdr.markForCheck();
       }
     });
+  }
+
+  fecharModalSucesso(): void {
+    this.modalSucessoAberto = false;
+    this.router.navigate(['/admin/escolas']);
   }
 
   private obterMensagemErroCadastro(erro: any): string {

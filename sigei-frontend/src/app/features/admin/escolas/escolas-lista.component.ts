@@ -112,9 +112,15 @@ export class EscolasListaComponent implements OnInit {
     next: () => {
       this.escolasLista = this.escolasLista.filter(item => item.id !== escola.id);
       this.escolasFiltradas = this.escolasFiltradas.filter(item => item.id !== escola.id);
+      this.calcularTotais();
+
       this.escolaParaExcluir = null;
       this.excluindoId = null;
-      this.calcularTotais();
+
+      this.tituloSucesso = 'Escola excluída';
+      this.mensagemSucesso = `A escola ${escola.nome} foi excluída com sucesso.`;
+      this.modalSucessoAberto = true;
+
       this.cdr.markForCheck();
     },
     error: erro => {

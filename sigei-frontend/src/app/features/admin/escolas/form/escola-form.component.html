@@ -276,4 +276,12 @@
         (salvar)="salvarCadastro()"
       />
     }
+
+    <app-sucesso-modal
+      [aberto]="modalSucessoAberto"
+      [titulo]="tituloSucesso"
+      [mensagem]="mensagemSucesso"
+      textoBotao="Concluir"
+      (fechar)="fecharModalSucesso()"
+    />
   </div>
