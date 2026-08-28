@@ -6,10 +6,15 @@ info:
 http:
   method: GET
   url: http://localhost:8080/usuario
-  auth: inherit
+  body:
+    type: multipart-form
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBzaWdlaS5jb20iLCJpZCI6MSwibm9tZSI6IkFkbWluaXN0cmFkb3IiLCJwZXJmaWwiOiJBRE1JTiIsImlhdCI6MTc4Nzg4MTAwNCwiZXhwIjoxNzg3OTY3NDA0fQ.XnYueBKyAsDZxa5v6Y5dHkR8V8qFcCv9ZHt3IgiEXbA
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true
