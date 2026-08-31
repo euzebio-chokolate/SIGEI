@@ -4,6 +4,7 @@ import { InfraestruturaService } from '../../core/services/infraestrutura.servic
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { EscolaMapaItem, MapaBuscaComponent } from './components/mapa-busca.component';
 import { MapaFiltros, MapaFiltrosComponent } from './components/mapa-filtros.component';
+import { environment } from '../../environments/environment';
 
 type CamadaMapa = 'padrao' | 'satelite' | 'terreno' | 'escuro';
 
@@ -174,7 +175,8 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
         alt: String(item.escola?.nome || 'Escola indígena'),
       });
 
-      marcador.bindPopup(this.criarPopup(item, paralisada), { maxWidth: 320, minWidth: 240 });
+      marcador.bindPopup(this.criarPopup(item, paralisada), { maxWidth: 340, minWidth: 240 });
+      marcador.on('mouseover', () => marcador.openPopup());
 
       marcador.addTo(this.grupoMarcadores);
       this.marcadoresPorId.set(item.id, marcador);
@@ -186,8 +188,14 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     const codigo = this.escaparHtml(item.escola?.codigo || 'Sem INEP');
     const situacao = this.escaparHtml(item.situacao || 'Não informada');
     const acesso = this.escaparHtml(item.tipoAcesso || 'Não informado');
+    const fotoUrl = this.resolverFotoUrl(item.fotoUrl);
+    const foto = fotoUrl
+      ? `<img src="${this.escaparHtml(fotoUrl)}" alt="Foto de ${nome}" class="mb-3 h-40 w-full rounded-lg bg-slate-100 object-cover" loading="lazy">`
+      : '';
+
     return `
       <article class="min-w-[220px] font-sans">
+        ${foto}
         <h3 class="mb-1 text-base font-bold leading-tight text-slate-800">${nome}</h3>
         <p class="mb-3 inline-block rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-500">INEP: ${codigo}</p>
         <div class="mb-3 grid grid-cols-2 gap-3 border-y border-slate-100 py-2">
@@ -199,6 +207,15 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
           ${this.criarSelo('Prédio', Boolean(item.temPredio), 'emerald')}
         </div>
       </article>`;
+  }
+
+  private resolverFotoUrl(fotoUrl?: string | null): string | null {
+    if (!fotoUrl) return null;
+    if (/^(data:|blob:|https?:\/\/)/i.test(fotoUrl)) return fotoUrl;
+
+    const apiUrl = environment.apiUrl.replace(/\/$/, '');
+    const caminho = fotoUrl.replace(/^\//, '');
+    return `${apiUrl}/${caminho}`;
   }
 
   private criarSelo(rotulo: string, ativo: boolean, cor: 'sky' | 'emerald'): string {

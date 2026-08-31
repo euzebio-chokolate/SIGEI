@@ -1,6 +1,8 @@
 import {
+  ChangeDetectorRef,
   Component,
   EventEmitter,
+  inject,
   Input,
   Output
 } from '@angular/core';
@@ -10,6 +12,7 @@ import {
   FormGroup,
   ReactiveFormsModule
 } from '@angular/forms';
+import { environment } from '../../../../environments/environment';
 
 export interface InfraestruturaFormControls {
   anoConstrucao: FormControl<number | null>;
@@ -34,6 +37,8 @@ export interface InfraestruturaFormControls {
   templateUrl: './infraestrutura-etapa.component.html'
 })
 export class InfraestruturaEtapaComponent {
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   @Input({ required: true })
   form!: FormGroup<InfraestruturaFormControls>;
@@ -99,6 +104,16 @@ export class InfraestruturaEtapaComponent {
 
     reader.onload = () => {
       this.fotoPreview = reader.result as string;
+      this.cdr.markForCheck();
+    };
+
+    reader.onerror = () => {
+      this.fotoSelecionada = null;
+      this.fotoPreview = null;
+      this.erroFoto = 'Não foi possível carregar a prévia da imagem.';
+      this.fotoAlterada.emit(null);
+      input.value = '';
+      this.cdr.markForCheck();
     };
 
     reader.readAsDataURL(arquivo);
@@ -108,7 +123,7 @@ export class InfraestruturaEtapaComponent {
     if (this.fotoPreview) {
       return this.fotoPreview;
     }
-    return this.fotoUrlAtual;
+    return this.resolverFotoUrl(this.fotoUrlAtual);
   }
 
   get possuiImagem(): boolean {
@@ -118,18 +133,34 @@ export class InfraestruturaEtapaComponent {
   removerFoto(): void {
     this.fotoSelecionada = null;
     this.fotoPreview = null;
+    this.fotoUrlAtual = null;
     this.erroFoto = '';
     this.fotoAlterada.emit(null);
   }
 
   aoAlterarRegistroFotografico(): void {
-  const possuiRegistro = this.form.controls.temRegistroFotografico.value;
+    const possuiRegistro = this.form.controls.temRegistroFotografico.value;
 
-  if (!possuiRegistro) {
-    this.fotoSelecionada = null;
-    this.fotoPreview = null;
-    this.fotoAlterada.emit(null);
+    if (!possuiRegistro) {
+      this.fotoSelecionada = null;
+      this.fotoPreview = null;
+      this.fotoUrlAtual = null;
+      this.fotoAlterada.emit(null);
+    }
   }
-}
+
+  private resolverFotoUrl(fotoUrl: string | null): string | null {
+    if (!fotoUrl) {
+      return null;
+    }
+
+    if (/^(data:|blob:|https?:\/\/)/i.test(fotoUrl)) {
+      return fotoUrl;
+    }
+
+    const apiUrl = environment.apiUrl.replace(/\/$/, '');
+    const caminho = fotoUrl.replace(/^\//, '');
+    return `${apiUrl}/${caminho}`;
+  }
 
 }
