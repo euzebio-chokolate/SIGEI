@@ -74,6 +74,12 @@ export class InfraestruturaService {
     );
   }
 
+  excluirFoto(infraestruturaId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/${infraestruturaId}/foto`
+    );
+  }
+
   editar(dados: InfraestruturaRequest): Observable<InfraestruturaResponse> {
     return this.http.put<InfraestruturaResponse>(`${this.apiUrl}/editar`, dados);
   }

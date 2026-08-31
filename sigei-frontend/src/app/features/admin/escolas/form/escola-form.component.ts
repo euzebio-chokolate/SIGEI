@@ -73,6 +73,7 @@ export class EscolaFormComponent implements OnInit {
   erroAnos = '';
   fotoEscola: File | null = null;
   fotoUrlAtual: string | null = null;
+  fotoAtualRemovida = false;
 
   aldeias: AldeiaResponse[] = [];
   anosReferencia: AnoReferencia[] = [];
@@ -386,6 +387,13 @@ export class EscolaFormComponent implements OnInit {
   }
 
   aoAlterarFoto(foto: File | null): void {
+    if (!foto && this.fotoUrlAtual) {
+      this.fotoAtualRemovida = true;
+      this.fotoUrlAtual = null;
+    } else if (foto) {
+      this.fotoAtualRemovida = false;
+    }
+
     this.fotoEscola = foto;
   }
 
@@ -662,6 +670,13 @@ if (
                 this.fotoEscola
               );
             }
+
+            if (this.fotoAtualRemovida) {
+              return this.infraestruturaService.excluirFoto(
+                infraestruturaSalva.id
+              ).pipe(map(() => infraestruturaSalva));
+            }
+
             return of(infraestruturaSalva);
           })
         );

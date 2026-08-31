@@ -9,6 +9,7 @@ export interface EscolaMapaItem {
   tipoAcesso?: string | null;
   temInternet?: boolean;
   temPredio?: boolean;
+  fotoUrl?: string | null;
   escola?: {
     id?: number;
     nome?: string | null;
