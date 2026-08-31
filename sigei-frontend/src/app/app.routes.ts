@@ -132,6 +132,13 @@ export const routes: Routes = [
         path: 'usuarios/editar/:id',
         loadComponent: () => import('./features/admin/usuarios/form/usuario-form.component').then(m => m.UsuarioFormComponent),
         title: 'SIGEI - Editar Usuário'
+      },
+
+      // Configurações
+      {
+        path: 'configuracoes',
+        loadComponent: () => import('./features/admin/configuracoes/configuracoes.component').then(m => m.ConfiguracoesComponent),
+        title: 'SIGEI - Configurações'
       }
 
     ]

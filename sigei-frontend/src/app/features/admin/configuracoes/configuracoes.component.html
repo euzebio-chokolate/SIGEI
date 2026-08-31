@@ -1,0 +1,74 @@
+<div class="space-y-6 pb-10">
+  <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+    <a routerLink="/admin/dashboard" class="flex items-center gap-1.5 transition hover:text-emerald-600"><i class="fa-solid fa-house text-slate-400"></i>Início</a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i><span class="text-slate-800">Configurações</span>
+  </nav>
+
+  <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div>
+      <p class="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-600">Administração do sistema</p>
+      <h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-800">Configurações</h1>
+      <p class="mt-1 text-sm text-slate-500">Personalize a experiência de gestão e visualização do SIGEI.</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <button type="button" (click)="restaurarPadrao()" class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-50"><i class="fa-solid fa-rotate-left mr-2 text-xs"></i>Restaurar padrão</button>
+      <button type="button" (click)="salvar()" [disabled]="salvando" class="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-60">
+        <i class="fa-solid mr-2 text-xs" [class.fa-circle-notch]="salvando" [class.animate-spin]="salvando" [class.fa-check]="!salvando"></i>{{ salvando ? 'Salvando...' : 'Salvar alterações' }}
+      </button>
+    </div>
+  </div>
+
+  @if (salvoComSucesso) {
+    <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700"><i class="fa-solid fa-circle-check"></i>Preferências salvas com sucesso neste dispositivo.</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <div class="space-y-6 xl:col-span-2">
+      <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <header class="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><i class="fa-solid fa-building-columns"></i></span>
+          <div><h2 class="text-sm font-bold text-slate-800">Identificação institucional</h2><p class="mt-0.5 text-xs text-slate-500">Informações apresentadas na interface do sistema.</p></div>
+        </header>
+        <div class="grid grid-cols-1 gap-5 p-6 md:grid-cols-3">
+          <div class="md:col-span-2"><label for="nomeInstituicao" class="mb-1.5 block text-xs font-semibold text-slate-700">Nome da instituição</label><input id="nomeInstituicao" formControlName="nomeInstituicao" class="config-input" /></div>
+          <div><label for="siglaInstituicao" class="mb-1.5 block text-xs font-semibold text-slate-700">Sigla</label><input id="siglaInstituicao" formControlName="siglaInstituicao" class="config-input" /></div>
+          <div class="md:col-span-3"><label for="paginaInicial" class="mb-1.5 block text-xs font-semibold text-slate-700">Página inicial após o acesso</label><select id="paginaInicial" formControlName="paginaInicial" class="config-input"><option value="dashboard">Painel gerencial</option><option value="escolas">Escolas</option><option value="historico-escolas">Histórico escolar</option></select></div>
+        </div>
+      </section>
+
+      <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <header class="flex items-center gap-3 border-b border-slate-100 bg-slate-50/60 px-6 py-4">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-sky-50 text-sky-600"><i class="fa-solid fa-map-location-dot"></i></span>
+          <div><h2 class="text-sm font-bold text-slate-800">Mapa público</h2><p class="mt-0.5 text-xs text-slate-500">Defina o comportamento padrão da consulta geográfica.</p></div>
+        </header>
+        <div class="space-y-4 p-6">
+          <div><label for="camadaMapa" class="mb-1.5 block text-xs font-semibold text-slate-700">Camada inicial</label><select id="camadaMapa" formControlName="camadaMapa" class="config-input"><option value="padrao">Mapa padrão</option><option value="satelite">Satélite</option><option value="terreno">Terreno</option><option value="escuro">Mapa escuro</option></select></div>
+          <label class="config-toggle"><span><strong>Abrir informações ao passar o mouse</strong><small>Exibe o popup quando o cursor estiver sobre um marcador.</small></span><input type="checkbox" formControlName="abrirPopupAoPassarMouse" /></label>
+          <label class="config-toggle"><span><strong>Exibir fotografias das escolas</strong><small>Inclui o registro fotográfico disponível nos popups.</small></span><input type="checkbox" formControlName="exibirFotosNoMapa" /></label>
+        </div>
+      </section>
+    </div>
+
+    <div class="space-y-6">
+      <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <header class="border-b border-slate-100 px-5 py-4"><h2 class="text-sm font-bold text-slate-800"><i class="fa-solid fa-display mr-2 text-violet-500"></i>Interface</h2></header>
+        <div class="space-y-3 p-5">
+          <label class="config-toggle"><span><strong>Menu compacto</strong><small>Reduz o espaço da navegação.</small></span><input type="checkbox" formControlName="menuCompacto" /></label>
+          <label class="config-toggle"><span><strong>Reduzir animações</strong><small>Minimiza transições visuais.</small></span><input type="checkbox" formControlName="reduzirAnimacoes" /></label>
+        </div>
+      </section>
+
+      <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <header class="border-b border-slate-100 px-5 py-4"><h2 class="text-sm font-bold text-slate-800"><i class="fa-solid fa-shield-halved mr-2 text-amber-500"></i>Segurança e avisos</h2></header>
+        <div class="space-y-3 p-5">
+          <label class="config-toggle"><span><strong>Confirmar exclusões</strong><small>Solicita confirmação antes de remover dados.</small></span><input type="checkbox" formControlName="confirmarExclusoes" /></label>
+          <label class="config-toggle"><span><strong>Lembrete de ano letivo</strong><small>Avisa sobre atualização anual.</small></span><input type="checkbox" formControlName="avisarAtualizacaoAnual" /></label>
+        </div>
+      </section>
+
+      <div class="rounded-2xl border border-emerald-200/70 bg-emerald-50/70 p-5">
+        <div class="flex gap-3"><i class="fa-solid fa-circle-info mt-0.5 text-emerald-600"></i><div><p class="text-xs font-bold text-emerald-800">Armazenamento local</p><p class="mt-1 text-xs leading-relaxed text-emerald-700/80">Estas preferências ficam salvas neste navegador. Configurações compartilhadas poderão ser conectadas à API posteriormente.</p></div></div>
+      </div>
+    </div>
+  </form>
+</div>

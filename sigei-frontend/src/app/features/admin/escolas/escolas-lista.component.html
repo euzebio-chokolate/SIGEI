@@ -173,6 +173,9 @@
               <!-- Ações -->
               <td class="px-6 py-4 text-right">
                 <div class="flex items-center justify-end gap-1">
+                  <button type="button" (click)="abrirDetalhes(escola)" [disabled]="visualizandoId !== null" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 disabled:opacity-50 transition-all" title="Ver detalhes">
+                    <i class="fa-solid text-xs" [class.fa-eye]="visualizandoId !== escola.id" [class.fa-circle-notch]="visualizandoId === escola.id" [class.animate-spin]="visualizandoId === escola.id"></i>
+                  </button>
                   <a [routerLink]="['/admin/escolas/editar', escola.id]" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Editar">
                     <i class="fa-solid fa-pen-to-square text-xs"></i>
                   </a>
@@ -243,5 +246,11 @@
   [mensagem]="mensagemSucesso"
   textoBotao="Concluir"
   (fechar)="fecharModalSucesso()"
+/>
+
+<app-historico-escola-modal
+  [aberto]="registroSelecionado !== null"
+  [registro]="registroSelecionado"
+  (fechar)="fecharDetalhes()"
 />
 </div>
