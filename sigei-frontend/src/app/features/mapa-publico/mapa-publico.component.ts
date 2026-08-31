@@ -27,6 +27,8 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   erroMensagem = '';
   menuCamadasAberto = false;
   camadaAtual: CamadaMapa = 'padrao';
+  private abrirPopupAoPassarMouse = true;
+  private exibirFotosNoMapa = true;
 
   readonly nomesCamadas: Record<CamadaMapa, string> = {
     padrao: 'Padrão',
@@ -65,6 +67,7 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   };
 
   ngOnInit(): void {
+    this.carregarPreferencias();
     this.iniciarMapa();
     this.buscarDadosDaApi();
   }
@@ -112,7 +115,7 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     this.map = L.map('map', { zoomControl: false, minZoom: 5 }).setView([-8.77, -70.55], 7);
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
     L.control.scale({ position: 'bottomright', imperial: false }).addTo(this.map);
-    this.tileLayerAtual = this.camadas.padrao.addTo(this.map);
+    this.tileLayerAtual = this.camadas[this.camadaAtual].addTo(this.map);
     this.grupoMarcadores.addTo(this.map);
   }
 
@@ -176,7 +179,9 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
       });
 
       marcador.bindPopup(this.criarPopup(item, paralisada), { maxWidth: 340, minWidth: 240 });
-      marcador.on('mouseover', () => marcador.openPopup());
+      if (this.abrirPopupAoPassarMouse) {
+        marcador.on('mouseover', () => marcador.openPopup());
+      }
 
       marcador.addTo(this.grupoMarcadores);
       this.marcadoresPorId.set(item.id, marcador);
@@ -188,7 +193,7 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     const codigo = this.escaparHtml(item.escola?.codigo || 'Sem INEP');
     const situacao = this.escaparHtml(item.situacao || 'Não informada');
     const acesso = this.escaparHtml(item.tipoAcesso || 'Não informado');
-    const fotoUrl = this.resolverFotoUrl(item.fotoUrl);
+    const fotoUrl = this.exibirFotosNoMapa ? this.resolverFotoUrl(item.fotoUrl) : null;
     const foto = fotoUrl
       ? `<img src="${this.escaparHtml(fotoUrl)}" alt="Foto de ${nome}" class="mb-3 h-40 w-full rounded-lg bg-slate-100 object-cover" loading="lazy">`
       : '';
@@ -216,6 +221,27 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     const apiUrl = environment.apiUrl.replace(/\/$/, '');
     const caminho = fotoUrl.replace(/^\//, '');
     return `${apiUrl}/${caminho}`;
+  }
+
+  private carregarPreferencias(): void {
+    const preferenciasSalvas = localStorage.getItem('sigei-preferencias');
+    if (!preferenciasSalvas) return;
+
+    try {
+      const preferencias = JSON.parse(preferenciasSalvas) as {
+        camadaMapa?: CamadaMapa;
+        abrirPopupAoPassarMouse?: boolean;
+        exibirFotosNoMapa?: boolean;
+      };
+
+      if (preferencias.camadaMapa && preferencias.camadaMapa in this.camadas) {
+        this.camadaAtual = preferencias.camadaMapa;
+      }
+      this.abrirPopupAoPassarMouse = preferencias.abrirPopupAoPassarMouse ?? true;
+      this.exibirFotosNoMapa = preferencias.exibirFotosNoMapa ?? true;
+    } catch {
+      localStorage.removeItem('sigei-preferencias');
+    }
   }
 
   private criarSelo(rotulo: string, ativo: boolean, cor: 'sky' | 'emerald'): string {

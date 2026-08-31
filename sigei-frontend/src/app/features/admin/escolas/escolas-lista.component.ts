@@ -6,11 +6,13 @@ import { ConfirmModalComponent } from '../../../shared/components/confirm-modal/
 import { AtualizacaoAnualService } from '../../../core/services/atualizacao-anual.service';
 import { AnoModalComponent } from '../../../shared/components/ano-modal/ano-modal.component';
 import { SucessoModalComponent } from '../../../shared/components/sucesso-modal/sucesso-modal.component';
+import { HistoricoEscolaModalComponent } from '../../../shared/components/historico-escola-modal/historico-escola-modal.component';
+import { RegistroAnualResponse } from '../../../core/services/registro-anual.service';
 
 @Component({
   selector: 'app-escolas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent, HistoricoEscolaModalComponent],
   templateUrl: './escolas-lista.component.html'
 })
 export class EscolasListaComponent implements OnInit {
@@ -35,6 +37,8 @@ export class EscolasListaComponent implements OnInit {
   modalSucessoAberto = false;
   tituloSucesso = '';
   mensagemSucesso = '';
+  registroSelecionado: RegistroAnualResponse | null = null;
+  visualizandoId: number | null = null;
 
   ngOnInit(): void {
     this.carregarEscolas();
@@ -95,6 +99,46 @@ export class EscolasListaComponent implements OnInit {
 
   abrirModalExcluir(escola: EscolaResponse): void {
     this.escolaParaExcluir = escola;
+  }
+
+  abrirDetalhes(escola: EscolaResponse): void {
+    if (this.visualizandoId !== null) return;
+
+    this.visualizandoId = escola.id;
+    this.erroMensagem = '';
+
+    this.escolaService.buscarPorId(escola.id).subscribe({
+      next: detalhe => {
+        const registro = detalhe.registroAnual;
+
+        if (!registro) {
+          this.erroMensagem = 'Esta escola ainda não possui um registro anual para visualização.';
+          this.visualizandoId = null;
+          this.cdr.markForCheck();
+          return;
+        }
+
+        this.registroSelecionado = {
+          ...registro,
+          matriculasSerie: registro.matriculasSerie.map(matricula => ({
+            ...matricula,
+            total: (matricula.qtdMasculino ?? 0) + (matricula.qtdFeminino ?? 0)
+          }))
+        };
+        this.visualizandoId = null;
+        this.cdr.markForCheck();
+      },
+      error: erro => {
+        console.error('Erro ao carregar detalhes da escola:', erro);
+        this.erroMensagem = 'Não foi possível carregar os detalhes desta escola.';
+        this.visualizandoId = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  fecharDetalhes(): void {
+    this.registroSelecionado = null;
   }
 
   cancelarExclusao(): void {
