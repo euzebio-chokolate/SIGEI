@@ -1,147 +1,73 @@
-<div class="flex h-screen bg-verde-fundo font-sans overflow-hidden">
-  <!-- Sidebar -->
-  <aside class="w-80 bg-verde-escuro border-r border-gray-200 flex flex-col shadow-sm z-20">
-    <div
-      class="h-20 flex items-center px-6 border-b border-verde-claro bg-verde-escuro backdrop-blur-md shrink-0"
-    >
-      <img
-        src="assets/logo/Logo-SIGEI.svg"
-        alt="Logo SIGEI"
-        class="w-13 h-13 object-contain mr-3"
-      />
-      <div class="flex flex-col">
-        <h1 class="text-2xl font-bold tracking-wide text-white leading-none">SIGEI</h1>
-        <p class="text-xs text-gray-300 uppercase tracking-wider mt-0.5">Gestão Escolar Indígena</p>
+<div class="flex min-h-screen bg-slate-100 font-sans text-slate-800">
+  @if (menuMobileAberto) {
+    <button type="button" aria-label="Fechar menu" (click)="fecharMenuMobile()" class="fixed inset-0 z-30 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"></button>
+  }
+
+  <aside class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-white/10 bg-verde-escuro text-white shadow-2xl transition-transform duration-300 lg:static lg:translate-x-0 lg:shadow-none" [class.-translate-x-full]="!menuMobileAberto">
+    <div class="flex h-20 shrink-0 items-center gap-3 border-b border-white/10 px-5">
+      <div class="grid h-11 w-11 place-items-center rounded-xl bg-white/10 ring-1 ring-white/10">
+        <img src="assets/logo/Logo-SIGEI.svg" alt="Logo SIGEI" class="h-9 w-9 object-contain" />
+      </div>
+      <div class="min-w-0">
+        <h1 class="text-xl font-extrabold tracking-wide">SIGEI</h1>
+        <p class="truncate text-[10px] font-medium uppercase tracking-[0.16em] text-emerald-100/60">Gestão Escolar Indígena</p>
+      </div>
+      <button type="button" (click)="fecharMenuMobile()" aria-label="Fechar menu" class="ml-auto grid h-9 w-9 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white lg:hidden"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="mx-4 mt-5 rounded-xl border border-white/10 bg-white/[0.06] p-3">
+      <div class="flex items-center gap-3">
+        <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-emerald-400/15 text-sm font-bold text-emerald-200 ring-1 ring-emerald-300/20">{{ usuario?.nome?.charAt(0)?.toUpperCase() ?? 'U' }}</div>
+        <div class="min-w-0">
+          <p class="truncate text-xs font-semibold text-white">{{ usuario?.nome ?? 'Usuário' }}</p>
+          <p class="mt-0.5 truncate text-[10px] text-white/45">{{ usuario?.email ?? 'Acesso administrativo' }}</p>
+        </div>
       </div>
     </div>
 
-    <nav class="flex-1 overflow-y-auto py-6 px-4 space-y-1">
-      <p class="px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
-        Menu Principal
-      </p>
-
-      <a
-        routerLink="/admin/dashboard"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium"
-      >
-        <i class="fa-solid fa-chart-line text-lg w-5 text-center"></i>
-        Visão Geral
+    <nav class="flex-1 overflow-y-auto px-4 py-5">
+      <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Visão geral</p>
+      <a routerLink="/admin/dashboard" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/[0.06] hover:text-white">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-white/[0.06] text-emerald-300 group-hover:bg-white/10"><i class="fa-solid fa-chart-pie text-sm"></i></span>Painel gerencial
       </a>
 
-      <a
-        routerLink="/admin/municipios"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-      >
-        <i class="fa-solid fa-map-location-dot text-lg w-5 text-center"></i>
-        Municípios
-      </a>
+      <p class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Cadastros territoriais</p>
+      <div class="space-y-1">
+        <a routerLink="/admin/municipios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-city"></i>Municípios</a>
+        <a routerLink="/admin/terras-indigenas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-map"></i>Terras Indígenas</a>
+        <a routerLink="/admin/povos" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-people-group"></i>Povos Indígenas</a>
+        <a routerLink="/admin/aldeias" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-tents"></i>Aldeias</a>
+      </div>
 
-      <a
-        routerLink="/admin/terras-indigenas"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-      >
-        <i class="fa-solid fa-map text-lg w-5 text-center"></i>
-        Terras Indígenas
-      </a>
-
-      <a
-        routerLink="/admin/povos"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-      >
-        <i class="fa-solid fa-users-rays text-lg w-5 text-center"></i>
-        Povos Indígenas
-      </a>
-
-      <a
-        routerLink="/admin/aldeias"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-      >
-        <i class="fa-solid fa-tents text-lg w-5 text-center"></i>
-        Aldeias
-      </a>
-
-      <a
-        routerLink="/admin/escolas"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-      >
-        <i class="fa-solid fa-school text-lg w-5 text-center"></i>
-        Escolas
-      </a>
-
-      <a
-        routerLink="/admin/historico-escolas"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-      >
-        <i class="fa-solid fa-clock-rotate-left text-lg w-5 text-center"></i>
-        Histórico de Escolas
-      </a>
-
-      <a
-        routerLink="/admin/usuarios"
-        routerLinkActive="bg-verde-claro text-white/100"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/50 hover:bg-verde-fundo/20 hover:text-white transition-colors font-medium mt-1"
-      >
-        <i class="fa-solid fa-user-gear text-lg w-5 text-center"></i> Usuários
-      </a>
+      <p class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Gestão educacional</p>
+      <div class="space-y-1">
+        <a routerLink="/admin/escolas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-school"></i>Escolas</a>
+        <a routerLink="/admin/historico-escolas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i>Histórico escolar</a>
+        <a routerLink="/admin/usuarios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-user-shield"></i>Usuários e acesso</a>
+      </div>
     </nav>
 
-    <div class="p-4 border-t border-gray-100">
-      <a
-        routerLink="/"
-        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium"
-      >
-        <i class="fa-solid fa-map-location-dot text-lg w-5 text-center"></i>
-        Voltar ao Mapa
-      </a>
+    <div class="border-t border-white/10 p-4">
+      <a routerLink="/" class="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-xs font-semibold text-white/65 transition hover:bg-white/10 hover:text-white"><i class="fa-solid fa-map-location-dot text-emerald-300"></i>Visualizar mapa público</a>
     </div>
   </aside>
 
-  <!-- Main Content -->
-  <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-    <header
-      class="h-20 bg-verde-fundo border-b border-gray-200 flex items-center justify-end px-8 shadow-sm z-10"
-    >
-      <div class="flex items-center gap-4">
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold"
-          >
-            {{ usuario?.nome?.charAt(0) ?? 'U' }}
-          </div>
-
-          <div class="min-w-0">
-            <p class="text-sm font-semibold text-slate-800 truncate">
-              {{ usuario?.nome ?? 'Usuário' }}
-            </p>
-
-            <p class="text-xs text-slate-500 truncate">
-              {{ usuario?.email ?? '-' }}
-            </p>
-          </div>
-        </div>
-
-        <div class="h-9 w-px bg-slate-300"></div>
-
-        <button
-          type="button"
-          (click)="logout()"
-          class="flex items-center gap-2 px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors font-medium"
-        >
-          <i class="fa-solid fa-arrow-right-from-bracket text-base"></i>
-          Sair
-        </button>
+  <main class="flex min-w-0 flex-1 flex-col">
+    <header class="sticky top-0 z-20 flex h-20 shrink-0 items-center border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-xl sm:px-6 lg:px-8">
+      <button type="button" (click)="abrirMenuMobile()" aria-label="Abrir menu" class="mr-3 grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 lg:hidden"><i class="fa-solid fa-bars"></i></button>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-600"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Ambiente administrativo</div>
+        <p class="mt-1 truncate text-sm font-semibold text-slate-700">Central de gestão e informações escolares</p>
+      </div>
+      <div class="ml-auto flex items-center gap-3">
+        <div class="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 sm:flex"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Sistema disponível</div>
+        <div class="hidden h-8 w-px bg-slate-200 sm:block"></div>
+        <button type="button" (click)="logout()" title="Sair do sistema" class="flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"><i class="fa-solid fa-arrow-right-from-bracket"></i><span class="hidden sm:inline">Sair</span></button>
       </div>
     </header>
 
-    <div class="flex-1 overflow-y-auto p-8">
-      <router-outlet></router-outlet>
+    <div class="admin-content flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+      <div class="mx-auto w-full max-w-[1600px]"><router-outlet></router-outlet></div>
     </div>
   </main>
 </div>

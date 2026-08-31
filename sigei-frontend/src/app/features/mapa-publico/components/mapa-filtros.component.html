@@ -1,17 +1,17 @@
 <div
-  class="absolute left-0 top-24 z-[1010] flex transition-transform duration-300 ease-in-out"
+  class="absolute left-0 top-36 z-[1010] flex transition-transform duration-300 ease-in-out sm:top-24"
   [class.translate-x-4]="isAberto"
   [class.-translate-x-full]="!isAberto"
 >
   <aside
-    class="flex max-h-[calc(100vh-8rem)] w-[calc(100vw-2rem)] max-w-80 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-2xl backdrop-blur-md"
+    class="flex max-h-[calc(100vh-10rem)] w-[calc(100vw-2rem)] max-w-80 flex-col overflow-hidden rounded-2xl border border-white/80 bg-white/95 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-xl sm:max-h-[calc(100vh-8rem)]"
     aria-label="Filtros do mapa"
   >
-    <header class="flex items-center justify-between border-b border-slate-100 bg-slate-50/70 px-5 py-4">
+    <header class="flex items-center justify-between border-b border-slate-100 bg-gradient-to-r from-emerald-50/80 to-white px-5 py-4">
       <div>
         <h2 class="flex items-center gap-2 text-base font-bold text-slate-800">
-          <i class="fa-solid fa-sliders text-emerald-600"></i>
-          Filtros
+          <span class="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100 text-emerald-700"><i class="fa-solid fa-sliders text-xs"></i></span>
+          Filtros do mapa
           @if (quantidadeFiltrosAtivos > 0) {
             <span class="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] text-white">
               {{ quantidadeFiltrosAtivos }}
@@ -69,13 +69,13 @@
       </div>
 
       <div class="space-y-3 border-t border-slate-100 pt-4">
-        <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 p-3 text-sm text-slate-700 transition hover:bg-slate-50">
           <input type="checkbox" [(ngModel)]="filtros.apenasComInternet" (ngModelChange)="emitirFiltros()" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
           <i class="fa-solid fa-wifi w-4 text-center text-sky-500"></i>
           Apenas com internet
         </label>
 
-        <label class="flex cursor-pointer items-center gap-3 text-sm text-slate-700">
+        <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-100 p-3 text-sm text-slate-700 transition hover:bg-slate-50">
           <input type="checkbox" [(ngModel)]="filtros.apenasComPredio" (ngModelChange)="emitirFiltros()" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
           <i class="fa-solid fa-school w-4 text-center text-amber-500"></i>
           Apenas com prédio próprio

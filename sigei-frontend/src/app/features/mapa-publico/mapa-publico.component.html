@@ -15,9 +15,9 @@
 
   @if (carregando) {
     <div class="pointer-events-none absolute inset-0 z-[1005] grid place-items-center bg-slate-900/10">
-      <div class="rounded-2xl border border-white/60 bg-white/95 px-6 py-4 text-sm font-semibold text-slate-600 shadow-2xl backdrop-blur-md">
-        <i class="fa-solid fa-circle-notch mr-2 animate-spin text-emerald-600"></i>
-        Carregando escolas...
+      <div class="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/95 px-5 py-4 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-xl">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600"><i class="fa-solid fa-circle-notch animate-spin"></i></span>
+        <div><p class="text-sm font-bold text-slate-700">Carregando mapa escolar</p><p class="mt-0.5 text-[11px] text-slate-400">Buscando unidades e coordenadas...</p></div>
       </div>
     </div>
   }
@@ -30,30 +30,37 @@
     </div>
   }
 
-  <div class="absolute bottom-6 left-4 z-[1010] flex flex-col gap-2">
+  <div class="absolute bottom-5 left-3 z-[1010] flex flex-col gap-2 sm:left-5">
     <div
-      class="origin-bottom-left rounded-xl border border-slate-200/80 bg-white/95 p-2 shadow-2xl backdrop-blur-md transition duration-200"
+      class="origin-bottom-left rounded-2xl border border-white/80 bg-white/95 p-1.5 shadow-2xl ring-1 ring-slate-900/5 backdrop-blur-xl transition duration-200"
       [class.scale-95]="!menuCamadasAberto"
       [class.opacity-0]="!menuCamadasAberto"
       [class.pointer-events-none]="!menuCamadasAberto"
       role="menu"
     >
-      <button type="button" (click)="mudarCamada('padrao')" [class.bg-emerald-50]="camadaAtual === 'padrao'" [class.text-emerald-700]="camadaAtual === 'padrao'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Padrão</button>
-      <button type="button" (click)="mudarCamada('satelite')" [class.bg-emerald-50]="camadaAtual === 'satelite'" [class.text-emerald-700]="camadaAtual === 'satelite'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Satélite</button>
-      <button type="button" (click)="mudarCamada('terreno')" [class.bg-emerald-50]="camadaAtual === 'terreno'" [class.text-emerald-700]="camadaAtual === 'terreno'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Terreno</button>
-      <button type="button" (click)="mudarCamada('escuro')" [class.bg-emerald-50]="camadaAtual === 'escuro'" [class.text-emerald-700]="camadaAtual === 'escuro'" class="block w-full rounded-lg px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50">Escuro</button>
+      <p class="px-3 pb-1 pt-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">Visualização</p>
+      <button type="button" (click)="mudarCamada('padrao')" [class.bg-emerald-50]="camadaAtual === 'padrao'" [class.text-emerald-700]="camadaAtual === 'padrao'" class="block w-full rounded-xl px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50"><i class="fa-regular fa-map mr-2 w-4 text-center"></i>Padrão</button>
+      <button type="button" (click)="mudarCamada('satelite')" [class.bg-emerald-50]="camadaAtual === 'satelite'" [class.text-emerald-700]="camadaAtual === 'satelite'" class="block w-full rounded-xl px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-satellite mr-2 w-4 text-center"></i>Satélite</button>
+      <button type="button" (click)="mudarCamada('terreno')" [class.bg-emerald-50]="camadaAtual === 'terreno'" [class.text-emerald-700]="camadaAtual === 'terreno'" class="block w-full rounded-xl px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-mountain-sun mr-2 w-4 text-center"></i>Terreno</button>
+      <button type="button" (click)="mudarCamada('escuro')" [class.bg-emerald-50]="camadaAtual === 'escuro'" [class.text-emerald-700]="camadaAtual === 'escuro'" class="block w-full rounded-xl px-3 py-2 text-left text-xs font-semibold text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-moon mr-2 w-4 text-center"></i>Escuro</button>
     </div>
 
     <button
       type="button"
       (click)="menuCamadasAberto = !menuCamadasAberto"
-      class="flex h-12 items-center gap-2.5 self-start rounded-xl border border-slate-200/80 bg-white/95 px-4 text-slate-700 shadow-xl backdrop-blur-md transition hover:bg-white"
+      class="flex h-12 items-center gap-2.5 self-start rounded-xl border border-white/80 bg-white/95 px-4 text-slate-700 shadow-xl ring-1 ring-slate-900/5 backdrop-blur-xl transition hover:text-emerald-700"
       [attr.aria-expanded]="menuCamadasAberto"
     >
       <i class="fa-solid fa-layer-group text-emerald-600"></i>
       <span class="text-sm font-semibold">{{ nomesCamadas[camadaAtual] }}</span>
       <i class="fa-solid fa-chevron-up ml-1 text-[9px] text-slate-400 transition-transform" [class.rotate-180]="menuCamadasAberto"></i>
     </button>
+  </div>
+
+  <div class="pointer-events-none absolute bottom-5 left-1/2 z-[1000] hidden -translate-x-1/2 items-center gap-4 rounded-full border border-white/80 bg-white/90 px-4 py-2 text-[10px] font-semibold text-slate-600 shadow-lg backdrop-blur-xl sm:flex">
+    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>Em funcionamento</span>
+    <span class="h-4 w-px bg-slate-200"></span>
+    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-red-100"></span>Paralisada</span>
   </div>
 
   <div id="map" class="absolute inset-0 z-0" aria-label="Mapa de escolas indígenas"></div>

@@ -14,6 +14,15 @@ export class AdminComponent {
   private readonly router = inject(Router);
 
   usuario = this.authService.getUsuario();
+  menuMobileAberto = false;
+
+  abrirMenuMobile(): void {
+    this.menuMobileAberto = true;
+  }
+
+  fecharMenuMobile(): void {
+    this.menuMobileAberto = false;
+  }
 
   logout(): void {
     this.authService.logout();
