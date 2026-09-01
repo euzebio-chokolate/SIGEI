@@ -34,10 +34,19 @@ public class UsuarioService {
         }
 
         Usuario usuario = usuarioMapper.converter(dto);
-        usuario.setSenha(passwordEncoder.encode(dto.senha()));
-        usuario.setAtivo(dto.ativo() == null ? true : dto.ativo());
 
-        Usuario usuarioSalvo = usuarioRepository.save(usuario);
+        usuario.setSenha(
+                passwordEncoder.encode(dto.senha())
+        );
+
+        usuario.setAtivo(
+                dto.ativo() == null ? true : dto.ativo()
+        );
+
+        usuario.setAlterarSenha(true);
+
+        Usuario usuarioSalvo =
+                usuarioRepository.save(usuario);
         return usuarioMapper.converter(usuarioSalvo);
     }
 
@@ -65,6 +74,7 @@ public class UsuarioService {
 
         if (dto.senha() != null && !dto.senha().isBlank()) {
             usuario.setSenha(passwordEncoder.encode(dto.senha()));
+            usuario.setAlterarSenha(true);
         }
 
         Usuario usuarioSalvo = usuarioRepository.save(usuario);

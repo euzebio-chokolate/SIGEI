@@ -1,5 +1,6 @@
 package ac.gov.br.sigei_backend.services;
 
+import ac.gov.br.sigei_backend.DTOs.request.AlterarSenhaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.request.LoginRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.LoginResponseDTO;
 import ac.gov.br.sigei_backend.models.Usuario;
@@ -55,7 +56,29 @@ public class AuthService {
                 usuario.getNome(),
                 usuario.getEmail(),
                 usuario.getPerfil(),
+                usuario.getAlterarSenha(),
                 token
         );
+    }
+
+    public void alterarSenha(Long usuarioId, AlterarSenhaRequestDTO dto) {
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
+
+        if (!passwordEncoder.matches(dto.senhaAtual(), usuario.getSenha())) {
+            throw new IllegalArgumentException("Senha atual inválida");
+        }
+
+        if (!dto.novaSenha().equals(dto.confirmacaoSenha())) {
+            throw new IllegalArgumentException("Nova senha e confirmação não coincidem");
+        }
+
+        if (passwordEncoder.matches(dto.novaSenha(), usuario.getSenha())) {
+            throw new IllegalArgumentException("Nova senha deve ser diferente da senha atual");
+        }
+
+        usuario.setSenha(passwordEncoder.encode(dto.novaSenha()));
+        usuario.setAlterarSenha(false);
+        usuarioRepository.save(usuario);
     }
 }

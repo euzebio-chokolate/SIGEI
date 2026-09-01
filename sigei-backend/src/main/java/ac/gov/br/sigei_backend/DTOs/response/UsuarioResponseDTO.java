@@ -8,7 +8,8 @@ public record UsuarioResponseDTO(
         String nome,
         String email,
         PerfilUsuario perfil,
-        Boolean ativo
+        Boolean ativo,
+        Boolean alterarSenha
 
 ) {
 }

@@ -33,8 +33,10 @@ public class SecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/login", "/usuario/salvar").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/alterar-senha").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ADMIN", "USUARIO")
+                        .anyRequest().hasRole("ADMIN")
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

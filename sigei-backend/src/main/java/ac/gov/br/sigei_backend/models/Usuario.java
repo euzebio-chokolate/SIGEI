@@ -2,6 +2,7 @@ package ac.gov.br.sigei_backend.models;
 
 import ac.gov.br.sigei_backend.models.enums.PerfilUsuario;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "usuario")
@@ -26,6 +27,10 @@ public class Usuario {
 
     @Column(nullable = false)
     private Boolean ativo = true;
+
+    @Column(nullable = false)
+    @ColumnDefault("true")
+    private Boolean alterarSenha = true;
 
     public Long getId() {
         return id;
@@ -73,5 +78,13 @@ public class Usuario {
 
     public void setAtivo(Boolean ativo) {
         this.ativo = ativo;
+    }
+
+    public Boolean getAlterarSenha() {
+        return alterarSenha;
+    }
+
+    public void setAlterarSenha(Boolean alterarSenha) {
+        this.alterarSenha = alterarSenha;
     }
 }
