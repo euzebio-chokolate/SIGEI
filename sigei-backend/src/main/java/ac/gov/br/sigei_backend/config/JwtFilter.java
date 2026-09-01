@@ -66,7 +66,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
             SimpleGrantedAuthority autoridade =
                     new SimpleGrantedAuthority(
-                            "ROLE_" + usuario.getPerfil().name()
+                            Boolean.TRUE.equals(usuario.getAlterarSenha())
+                                    ? "ROLE_TROCAR_SENHA"
+                                    : "ROLE_" + usuario.getPerfil().name()
                     );
 
             UsernamePasswordAuthenticationToken authentication =
