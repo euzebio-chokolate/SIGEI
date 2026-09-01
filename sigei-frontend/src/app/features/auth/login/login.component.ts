@@ -39,10 +39,16 @@ export class LoginComponent {
 
     this.authService.login(dados).subscribe({
       next: usuario => {
-        console.log('Login realizado:', usuario);
         this.carregando = false;
         this.cdr.markForCheck();
-        this.router.navigate(['/admin/dashboard']);
+        if (this.authService.deveAlterarSenha()) {
+          // Mantida somente até a tela seguinte e removida assim que for lida.
+          this.authService.guardarSenhaTemporaria(dados.senha);
+          this.router.navigate(['/alterar-senha']);
+        } else {
+          this.authService.consumirSenhaTemporaria();
+          this.router.navigate(['/admin/dashboard']);
+        }
       },
       error: erro => {
         console.error('Erro no login:', erro);

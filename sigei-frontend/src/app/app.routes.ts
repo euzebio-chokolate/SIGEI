@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { adminGuard, authenticatedGuard, authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // MAPA PÚBLICO
@@ -14,6 +14,12 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent),
     title: 'SIGEI - Login'
+  },
+  {
+    path: 'alterar-senha',
+    canActivate: [authenticatedGuard],
+    loadComponent: () => import('./features/auth/alterar-senha/alterar-senha.component').then(m => m.AlterarSenhaComponent),
+    title: 'SIGEI - Alterar senha'
   },
 
   // ADMIN
@@ -50,11 +56,13 @@ export const routes: Routes = [
       },
       {
         path: 'terras-indigenas/novo',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/terras-indigenas/terra-indigena-form.component').then(m => m.TerraIndigenaFormComponent),
         title: 'SIGEI - Nova T.I.'
       },
       {
         path: 'terras-indigenas/editar/:id',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/terras-indigenas/terra-indigena-form.component').then(m => m.TerraIndigenaFormComponent),
         title: 'SIGEI - Editar T.I.'
       },
@@ -67,11 +75,13 @@ export const routes: Routes = [
       },
       {
         path: 'aldeias/novo',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/aldeias/aldeia-form.component').then(m => m.AldeiaFormComponent),
         title: 'SIGEI - Nova Aldeia'
       },
       {
         path: 'aldeias/editar/:id',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/aldeias/aldeia-form.component').then(m => m.AldeiaFormComponent),
         title: 'SIGEI - Editar Aldeia'
       },
@@ -84,11 +94,13 @@ export const routes: Routes = [
       },
       {
         path: 'povos/novo',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/povos/povo-form.component').then(m => m.PovoFormComponent),
         title: 'SIGEI - Novo Povo'
       },
       {
         path: 'povos/editar/:id',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/povos/povo-form.component').then(m => m.PovoFormComponent),
         title: 'SIGEI - Editar Povo'
       },
@@ -101,11 +113,13 @@ export const routes: Routes = [
       },
       {
         path: 'escolas/novo',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/escolas/form/escola-form.component').then(m => m.EscolaFormComponent),
         title: 'SIGEI - Nova Escola'
       },
       {
         path: 'escolas/editar/:id',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/escolas/form/escola-form.component').then(m => m.EscolaFormComponent),
         title: 'SIGEI - Editar Escola'
       },
@@ -125,11 +139,13 @@ export const routes: Routes = [
       },
       {
         path: 'usuarios/novo',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/usuarios/form/usuario-form.component').then(m => m.UsuarioFormComponent),
         title: 'SIGEI - Novo Usuário'
       },
       {
         path: 'usuarios/editar/:id',
+        canActivate: [adminGuard],
         loadComponent: () => import('./features/admin/usuarios/form/usuario-form.component').then(m => m.UsuarioFormComponent),
         title: 'SIGEI - Editar Usuário'
       },

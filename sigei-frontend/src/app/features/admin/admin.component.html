@@ -1,4 +1,4 @@
-<div class="flex min-h-screen bg-slate-100 font-sans text-slate-800">
+<div class="flex min-h-screen bg-slate-100 font-sans text-slate-800" [class.usuario-leitura]="!ehAdmin">
   @if (menuMobileAberto) {
     <button type="button" aria-label="Fechar menu" (click)="fecharMenuMobile()" class="fixed inset-0 z-30 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"></button>
   }
@@ -21,6 +21,7 @@
         <div class="min-w-0">
           <p class="truncate text-xs font-semibold text-white">{{ usuario?.nome ?? 'Usuário' }}</p>
           <p class="mt-0.5 truncate text-[10px] text-white/45">{{ usuario?.email ?? 'Acesso administrativo' }}</p>
+          <p class="mt-1 text-[9px] font-bold uppercase tracking-wider text-emerald-300/70">{{ ehAdmin ? 'Administrador' : 'Somente leitura' }}</p>
         </div>
       </div>
     </div>
@@ -63,6 +64,7 @@
       <div class="ml-auto flex items-center gap-3">
         <div class="hidden items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-[11px] font-semibold text-emerald-700 sm:flex"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Sistema disponível</div>
         <div class="hidden h-8 w-px bg-slate-200 sm:block"></div>
+        <a routerLink="/alterar-senha" title="Alterar senha" class="flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-500 transition hover:bg-emerald-50 hover:text-emerald-700"><i class="fa-solid fa-key"></i><span class="hidden md:inline">Alterar senha</span></a>
         <button type="button" (click)="logout()" title="Sair do sistema" class="flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-slate-500 transition hover:bg-rose-50 hover:text-rose-600"><i class="fa-solid fa-arrow-right-from-bracket"></i><span class="hidden sm:inline">Sair</span></button>
       </div>
     </header>
