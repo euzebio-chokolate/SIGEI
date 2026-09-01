@@ -14,6 +14,7 @@ export class AdminComponent {
   private readonly router = inject(Router);
 
   usuario = this.authService.getUsuario();
+  ehAdmin = this.authService.ehAdmin();
   menuMobileAberto = false;
 
   abrirMenuMobile(): void {
