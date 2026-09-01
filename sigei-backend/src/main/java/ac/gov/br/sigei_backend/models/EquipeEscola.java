@@ -3,11 +3,7 @@ package ac.gov.br.sigei_backend.models;
 import jakarta.persistence.*;
 
 @Entity
-@Table(
-        uniqueConstraints = @UniqueConstraint(
-                columnNames = {"escola_id", "ano_referencia"}
-        )
-)
+@Table(name = "equipe_escola")
 public class EquipeEscola {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
