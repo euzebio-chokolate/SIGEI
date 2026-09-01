@@ -1,63 +1,69 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { DashboardEvolucao, DashboardItem, DashboardResponse, DashboardService } from '../../../core/services/dashboard.service';
+
+interface EvolucaoPorAno { ano: number; matriculas: number; escolas: number; }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  template: `
-    <div class="space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">Visão Geral</h2>
-        <p class="text-sm text-gray-500 mt-1">Resumo dos dados registados no sistema SIGEI.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div
-          class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden"
-        >
-          <i
-            class="fa-solid fa-city absolute -right-4 -bottom-4 text-7xl text-gray-50 opacity-50"
-          ></i>
-          <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2 relative z-10">
-            Municípios
-          </h3>
-          <p class="text-4xl font-extrabold text-gray-800 relative z-10">22</p>
-        </div>
-
-        <div
-          class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden"
-        >
-          <i
-            class="fa-solid fa-tents absolute -right-4 -bottom-4 text-7xl text-blue-50 opacity-50"
-          ></i>
-          <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2 relative z-10">
-            Aldeias
-          </h3>
-          <p class="text-4xl font-extrabold text-blue-600 relative z-10">145</p>
-        </div>
-
-        <div
-          class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow relative overflow-hidden"
-        >
-          <i
-            class="fa-solid fa-school-flag absolute -right-4 -bottom-4 text-7xl text-green-50 opacity-50"
-          ></i>
-          <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2 relative z-10">
-            Escolas
-          </h3>
-          <p class="text-4xl font-extrabold text-green-600 relative z-10">89</p>
-        </div>
-      </div>
-
-      <div
-        class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 min-h-[300px] flex flex-col items-center justify-center border-dashed"
-      >
-        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-          <i class="fa-solid fa-chart-column text-3xl text-gray-300"></i>
-        </div>
-        <p class="text-gray-500 font-medium">Os gráficos de desempenho serão renderizados aqui.</p>
-        <p class="text-xs text-gray-400 mt-1">Conecte a API para visualizar estatísticas reais.</p>
-      </div>
-    </div>
-  `,
+  imports: [FormsModule],
+  templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent {}
+export class DashboardComponent implements OnInit {
+  private readonly dashboardService = inject(DashboardService);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  dados: DashboardResponse | null = null;
+  carregando = true;
+  erroMensagem = '';
+  anoSelecionado: number | null = null;
+  anosDisponiveis: number[] = [];
+  evolucao: EvolucaoPorAno[] = [];
+
+  ngOnInit(): void { this.carregar(); }
+
+  carregar(ano?: number): void {
+    this.carregando = true;
+    this.erroMensagem = '';
+    this.dashboardService.buscar(ano).subscribe({
+      next: dados => {
+        this.dados = dados;
+        this.anoSelecionado = dados.anoReferencia;
+        this.evolucao = this.agruparEvolucao(dados.evolucaoMatriculas ?? [], dados.evolucaoEscolas ?? []);
+        this.anosDisponiveis = Array.from(new Set([dados.anoReferencia, ...this.evolucao.map(item => item.ano)])).sort((a, b) => b - a);
+        this.carregando = false;
+        this.cdr.markForCheck();
+      },
+      error: erro => {
+        this.carregando = false;
+        this.erroMensagem = erro?.status === 404 ? 'Não há dados cadastrados para o ano selecionado.' : 'Não foi possível carregar os indicadores do dashboard.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  alterarAno(): void { if (this.anoSelecionado !== null) this.carregar(this.anoSelecionado); }
+
+  percentual(valor: number, itens: DashboardItem[]): number {
+    const maior = Math.max(0, ...itens.map(item => item.total));
+    return maior === 0 ? 0 : Math.max(2, (valor / maior) * 100);
+  }
+
+  alturaEvolucao(valor: number, campo: 'matriculas' | 'escolas'): number {
+    const maior = Math.max(0, ...this.evolucao.map(item => item[campo]));
+    return maior === 0 ? 0 : Math.max(5, (valor / maior) * 100);
+  }
+
+  formatarNumero(valor: number | null | undefined): string { return new Intl.NumberFormat('pt-BR').format(valor ?? 0); }
+  formatarPercentual(valor: number | null | undefined): string { return `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 }).format(valor ?? 0)}%`; }
+
+  private agruparEvolucao(matriculas: DashboardEvolucao[], escolas: DashboardEvolucao[]): EvolucaoPorAno[] {
+    const anos = new Set([...matriculas.map(item => item.ano), ...escolas.map(item => item.ano)]);
+    return Array.from(anos).sort((a, b) => a - b).map(ano => ({
+      ano,
+      matriculas: matriculas.find(item => item.ano === ano)?.total ?? 0,
+      escolas: escolas.find(item => item.ano === ano)?.total ?? 0
+    }));
+  }
+}
