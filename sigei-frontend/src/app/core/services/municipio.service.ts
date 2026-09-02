@@ -8,10 +8,6 @@ export interface Municipio {
   nome: string;
 }
 
-export interface MunicipioRequest {
-  nome: string;
-}
-
 export interface MunicipioEstatistica {
   id: number;
   nome: string;
@@ -37,15 +33,4 @@ export class MunicipioService {
     return this.http.get<Municipio>(`${this.apiUrl}/${id}`);
   }
 
-  salvar(dados: MunicipioRequest): Observable<Municipio> {
-    return this.http.post<Municipio>(this.apiUrl, dados);
-  }
-
-  editar(id: number, dados: MunicipioRequest): Observable<Municipio> {
-    return this.http.put<Municipio>(`${this.apiUrl}/${id}`, dados);
-  }
-
-  excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
-  }
 }
