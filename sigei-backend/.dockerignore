@@ -1,0 +1,8 @@
+.git
+.idea
+.vscode
+.env
+target
+tests - bruno
+*.log
+README.md
