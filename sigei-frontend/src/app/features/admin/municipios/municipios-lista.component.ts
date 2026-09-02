@@ -21,15 +21,11 @@ import { MunicipioService, MunicipioEstatistica } from '../../../core/services/m
 
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Gestão de Municípios</h1>
+          <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Municípios</h1>
           <p class="text-sm text-slate-500 mt-1">
             Consulte a cobertura e estatísticas de terras, aldeias e escolas por município.
           </p>
         </div>
-        <a routerLink="/admin/municipios/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all">
-          <i class="fa-solid fa-plus text-xs"></i>
-          Novo Município
-        </a>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -112,7 +108,6 @@ import { MunicipioService, MunicipioEstatistica } from '../../../core/services/m
                 <th class="px-6 py-3.5 text-center">Terras Indígenas</th>
                 <th class="px-6 py-3.5 text-center">Aldeias</th>
                 <th class="px-6 py-3.5 text-center">Escolas</th>
-                <th class="px-6 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
@@ -139,21 +134,10 @@ import { MunicipioService, MunicipioEstatistica } from '../../../core/services/m
                       {{ mun.quantidadeEscolas }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="flex items-center justify-end gap-1">
-                      <a
-                        [routerLink]="['/admin/municipios/editar', mun.id]"
-                        class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
-                        title="Editar"
-                      >
-                        <i class="fa-solid fa-pen-to-square text-xs"></i>
-                      </a>
-                    </div>
-                  </td>
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
+                  <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">
                     @if (carregando) {
                       <div class="flex items-center justify-center gap-2">
                         <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
@@ -277,8 +261,6 @@ export class MunicipiosListaComponent implements OnInit {
 
     this.municipioService.listarEstatisticas().subscribe({
       next: (dados) => {
-        console.log('✅ Dados recebidos no componente via Service:', dados);
-        
         this.municipiosLista = dados ?? [];
         this.municipiosFiltrados = [...this.municipiosLista];
         this.calcularTotais(this.municipiosLista);
@@ -289,7 +271,7 @@ export class MunicipiosListaComponent implements OnInit {
         this.cdr.markForCheck();
       },
       error: (erro) => {
-        console.error('❌ Erro no subscribe do componente:', erro);
+        console.error('Erro ao carregar estatísticas dos municípios:', erro);
         this.erroMensagem = 'Não foi possível carregar as estatísticas. Verifique a conexão com a API.';
         this.carregando = false;
         this.paginaAtual = 1;
