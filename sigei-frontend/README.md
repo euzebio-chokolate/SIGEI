@@ -1,59 +1,70 @@
-# SigeiFrontend
+# SIGEI Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.8.
+Interface web do Sistema de Gerenciamento Escolar Indígena, construída com Angular 21.
 
-## Development server
+## Desenvolvimento
 
-To start a local development server, run:
-
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+Requisitos: Node.js 22 e npm.
 
 ```bash
-ng generate component component-name
+npm ci
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+O frontend abre em `http://localhost:4200` e, no ambiente de desenvolvimento,
+consulta a API em `http://localhost:8080`.
+
+## Build de produção
 
 ```bash
-ng generate --help
+npm ci
+npm run build
 ```
 
-## Building
+Os arquivos são gerados em `dist/sigei-frontend/browser`. Em produção, o front
+usa `/api` na mesma origem. O servidor web deve encaminhar esse prefixo para o
+backend e devolver `index.html` para rotas que não correspondam a arquivos.
 
-To build the project run:
+## Execução com Docker
+
+Com o backend disponível na porta local 8080:
 
 ```bash
-ng build
+cp .env.example .env
+docker compose up --build -d
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+A aplicação estará em `http://localhost:4200`. O container inclui:
 
-## Running unit tests
+- Nginx com fallback para as rotas do Angular;
+- proxy reverso de `/api` para o backend;
+- cache longo somente para assets versionados;
+- compressão, headers de segurança e healthcheck em `/healthz`.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Para acompanhar ou encerrar:
 
 ```bash
-ng test
+docker compose logs -f frontend
+docker compose down
 ```
 
-## Running end-to-end tests
+## Hospedagem
 
-For end-to-end (e2e) testing, run:
+O caminho recomendado é publicar o `Dockerfile`. Configure `API_UPSTREAM` com a
+URL interna ou pública do backend, sem barra no final, por exemplo:
 
-```bash
-ng e2e
+```text
+API_UPSTREAM=https://api.exemplo.gov.br
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+O navegador acessará apenas `https://seu-front/api/...`; a URL configurada fica
+no Nginx. Isso evita recompilar o Angular ao trocar o endereço da API e elimina
+problemas de CORS quando frontend e proxy usam a mesma origem.
 
-## Additional Resources
+No backend, mantenha `CORS_ALLOWED_ORIGINS` com a URL HTTPS pública do frontend
+caso a API também seja acessada diretamente. Nunca publique segredos, `.env` ou
+credenciais administrativas no repositório.
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Em plataformas sem Docker, publique o conteúdo de
+`dist/sigei-frontend/browser`, configure o fallback SPA para `/index.html` e um
+proxy `/api` equivalente ao arquivo `nginx/default.conf.template`.
