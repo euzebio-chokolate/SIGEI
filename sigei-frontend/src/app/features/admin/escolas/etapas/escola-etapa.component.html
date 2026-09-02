@@ -99,6 +99,12 @@
             </p>
           }
 
+          @if (!carregandoAldeias && aldeias.length === 0) {
+            <p class="text-xs text-amber-600 mt-1.5">
+              Todas as aldeias cadastradas já estão vinculadas a uma escola.
+            </p>
+          }
+
           @if (form.controls.aldeiaId.invalid && form.controls.aldeiaId.touched) {
             <p class="text-xs text-rose-500 mt-1.5">Selecione uma aldeia.</p>
           }
