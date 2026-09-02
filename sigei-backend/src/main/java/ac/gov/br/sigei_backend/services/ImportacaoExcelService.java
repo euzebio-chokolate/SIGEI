@@ -17,7 +17,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class ImportacaoExcelService {
@@ -108,12 +110,15 @@ public class ImportacaoExcelService {
             AnoReferencia anoReferencia =
                     buscarOuCriarAno(ANO_PLANILHA);
 
+            Map<String, Municipio> municipiosPorNome =
+                    carregarMunicipiosPorNome();
 
             for (Row linha : linhas) {
                 if (!isAnexo(linha)) {
                     processarLinha(
                             linha,
                             anoReferencia,
+                            municipiosPorNome,
                             contador
                     );
                 }
@@ -124,6 +129,7 @@ public class ImportacaoExcelService {
                     processarLinha(
                             linha,
                             anoReferencia,
+                            municipiosPorNome,
                             contador
                     );
                 }
@@ -165,6 +171,7 @@ public class ImportacaoExcelService {
     private void processarLinha(
             Row linha,
             AnoReferencia anoReferencia,
+            Map<String, Municipio> municipiosPorNome,
             ImportacaoContador contador
     ) {
         int numeroLinhaExcel =
@@ -188,9 +195,9 @@ public class ImportacaoExcelService {
             );
 
             Municipio municipio =
-                    buscarOuCriarMunicipio(
+                    buscarMunicipio(
                             linha,
-                            contador
+                            municipiosPorNome
                     );
 
             TerraIndigena terraIndigena =
@@ -249,9 +256,9 @@ public class ImportacaoExcelService {
         }
     }
 
-    private Municipio buscarOuCriarMunicipio(
+    private Municipio buscarMunicipio(
             Row linha,
-            ImportacaoContador contador
+            Map<String, Municipio> municipiosPorNome
     ) {
         String nome = obrigatorio(
                 ExcelUtils.lerTexto(
@@ -261,21 +268,62 @@ public class ImportacaoExcelService {
                 "Município"
         );
 
-        Municipio municipio = municipioRepository
-                .findByNomeIgnoreCase(nome)
-                .orElse(null);
+        Municipio municipio = municipiosPorNome.get(
+                ExcelUtils.normalizar(nome)
+        );
 
-        if (municipio == null) {
-            municipio = new Municipio();
-            municipio.setNome(nome);
-
-            municipio =
-                    municipioRepository.save(municipio);
-
-            contador.incrementarMunicipiosCriados();
+        if (municipio != null) {
+            return municipio;
         }
 
-        return municipio;
+        throw new IllegalArgumentException(
+                "Município não cadastrado: " + nome
+        );
+    }
+
+    private Map<String, Municipio> carregarMunicipiosPorNome() {
+        Map<String, Municipio> municipiosPorNome = new HashMap<>();
+
+        for (Municipio municipio : municipioRepository.findAll()) {
+            municipiosPorNome.put(
+                    ExcelUtils.normalizar(municipio.getNome()),
+                    municipio
+            );
+        }
+
+        adicionarAlias(
+                municipiosPorNome,
+                "M.THAUMATURGO",
+                "Marechal Thaumaturgo"
+        );
+        adicionarAlias(
+                municipiosPorNome,
+                "S.R. DO PURUS",
+                "Santa Rosa do Purus"
+        );
+
+        return municipiosPorNome;
+    }
+
+    private void adicionarAlias(
+            Map<String, Municipio> municipiosPorNome,
+            String alias,
+            String nomeOficial
+    ) {
+        Municipio municipio = municipiosPorNome.get(
+                ExcelUtils.normalizar(nomeOficial)
+        );
+
+        if (municipio == null) {
+            throw new IllegalStateException(
+                    "Município obrigatório não cadastrado: " + nomeOficial
+            );
+        }
+
+        municipiosPorNome.put(
+                ExcelUtils.normalizar(alias),
+                municipio
+        );
     }
 
     private TerraIndigena buscarOuCriarTerraIndigena(
