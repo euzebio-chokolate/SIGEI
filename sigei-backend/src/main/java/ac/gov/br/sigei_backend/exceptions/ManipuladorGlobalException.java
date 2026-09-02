@@ -42,4 +42,10 @@ public class ManipuladorGlobalException {
     public ResponseEntity<String> tratarNoSuchElementException(NoSuchElementException erro){
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(erro.getMessage());
     }
+
+    @ExceptionHandler(ArmazenamentoImagemNaoConfiguradoException.class)
+    public ResponseEntity<String> tratarArmazenamentoImagemNaoConfiguradoException(
+            ArmazenamentoImagemNaoConfiguradoException erro) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(erro.getMessage());
+    }
 }
