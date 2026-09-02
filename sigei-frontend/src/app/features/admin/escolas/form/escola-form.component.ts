@@ -3,7 +3,7 @@ import { forkJoin, map, of, switchMap } from 'rxjs';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { EscolaService } from '../../../../core/services/escola.service';
+import { EscolaResponse, EscolaService } from '../../../../core/services/escola.service';
 import { AldeiaResponse, AldeiaService } from '../../../../core/services/aldeia.service';
 import { AnoReferencia, AnoReferenciaService } from '../../../../core/services/ano-referencia.service';
 import { RegistroAnualService } from '../../../../core/services/registro-anual.service';
@@ -76,6 +76,8 @@ export class EscolaFormComponent implements OnInit {
   fotoAtualRemovida = false;
 
   aldeias: AldeiaResponse[] = [];
+  private aldeiasCadastradas: AldeiaResponse[] = [];
+  private escolasCadastradas: EscolaResponse[] = [];
   anosReferencia: AnoReferencia[] = [];
   escolasSede: { id: number; codigo: string; nome: string; }[] = [];
 
@@ -321,7 +323,8 @@ export class EscolaFormComponent implements OnInit {
 
     this.aldeiaService.listar().subscribe({
       next: (dados) => {
-        this.aldeias = dados ?? [];
+        this.aldeiasCadastradas = dados ?? [];
+        this.atualizarAldeiasDisponiveis();
         this.carregandoAldeias = false;
         this.cdr.markForCheck();
       },
@@ -356,7 +359,9 @@ export class EscolaFormComponent implements OnInit {
   carregarEscolasSede(): void {
     this.escolaService.listar().subscribe({
       next: (dados) => {
-        this.escolasSede = (dados ?? [])
+        this.escolasCadastradas = dados ?? [];
+        this.atualizarAldeiasDisponiveis();
+        this.escolasSede = this.escolasCadastradas
           .filter(escola => escola.tipoUnidade === 'SEDE')
           .map(escola => ({
             id: escola.id,
@@ -370,6 +375,19 @@ export class EscolaFormComponent implements OnInit {
         console.error('Erro ao carregar escolas sede:', erro);
       }
     });
+  }
+
+  private atualizarAldeiasDisponiveis(): void {
+    const aldeiasVinculadas = new Set(
+      this.escolasCadastradas
+        .filter(escola => escola.id !== this.escolaId)
+        .map(escola => escola.aldeia?.id)
+        .filter((id): id is number => id !== undefined && id !== null)
+    );
+
+    this.aldeias = this.aldeiasCadastradas
+      .filter(aldeia => !aldeiasVinculadas.has(aldeia.id))
+      .sort((a, b) => a.nome.localeCompare(b.nome));
   }
 
   aoAlterarTipoUnidade(): void {
