@@ -36,6 +36,10 @@ export class AuthService {
   private readonly chaveSenhaTemporaria = 'sigei_senha_temporaria';
 
   login(dados: LoginRequest): Observable<LoginResponse> {
+    // Descarta uma sessão expirada antes de iniciar uma nova autenticação.
+    localStorage.removeItem('sigei_token');
+    localStorage.removeItem('sigei_usuario');
+
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, dados).pipe(
       tap(resposta => {
         const usuario = this.normalizarUsuario(resposta);
