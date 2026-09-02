@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard, authenticatedGuard, authGuard } from './core/guards/auth.guard';
+import { adminGuard, authenticatedGuard, authGuard, fallbackGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   // MAPA PÚBLICO
@@ -163,6 +163,7 @@ export const routes: Routes = [
   // Rota inexistente
   {
     path: '**',
-    redirectTo: ''
+    canActivate: [fallbackGuard],
+    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
   }
 ];
