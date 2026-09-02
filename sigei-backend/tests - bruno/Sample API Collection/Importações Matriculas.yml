@@ -12,12 +12,15 @@ http:
       - name: arquivo
         type: file
         value:
-          - C:\Users\netoo\Downloads\Censo_Escolas_Indígenas_2025_Ultima Versão_12.12.2025.xlsx
+          - /home/chokolate/Downloads/Censo_Escolas_Indígenas_2025_Ultima Versão_12.12.2025.xlsx
         contentType: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-  auth: inherit
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBzaWdlaS5jb20iLCJpZCI6MSwibm9tZSI6IkFkbWluaXN0cmFkb3IiLCJwZXJmaWwiOiJBRE1JTiIsImlhdCI6MTc4ODI0MTMzMiwiZXhwIjoxNzg4MzI3NzMyfQ.6sZau80p7XUpvaK9lvkb8C-li8_Hv5EcUJqLED-5PMo
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true

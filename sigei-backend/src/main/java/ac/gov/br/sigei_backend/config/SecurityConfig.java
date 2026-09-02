@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/alterar-senha").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/infraestrutura", "/infraestrutura/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ADMIN", "USUARIO")
                         .anyRequest().hasRole("ADMIN")
                 )
