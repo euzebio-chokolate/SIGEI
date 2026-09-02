@@ -12,11 +12,13 @@ import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 public class RegistroAnualService {
 
     @Autowired
@@ -31,6 +33,7 @@ public class RegistroAnualService {
     @Autowired
     RegistroAnualMapper registroAnualMapper;
 
+    @Transactional
     public RegistroAnualResponseDTO salvar(RegistroAnualRequestDTO dto) throws DataIntegrityViolationException {
 
         Escola escola = escolaRepository.findById(dto.escolaId())
@@ -81,6 +84,7 @@ public class RegistroAnualService {
                 .toList();
     }
 
+    @Transactional
     public RegistroAnualResponseDTO editar(RegistroAnualRequestDTO dto) {
 
         RegistroAnual registro = registroAnualRepository.findById(dto.id())
@@ -102,6 +106,7 @@ public class RegistroAnualService {
         return registroAnualMapper.converter(registroSalvo);
     }
 
+    @Transactional
     public void excluir(Long id) {
 
         registroAnualRepository.findById(id)

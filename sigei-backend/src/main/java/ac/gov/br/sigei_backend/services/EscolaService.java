@@ -9,12 +9,14 @@ import ac.gov.br.sigei_backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
+@Transactional(readOnly = true)
 public class EscolaService {
     @Autowired
     EscolaRepository escolaRepository;
@@ -52,6 +54,7 @@ public class EscolaService {
     @Autowired
     RegistroAnualMapper registroAnualMapper;
 
+    @Transactional
     public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{;
         Aldeia aldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
@@ -118,6 +121,7 @@ public class EscolaService {
         );
     }
 
+    @Transactional
     public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
         Escola escola = escolaRepository.findById(escolaDTO.id())
                 .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
@@ -140,6 +144,7 @@ public class EscolaService {
         return escolaMapper.converter(escolaSalva);
     }
 
+    @Transactional
     public void excluir(Long id){
         escolaRepository.findById(id)
                         .orElseThrow(() -> new NoSuchElementException("Id de escola inválido ou não encontrado"));

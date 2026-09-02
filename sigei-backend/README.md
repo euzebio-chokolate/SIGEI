@@ -35,6 +35,11 @@ Para fotografias, configure `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` e
 `CLOUDINARY_API_SECRET`. O health check da hospedagem deve usar
 `/actuator/health`.
 
+Essas três credenciais também são necessárias no `.env` local para usar o
+endpoint de upload. Elas estão disponíveis no painel da conta Cloudinary. Sem
+elas, o restante da API continua funcionando, mas o upload responde com HTTP
+`503 Service Unavailable`.
+
 Alguns provedores entregam uma URL `postgresql://usuario:senha@host/banco`; ela
 deve ser convertida para o formato JDBC acima.
 
