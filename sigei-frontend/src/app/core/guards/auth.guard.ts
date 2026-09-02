@@ -29,3 +29,12 @@ export const adminGuard: CanActivateFn = () => {
   if (authService.deveAlterarSenha()) return router.createUrlTree(['/alterar-senha']);
   return authService.ehAdmin() ? true : router.createUrlTree(['/admin/dashboard']);
 };
+
+export const fallbackGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.estaLogado()) return router.createUrlTree(['/login']);
+  if (authService.deveAlterarSenha()) return router.createUrlTree(['/alterar-senha']);
+  return router.createUrlTree(['/admin/dashboard']);
+};
