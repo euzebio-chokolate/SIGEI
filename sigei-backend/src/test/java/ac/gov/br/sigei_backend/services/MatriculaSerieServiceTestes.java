@@ -24,146 +24,152 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class MatriculaSerieServiceTestes {
 
-    @Mock
-    RegistroAnualRepository registroRepository;
+ @Mock
+ RegistroAnualRepository registroRepository;
 
-    @Mock
-    MatriculaSerieRepository matriculaSerieRepository;
+ @Mock
+ MatriculaSerieRepository matriculaSerieRepository;
 
-    @Mock
-    MatriculaSerieMapper matriculaSerieMapper;
+ @Mock
+ MatriculaSerieMapper matriculaSerieMapper;
 
-    @InjectMocks
-    MatriculaSerieService matriculaSerieService;
+ @InjectMocks
+ MatriculaSerieService matriculaSerieService;
 
-    @Test
-    public void deveSalvarMatriculaSerieComSucesso() {
-        MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(null, 1L, "1º Ano", "Ensino Fundamental", 10, 12);
-        RegistroAnual registro = new RegistroAnual();
-        registro.setId(1L);
+ @Test
+ public void deveSalvarMatriculaSerieComSucesso() {
+  MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(null, 1L, "Ensino Fundamental", "1º Ano", 15, 10, 25);
 
-        MatriculaSerie matriculaConvertida = new MatriculaSerie();
-        MatriculaSerie matriculaSalva = new MatriculaSerie();
-        MatriculaSerieResponseDTO responseMock = mock(MatriculaSerieResponseDTO.class);
+  RegistroAnual registroAnual = new RegistroAnual();
+  registroAnual.setId(1L);
 
-        when(registroRepository.findById(1L)).thenReturn(Optional.of(registro));
-        when(matriculaSerieMapper.converter(requestDTO)).thenReturn(matriculaConvertida);
-        when(matriculaSerieRepository.save(any(MatriculaSerie.class))).thenReturn(matriculaSalva);
-        lenient().when(matriculaSerieMapper.converter(matriculaSalva)).thenReturn(responseMock);
+  MatriculaSerie matriculaConvertida = new MatriculaSerie();
+  MatriculaSerie matriculaSalva = new MatriculaSerie();
+  MatriculaSerieResponseDTO responseMock = mock(MatriculaSerieResponseDTO.class);
 
-        MatriculaSerieResponseDTO resultado = matriculaSerieService.salvar(requestDTO);
+  when(registroRepository.findById(1L)).thenReturn(Optional.of(registroAnual));
+  when(matriculaSerieMapper.converter(requestDTO)).thenReturn(matriculaConvertida);
+  when(matriculaSerieRepository.save(any(MatriculaSerie.class))).thenReturn(matriculaSalva);
+  lenient().when(matriculaSerieMapper.converter(matriculaSalva)).thenReturn(responseMock);
 
-        assertNotNull(resultado);
-        verify(registroRepository, times(1)).findById(1L);
-        verify(matriculaSerieRepository, times(1)).save(matriculaConvertida);
-    }
+  MatriculaSerieResponseDTO resultado = matriculaSerieService.salvar(requestDTO);
 
-    @Test
-    public void deveLancarExcecaoAoSalvarComRegistroInvalido() {
-        MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(null, 99L, "1º Ano", "Ensino Fundamental", 10, 12);
-        when(registroRepository.findById(99L)).thenReturn(Optional.empty());
+  assertNotNull(resultado);
+  verify(registroRepository, times(1)).findById(1L);
+  verify(matriculaSerieRepository, times(1)).save(matriculaConvertida);
+ }
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.salvar(requestDTO));
+ @Test
+ public void deveLancarExcecaoAoSalvarComRegistroInvalido() {
+  MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(null, 99L, "Ensino Fundamental", "1º Ano", 15, 10, 25);
 
-        assertEquals("Registro anual não encontrado", erro.getMessage());
-        verify(matriculaSerieRepository, never()).save(any(MatriculaSerie.class));
-    }
+  when(registroRepository.findById(99L)).thenReturn(Optional.empty());
 
-    @Test
-    public void deveBuscarTodasAsMatriculasSeries() {
-        List<MatriculaSerie> lista = new ArrayList<>();
-        lista.add(new MatriculaSerie());
-        lista.add(new MatriculaSerie());
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.salvar(requestDTO));
 
-        MatriculaSerieResponseDTO responseMock = mock(MatriculaSerieResponseDTO.class);
+  assertEquals("Registro anual não encontrado", erro.getMessage());
+  verify(matriculaSerieRepository, never()).save(any(MatriculaSerie.class));
+ }
 
-        when(matriculaSerieRepository.findAll()).thenReturn(lista);
-        lenient().when(matriculaSerieMapper.converter(any(MatriculaSerie.class))).thenReturn(responseMock);
+ @Test
+ public void deveBuscarTodasAsMatriculasSerie() {
+  List<MatriculaSerie> lista = new ArrayList<>();
+  lista.add(new MatriculaSerie());
+  lista.add(new MatriculaSerie());
 
-        List<MatriculaSerieResponseDTO> resultado = matriculaSerieService.buscarTudo();
+  MatriculaSerieResponseDTO responseMock = mock(MatriculaSerieResponseDTO.class);
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        verify(matriculaSerieRepository, times(1)).findAll();
-        verify(matriculaSerieMapper, times(2)).converter(any(MatriculaSerie.class));
-    }
+  when(matriculaSerieRepository.findAll()).thenReturn(lista);
+  lenient().when(matriculaSerieMapper.converter(any(MatriculaSerie.class))).thenReturn(responseMock);
 
-    @Test
-    public void deveEditarMatriculaSerieComSucesso() {
-        MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(1L, 2L, "2º Ano", "Ensino Fundamental", 15, 10);
-        MatriculaSerie matriculaExistente = new MatriculaSerie();
-        matriculaExistente.setId(1L);
+  List<MatriculaSerieResponseDTO> resultado = matriculaSerieService.buscarTudo();
 
-        RegistroAnual registroNovo = new RegistroAnual();
-        registroNovo.setId(2L);
+  assertNotNull(resultado);
+  assertEquals(2, resultado.size());
+  verify(matriculaSerieRepository, times(1)).findAll();
+  verify(matriculaSerieMapper, times(2)).converter(any(MatriculaSerie.class));
+ }
 
-        MatriculaSerie matriculaSalva = new MatriculaSerie();
-        MatriculaSerieResponseDTO responseMock = mock(MatriculaSerieResponseDTO.class);
+ @Test
+ public void deveEditarMatriculaSerieComSucesso() {
+  MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(1L, 2L, "Ensino Fundamental", "2º Ano", 18, 12, 30);
 
-        when(matriculaSerieRepository.findById(1L)).thenReturn(Optional.of(matriculaExistente));
-        when(registroRepository.findById(2L)).thenReturn(Optional.of(registroNovo));
-        doNothing().when(matriculaSerieMapper).atualizar(requestDTO, matriculaExistente);
-        when(matriculaSerieRepository.save(any(MatriculaSerie.class))).thenReturn(matriculaSalva);
-        lenient().when(matriculaSerieMapper.converter(matriculaSalva)).thenReturn(responseMock);
+  MatriculaSerie matriculaExistente = new MatriculaSerie();
+  matriculaExistente.setId(1L);
 
-        MatriculaSerieResponseDTO resultado = matriculaSerieService.editar(requestDTO);
+  RegistroAnual registroAnual = new RegistroAnual();
+  registroAnual.setId(2L);
 
-        assertNotNull(resultado);
-        verify(matriculaSerieRepository, times(1)).findById(1L);
-        verify(registroRepository, times(1)).findById(2L);
-        verify(matriculaSerieRepository, times(1)).save(matriculaExistente);
-    }
+  MatriculaSerie matriculaSalva = new MatriculaSerie();
+  MatriculaSerieResponseDTO responseMock = mock(MatriculaSerieResponseDTO.class);
 
-    @Test
-    public void deveLancarExcecaoAoEditarMatriculaSerieInexistente() {
-        MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(99L, 1L, "1º Ano", "Ensino Fundamental", 10, 10);
-        when(matriculaSerieRepository.findById(99L)).thenReturn(Optional.empty());
+  when(matriculaSerieRepository.findById(1L)).thenReturn(Optional.of(matriculaExistente));
+  when(registroRepository.findById(2L)).thenReturn(Optional.of(registroAnual));
+  doNothing().when(matriculaSerieMapper).atualizar(requestDTO, matriculaExistente);
+  when(matriculaSerieRepository.save(any(MatriculaSerie.class))).thenReturn(matriculaSalva);
+  lenient().when(matriculaSerieMapper.converter(matriculaSalva)).thenReturn(responseMock);
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO));
+  MatriculaSerieResponseDTO resultado = matriculaSerieService.editar(requestDTO);
 
-        assertEquals("Matrícula não encontrada", erro.getMessage());
-        verify(registroRepository, never()).findById(anyLong());
-        verify(matriculaSerieRepository, never()).save(any(MatriculaSerie.class));
-    }
+  assertNotNull(resultado);
+  verify(matriculaSerieRepository, times(1)).findById(1L);
+  verify(registroRepository, times(1)).findById(2L);
+  verify(matriculaSerieRepository, times(1)).save(matriculaExistente);
+ }
 
-    @Test
-    public void deveLancarExcecaoAoEditarComRegistroInexistente() {
-        MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(1L, 99L, "1º Ano", "Ensino Fundamental", 10, 10);
-        MatriculaSerie matriculaExistente = new MatriculaSerie();
-        matriculaExistente.setId(1L);
+ @Test
+ public void deveLancarExcecaoAoEditarMatriculaInexistente() {
+  MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(99L, 1L, "Ensino Fundamental", "1º Ano", 15, 10, 25);
 
-        when(matriculaSerieRepository.findById(1L)).thenReturn(Optional.of(matriculaExistente));
-        when(registroRepository.findById(99L)).thenReturn(Optional.empty());
+  when(matriculaSerieRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO));
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO));
 
-        assertEquals("Registro anual não encontrado", erro.getMessage());
-        verify(matriculaSerieRepository, never()).save(any(MatriculaSerie.class));
-    }
+  assertEquals("Matrícula não encontrada", erro.getMessage());
+  verify(registroRepository, never()).findById(anyLong());
+  verify(matriculaSerieRepository, never()).save(any(MatriculaSerie.class));
+ }
 
-    @Test
-    public void deveExcluirMatriculaSerieComSucesso() {
-        Long id = 1L;
-        MatriculaSerie matricula = new MatriculaSerie();
-        matricula.setId(id);
+ @Test
+ public void deveLancarExcecaoAoEditarComRegistroInexistente() {
+  MatriculaSerieRequestDTO requestDTO = new MatriculaSerieRequestDTO(1L, 99L, "Ensino Fundamental", "1º Ano", 15, 10, 25);
 
-        when(matriculaSerieRepository.findById(id)).thenReturn(Optional.of(matricula));
-        doNothing().when(matriculaSerieRepository).deleteById(id);
+  MatriculaSerie matriculaExistente = new MatriculaSerie();
+  matriculaExistente.setId(1L);
 
-        assertDoesNotThrow(() -> matriculaSerieService.excluir(id));
+  when(matriculaSerieRepository.findById(1L)).thenReturn(Optional.of(matriculaExistente));
+  when(registroRepository.findById(99L)).thenReturn(Optional.empty());
 
-        verify(matriculaSerieRepository, times(1)).findById(id);
-        verify(matriculaSerieRepository, times(1)).deleteById(id);
-    }
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO));
 
-    @Test
-    public void deveLancarExcecaoAoExcluirMatriculaSerieInexistente() {
-        Long id = 99L;
-        when(matriculaSerieRepository.findById(id)).thenReturn(Optional.empty());
+  assertEquals("Registro anual não encontrado", erro.getMessage());
+  verify(matriculaSerieRepository, never()).save(any(MatriculaSerie.class));
+ }
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.excluir(id));
+ @Test
+ public void deveExcluirMatriculaSerieComSucesso() {
+  Long id = 1L;
+  MatriculaSerie matricula = new MatriculaSerie();
+  matricula.setId(id);
 
-        assertEquals("Matrícula não encontrada", erro.getMessage());
-        verify(matriculaSerieRepository, never()).deleteById(anyLong());
-    }
+  when(matriculaSerieRepository.findById(id)).thenReturn(Optional.of(matricula));
+  doNothing().when(matriculaSerieRepository).deleteById(id);
+
+  assertDoesNotThrow(() -> matriculaSerieService.excluir(id));
+
+  verify(matriculaSerieRepository, times(1)).findById(id);
+  verify(matriculaSerieRepository, times(1)).deleteById(id);
+ }
+
+ @Test
+ public void deveLancarExcecaoAoExcluirMatriculaInexistente() {
+  Long id = 99L;
+
+  when(matriculaSerieRepository.findById(id)).thenReturn(Optional.empty());
+
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.excluir(id));
+
+  assertEquals("Matrícula não encontrada", erro.getMessage());
+  verify(matriculaSerieRepository, never()).deleteById(anyLong());
+ }
 }

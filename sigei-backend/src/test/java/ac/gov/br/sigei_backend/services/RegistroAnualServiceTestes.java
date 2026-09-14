@@ -3,8 +3,10 @@ package ac.gov.br.sigei_backend.services;
 import ac.gov.br.sigei_backend.DTOs.request.RegistroAnualRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.RegistroAnualResponseDTO;
 import ac.gov.br.sigei_backend.mappers.RegistroAnualMapper;
+import ac.gov.br.sigei_backend.models.AnoReferencia;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
+import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,149 +27,244 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class RegistroAnualServiceTestes {
 
-    @Mock
-    EscolaRepository escolaRepository;
+ @Mock
+ EscolaRepository escolaRepository;
 
-    @Mock
-    RegistroAnualRepository registroAnualRepository;
+ @Mock
+ AnoReferenciaRepository anoReferenciaRepository;
 
-    @Mock
-    RegistroAnualMapper registroAnualMapper;
+ @Mock
+ RegistroAnualRepository registroAnualRepository;
 
-    @InjectMocks
-    RegistroAnualService registroAnualService;
+ @Mock
+ RegistroAnualMapper registroAnualMapper;
 
-    @Test
-    public void deveSalvarRegistroAnualComSucesso() {
-        RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2024, "Estadual", "Prédio Próprio");
+ @InjectMocks
+ RegistroAnualService registroAnualService;
 
-        Escola escola = new Escola();
-        escola.setId(1L);
+ @Test
+ public void deveSalvarRegistroAnualComSucesso() {
+  RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2L, "Estadual", "Urbana");
 
-        RegistroAnual registroConvertido = new RegistroAnual();
-        RegistroAnual registroSalvo = new RegistroAnual();
-        RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
+  Escola escola = new Escola();
+  escola.setId(1L);
 
-        when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
-        when(registroAnualMapper.converter(requestDTO)).thenReturn(registroConvertido);
-        when(registroAnualRepository.save(any(RegistroAnual.class))).thenReturn(registroSalvo);
-        lenient().when(registroAnualMapper.converter(registroSalvo)).thenReturn(responseMock);
+  AnoReferencia anoReferencia = new AnoReferencia();
+  anoReferencia.setId(2L);
 
-        RegistroAnualResponseDTO resultado = registroAnualService.salvar(requestDTO);
+  RegistroAnual registroConvertido = new RegistroAnual();
+  RegistroAnual registroSalvo = new RegistroAnual();
+  RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
 
-        assertNotNull(resultado);
-        verify(escolaRepository, times(1)).findById(1L);
-        verify(registroAnualRepository, times(1)).save(registroConvertido);
-    }
+  when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
+  when(anoReferenciaRepository.findById(2L)).thenReturn(Optional.of(anoReferencia));
+  when(registroAnualRepository.existsByEscolaAndAnoReferencia(escola, anoReferencia)).thenReturn(false);
+  when(registroAnualMapper.converter(requestDTO)).thenReturn(registroConvertido);
+  when(registroAnualRepository.save(any(RegistroAnual.class))).thenReturn(registroSalvo);
+  lenient().when(registroAnualMapper.converter(registroSalvo)).thenReturn(responseMock);
 
-    @Test
-    public void deveLancarExcecaoAoSalvarComEscolaInvalida() {
-        RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 99L, 2024, "Estadual", "Prédio Próprio");
-        when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
+  RegistroAnualResponseDTO resultado = registroAnualService.salvar(requestDTO);
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.salvar(requestDTO));
+  assertNotNull(resultado);
+  verify(escolaRepository, times(1)).findById(1L);
+  verify(anoReferenciaRepository, times(1)).findById(2L);
+  verify(registroAnualRepository, times(1)).existsByEscolaAndAnoReferencia(escola, anoReferencia);
+  verify(registroAnualRepository, times(1)).save(registroConvertido);
+ }
 
-        assertEquals("Escola não encontrada", erro.getMessage());
-        verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
-    }
+ @Test
+ public void deveLancarExcecaoAoSalvarComEscolaInvalida() {
+  RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 99L, 2L, "Estadual", "Urbana");
 
-    @Test
-    public void deveBuscarTodosOsRegistrosAnuais() {
-        List<RegistroAnual> lista = new ArrayList<>();
-        lista.add(new RegistroAnual());
-        lista.add(new RegistroAnual());
+  when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.salvar(requestDTO));
 
-        when(registroAnualRepository.findAll()).thenReturn(lista);
-        lenient().when(registroAnualMapper.converter(any(RegistroAnual.class))).thenReturn(responseMock);
+  assertEquals("Escola não encontrada", erro.getMessage());
+  verify(anoReferenciaRepository, never()).findById(anyLong());
+  verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
+ }
 
-        List<RegistroAnualResponseDTO> resultado = registroAnualService.buscarTudo();
+ @Test
+ public void deveLancarExcecaoAoSalvarComAnoReferenciaInvalido() {
+  RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 99L, "Estadual", "Urbana");
+  Escola escola = new Escola();
+  escola.setId(1L);
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        verify(registroAnualRepository, times(1)).findAll();
-        verify(registroAnualMapper, times(2)).converter(any(RegistroAnual.class));
-    }
+  when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
+  when(anoReferenciaRepository.findById(99L)).thenReturn(Optional.empty());
 
-    @Test
-    public void deveEditarRegistroAnualComSucesso() {
-        RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(1L, 2L, 2025, "Municipal", "Alugado");
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.salvar(requestDTO));
 
-        RegistroAnual registroExistente = new RegistroAnual();
-        registroExistente.setId(1L);
+  assertEquals("Ano de referência não encontrado", erro.getMessage());
+  verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
+ }
 
-        Escola escolaNova = new Escola();
-        escolaNova.setId(2L);
+ @Test
+ public void deveLancarExcecaoAoSalvarRegistroDuplicado() {
+  RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2L, "Estadual", "Urbana");
 
-        RegistroAnual registroSalvo = new RegistroAnual();
-        RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
+  Escola escola = new Escola();
+  escola.setId(1L);
 
-        when(registroAnualRepository.findById(1L)).thenReturn(Optional.of(registroExistente));
-        when(escolaRepository.findById(2L)).thenReturn(Optional.of(escolaNova));
-        doNothing().when(registroAnualMapper).atualizar(requestDTO, registroExistente);
-        when(registroAnualRepository.save(any(RegistroAnual.class))).thenReturn(registroSalvo);
-        lenient().when(registroAnualMapper.converter(registroSalvo)).thenReturn(responseMock);
+  AnoReferencia anoReferencia = new AnoReferencia();
+  anoReferencia.setId(2L);
 
-        RegistroAnualResponseDTO resultado = registroAnualService.editar(requestDTO);
+  when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
+  when(anoReferenciaRepository.findById(2L)).thenReturn(Optional.of(anoReferencia));
+  when(registroAnualRepository.existsByEscolaAndAnoReferencia(escola, anoReferencia)).thenReturn(true);
 
-        assertNotNull(resultado);
-        verify(registroAnualRepository, times(1)).findById(1L);
-        verify(escolaRepository, times(1)).findById(2L);
-        verify(registroAnualRepository, times(1)).save(registroExistente);
-    }
+  DataIntegrityViolationException erro = assertThrows(DataIntegrityViolationException.class, () -> registroAnualService.salvar(requestDTO));
 
-    @Test
-    public void deveLancarExcecaoAoEditarRegistroAnualInexistente() {
-        RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(99L, 1L, 2025, "Municipal", "Alugado");
-        when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
+  assertEquals("Já existe um registro anual para essa escola neste ano.", erro.getMessage());
+  verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
+ }
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.editar(requestDTO));
+ @Test
+ public void deveBuscarTodosOsRegistrosAnuais() {
+  List<RegistroAnual> lista = new ArrayList<>();
+  lista.add(new RegistroAnual());
+  lista.add(new RegistroAnual());
 
-        assertEquals("Registro anual não encontrado", erro.getMessage());
-        verify(escolaRepository, never()).findById(anyLong());
-        verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
-    }
+  RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
 
-    @Test
-    public void deveLancarExcecaoAoEditarComEscolaInexistente() {
-        RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(1L, 99L, 2025, "Municipal", "Alugado");
+  when(registroAnualRepository.findAll()).thenReturn(lista);
+  lenient().when(registroAnualMapper.converter(any(RegistroAnual.class))).thenReturn(responseMock);
 
-        RegistroAnual registroExistente = new RegistroAnual();
-        registroExistente.setId(1L);
+  List<RegistroAnualResponseDTO> resultado = registroAnualService.buscarTudo();
 
-        when(registroAnualRepository.findById(1L)).thenReturn(Optional.of(registroExistente));
-        when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
+  assertNotNull(resultado);
+  assertEquals(2, resultado.size());
+  verify(registroAnualRepository, times(1)).findAll();
+  verify(registroAnualMapper, times(2)).converter(any(RegistroAnual.class));
+ }
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.editar(requestDTO));
+ @Test
+ public void deveBuscarPorEscolaEAnoComSucesso() {
+  Escola escola = new Escola();
+  escola.setId(1L);
 
-        assertEquals("Escola não encontrada", erro.getMessage());
-        verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
-    }
+  RegistroAnual registro = new RegistroAnual();
+  RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
 
-    @Test
-    public void deveExcluirRegistroAnualComSucesso() {
-        Long id = 1L;
-        RegistroAnual registro = new RegistroAnual();
-        registro.setId(id);
+  when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
+  when(registroAnualRepository.findByEscolaAndAnoReferencia_Ano(escola, 2026)).thenReturn(Optional.of(registro));
+  when(registroAnualMapper.converter(registro)).thenReturn(responseMock);
 
-        when(registroAnualRepository.findById(id)).thenReturn(Optional.of(registro));
-        doNothing().when(registroAnualRepository).deleteById(id);
+  RegistroAnualResponseDTO resultado = registroAnualService.buscarPorEscolaEAno(1L, 2026);
 
-        assertDoesNotThrow(() -> registroAnualService.excluir(id));
+  assertNotNull(resultado);
+  verify(escolaRepository, times(1)).findById(1L);
+  verify(registroAnualRepository, times(1)).findByEscolaAndAnoReferencia_Ano(escola, 2026);
+ }
 
-        verify(registroAnualRepository, times(1)).findById(id);
-        verify(registroAnualRepository, times(1)).deleteById(id);
-    }
+ @Test
+ public void deveLancarExcecaoAoBuscarPorEscolaEAnoComEscolaInvalida() {
+  when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
 
-    @Test
-    public void deveLancarExcecaoAoExcluirRegistroAnualInexistente() {
-        Long id = 99L;
-        when(registroAnualRepository.findById(id)).thenReturn(Optional.empty());
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.buscarPorEscolaEAno(99L, 2026));
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.excluir(id));
+  assertEquals("Escola não encontrada", erro.getMessage());
+  verify(registroAnualRepository, never()).findByEscolaAndAnoReferencia_Ano(any(), anyInt());
+ }
 
-        assertEquals("Registro anual não encontrado", erro.getMessage());
-        verify(registroAnualRepository, never()).deleteById(anyLong());
-    }
+ @Test
+ public void deveLancarExcecaoAoBuscarPorEscolaEAnoInexistente() {
+  Escola escola = new Escola();
+  escola.setId(1L);
+
+  when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
+  when(registroAnualRepository.findByEscolaAndAnoReferencia_Ano(escola, 2026)).thenReturn(Optional.empty());
+
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.buscarPorEscolaEAno(1L, 2026));
+
+  assertEquals("Registro anual não encontrado para a escola no ano 2026", erro.getMessage());
+ }
+
+ @Test
+ public void deveBuscarPorAno() {
+  List<RegistroAnual> lista = new ArrayList<>();
+  lista.add(new RegistroAnual());
+
+  RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
+
+  when(registroAnualRepository.findByAnoReferencia_Ano(2026)).thenReturn(lista);
+  lenient().when(registroAnualMapper.converter(any(RegistroAnual.class))).thenReturn(responseMock);
+
+  List<RegistroAnualResponseDTO> resultado = registroAnualService.buscarPorAno(2026);
+
+  assertNotNull(resultado);
+  assertEquals(1, resultado.size());
+  verify(registroAnualRepository, times(1)).findByAnoReferencia_Ano(2026);
+ }
+
+ @Test
+ public void deveEditarRegistroAnualComSucesso() {
+  RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(1L, 2L, 3L, "Estadual", "Urbana");
+
+  RegistroAnual registroExistente = new RegistroAnual();
+  registroExistente.setId(1L);
+
+  Escola escola = new Escola();
+  escola.setId(2L);
+
+  AnoReferencia anoReferencia = new AnoReferencia();
+  anoReferencia.setId(3L);
+
+  RegistroAnual registroSalvo = new RegistroAnual();
+  RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
+
+  when(registroAnualRepository.findById(1L)).thenReturn(Optional.of(registroExistente));
+  when(escolaRepository.findById(2L)).thenReturn(Optional.of(escola));
+  when(anoReferenciaRepository.findById(3L)).thenReturn(Optional.of(anoReferencia));
+  doNothing().when(registroAnualMapper).atualizar(requestDTO, registroExistente);
+  when(registroAnualRepository.save(any(RegistroAnual.class))).thenReturn(registroSalvo);
+  lenient().when(registroAnualMapper.converter(registroSalvo)).thenReturn(responseMock);
+
+  RegistroAnualResponseDTO resultado = registroAnualService.editar(requestDTO);
+
+  assertNotNull(resultado);
+  verify(registroAnualRepository, times(1)).findById(1L);
+  verify(escolaRepository, times(1)).findById(2L);
+  verify(anoReferenciaRepository, times(1)).findById(3L);
+  verify(registroAnualRepository, times(1)).save(registroExistente);
+ }
+
+ @Test
+ public void deveLancarExcecaoAoEditarRegistroInexistente() {
+  RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(99L, 1L, 2L, "Estadual", "Urbana");
+  when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
+
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.editar(requestDTO));
+
+  assertEquals("Registro anual não encontrado", erro.getMessage());
+  verify(escolaRepository, never()).findById(anyLong());
+  verify(registroAnualRepository, never()).save(any());
+ }
+
+ @Test
+ public void deveExcluirRegistroAnualComSucesso() {
+  Long id = 1L;
+  RegistroAnual registro = new RegistroAnual();
+  registro.setId(id);
+
+  when(registroAnualRepository.findById(id)).thenReturn(Optional.of(registro));
+  doNothing().when(registroAnualRepository).deleteById(id);
+
+  assertDoesNotThrow(() -> registroAnualService.excluir(id));
+
+  verify(registroAnualRepository, times(1)).findById(id);
+  verify(registroAnualRepository, times(1)).deleteById(id);
+ }
+
+ @Test
+ public void deveLancarExcecaoAoExcluirRegistroInexistente() {
+  Long id = 99L;
+  when(registroAnualRepository.findById(id)).thenReturn(Optional.empty());
+
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.excluir(id));
+
+  assertEquals("Registro anual não encontrado", erro.getMessage());
+  verify(registroAnualRepository, never()).deleteById(anyLong());
+ }
 }

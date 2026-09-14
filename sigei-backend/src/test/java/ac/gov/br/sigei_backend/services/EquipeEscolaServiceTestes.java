@@ -4,9 +4,9 @@ import ac.gov.br.sigei_backend.DTOs.request.EquipeEscolaRequestDTO;
 import ac.gov.br.sigei_backend.DTOs.response.EquipeEscolaResponseDTO;
 import ac.gov.br.sigei_backend.mappers.EquipeEscolaMapper;
 import ac.gov.br.sigei_backend.models.EquipeEscola;
-import ac.gov.br.sigei_backend.models.Escola;
+import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.EquipeEscolaRepository;
-import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,104 +22,133 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class EquipeEscolaServiceTestes {
 
-    @Mock
-    EquipeEscolaRepository equipeEscolaRepository;
+ @Mock
+ RegistroAnualRepository registroAnualRepository;
 
-    @Mock
-    EscolaRepository escolaRepository;
+ @Mock
+ EquipeEscolaRepository equipeEscolaRepository;
 
-    @Mock
-    EquipeEscolaMapper equipeEscolaMapper;
+ @Mock
+ EquipeEscolaMapper equipeEscolaMapper;
 
-    @InjectMocks
-    EquipeEscolaService equipeEscolaService;
+ @InjectMocks
+ EquipeEscolaService equipeEscolaService;
 
-    @Test
-    public void deveSalvarEquipeEscolaComSucesso() {
-        EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(null, 1L, 2024, true, false, true, false, false, true);
+ @Test
+ public void deveSalvarEquipeEscolaComSucesso() {
+  EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(null, 1L, true, true, true, true, true, true);
 
-        Escola escola = new Escola();
-        escola.setId(1L);
+  RegistroAnual registroAnual = new RegistroAnual();
+  registroAnual.setId(1L);
 
-        EquipeEscola equipeConvertida = new EquipeEscola();
-        EquipeEscola equipeSalva = new EquipeEscola();
-        EquipeEscolaResponseDTO responseMock = mock(EquipeEscolaResponseDTO.class);
+  EquipeEscola equipeConvertida = new EquipeEscola();
+  EquipeEscola equipeSalva = new EquipeEscola();
+  EquipeEscolaResponseDTO responseMock = mock(EquipeEscolaResponseDTO.class);
 
-        when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
-        when(equipeEscolaMapper.converter(requestDTO)).thenReturn(equipeConvertida);
-        when(equipeEscolaRepository.save(any(EquipeEscola.class))).thenReturn(equipeSalva);
-        lenient().when(equipeEscolaMapper.converter(equipeSalva)).thenReturn(responseMock);
+  when(registroAnualRepository.findById(1L)).thenReturn(Optional.of(registroAnual));
+  when(equipeEscolaMapper.converter(requestDTO)).thenReturn(equipeConvertida);
+  when(equipeEscolaRepository.save(any(EquipeEscola.class))).thenReturn(equipeSalva);
+  lenient().when(equipeEscolaMapper.converter(equipeSalva)).thenReturn(responseMock);
 
-        EquipeEscolaResponseDTO resultado = equipeEscolaService.salvar(requestDTO);
+  EquipeEscolaResponseDTO resultado = equipeEscolaService.salvar(requestDTO);
 
-        assertNotNull(resultado);
-        verify(escolaRepository, times(1)).findById(1L);
-        verify(equipeEscolaRepository, times(1)).save(equipeConvertida);
-    }
+  assertNotNull(resultado);
+  verify(registroAnualRepository, times(1)).findById(1L);
+  verify(equipeEscolaRepository, times(1)).save(equipeConvertida);
+ }
 
-    @Test
-    public void deveLancarExcecaoAoSalvarComEscolaInvalida() {
-        EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(null, 99L, 2024, true, false, true, false, false, true);
-        when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
+ @Test
+ public void deveLancarExcecaoAoSalvarComRegistroAnualInvalido() {
+  EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(null, 99L, true, true, true, true, true, true);
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.salvar(requestDTO));
+  when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertEquals("Escola não encontrada", erro.getMessage());
-        verify(equipeEscolaRepository, never()).save(any(EquipeEscola.class));
-    }
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.salvar(requestDTO));
 
-    @Test
-    public void deveEditarEquipeEscolaComSucesso() {
-        EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(1L, 2L, 2025, true, true, true, false, false, true);
+  assertEquals("Registro anual não encontrado", erro.getMessage());
+  verify(equipeEscolaRepository, never()).save(any(EquipeEscola.class));
+ }
 
-        EquipeEscola equipeExistente = new EquipeEscola();
-        equipeExistente.setId(1L);
+ @Test
+ public void deveEditarEquipeEscolaComSucesso() {
+  EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(1L, 2L, true, true, true, true, true, true);
 
-        Escola escolaNova = new Escola();
-        escolaNova.setId(2L);
+  EquipeEscola equipeExistente = new EquipeEscola();
+  equipeExistente.setId(1L);
 
-        EquipeEscola equipeSalva = new EquipeEscola();
-        EquipeEscolaResponseDTO responseMock = mock(EquipeEscolaResponseDTO.class);
+  RegistroAnual registroAnual = new RegistroAnual();
+  registroAnual.setId(2L);
 
-        when(equipeEscolaRepository.findById(1L)).thenReturn(Optional.of(equipeExistente));
-        when(escolaRepository.findById(2L)).thenReturn(Optional.of(escolaNova));
-        doNothing().when(equipeEscolaMapper).atualizar(requestDTO, equipeExistente);
-        when(equipeEscolaRepository.save(any(EquipeEscola.class))).thenReturn(equipeSalva);
-        lenient().when(equipeEscolaMapper.converter(equipeSalva)).thenReturn(responseMock);
+  EquipeEscola equipeSalva = new EquipeEscola();
+  EquipeEscolaResponseDTO responseMock = mock(EquipeEscolaResponseDTO.class);
 
-        EquipeEscolaResponseDTO resultado = equipeEscolaService.editar(requestDTO);
+  when(equipeEscolaRepository.findById(1L)).thenReturn(Optional.of(equipeExistente));
+  when(registroAnualRepository.findById(2L)).thenReturn(Optional.of(registroAnual));
+  doNothing().when(equipeEscolaMapper).atualizar(requestDTO, equipeExistente);
+  when(equipeEscolaRepository.save(any(EquipeEscola.class))).thenReturn(equipeSalva);
+  lenient().when(equipeEscolaMapper.converter(equipeSalva)).thenReturn(responseMock);
 
-        assertNotNull(resultado);
-        verify(equipeEscolaRepository, times(1)).findById(1L);
-        verify(escolaRepository, times(1)).findById(2L);
-        verify(equipeEscolaRepository, times(1)).save(equipeExistente);
-    }
+  EquipeEscolaResponseDTO resultado = equipeEscolaService.editar(requestDTO);
 
-    @Test
-    public void deveLancarExcecaoAoEditarEquipeEscolaInexistente() {
-        EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(99L, 1L, 2024, true, false, true, false, false, true);
-        when(equipeEscolaRepository.findById(99L)).thenReturn(Optional.empty());
+  assertNotNull(resultado);
+  verify(equipeEscolaRepository, times(1)).findById(1L);
+  verify(registroAnualRepository, times(1)).findById(2L);
+  verify(equipeEscolaRepository, times(1)).save(equipeExistente);
+ }
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO));
+ @Test
+ public void deveLancarExcecaoAoEditarEquipeEscolaInexistente() {
+  EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(99L, 1L, true, true, true, true, true, true);
 
-        assertEquals("Equipe escolar não encontrada", erro.getMessage());
-        verify(escolaRepository, never()).findById(anyLong());
-        verify(equipeEscolaRepository, never()).save(any(EquipeEscola.class));
-    }
+  when(equipeEscolaRepository.findById(99L)).thenReturn(Optional.empty());
 
-    @Test
-    public void deveLancarExcecaoAoEditarComEscolaInexistente() {
-        EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(1L, 99L, 2024, true, false, true, false, false, true);
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO));
 
-        EquipeEscola equipeExistente = new EquipeEscola();
-        equipeExistente.setId(1L);
+  assertEquals("Equipe escolar não encontrada", erro.getMessage());
+  verify(registroAnualRepository, never()).findById(anyLong());
+  verify(equipeEscolaRepository, never()).save(any(EquipeEscola.class));
+ }
 
-        when(equipeEscolaRepository.findById(1L)).thenReturn(Optional.of(equipeExistente));
-        when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
+ @Test
+ public void deveLancarExcecaoAoEditarComRegistroAnualInexistente() {
+  EquipeEscolaRequestDTO requestDTO = new EquipeEscolaRequestDTO(1L, 99L, true, true, true, true, true, true);
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO));
+  EquipeEscola equipeExistente = new EquipeEscola();
+  equipeExistente.setId(1L);
 
-        assertEquals("Escola não encontrada", erro.getMessage());
-        verify(equipeEscolaRepository, never()).save(any(EquipeEscola.class));
-    }
+  when(equipeEscolaRepository.findById(1L)).thenReturn(Optional.of(equipeExistente));
+  when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
+
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO));
+
+  assertEquals("Registro anual não encontrado", erro.getMessage());
+  verify(equipeEscolaRepository, never()).save(any(EquipeEscola.class));
+ }
+
+ @Test
+ public void deveExcluirEquipeEscolaComSucesso() {
+  Long id = 1L;
+  EquipeEscola equipe = new EquipeEscola();
+  equipe.setId(id);
+
+  when(equipeEscolaRepository.findById(id)).thenReturn(Optional.of(equipe));
+  doNothing().when(equipeEscolaRepository).deleteById(id);
+
+  assertDoesNotThrow(() -> equipeEscolaService.excluir(id));
+
+  verify(equipeEscolaRepository, times(1)).findById(id);
+  verify(equipeEscolaRepository, times(1)).deleteById(id);
+ }
+
+ @Test
+ public void deveLancarExcecaoAoExcluirEquipeEscolaInexistente() {
+  Long id = 99L;
+
+  when(equipeEscolaRepository.findById(id)).thenReturn(Optional.empty());
+
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.excluir(id));
+
+  assertEquals("Equipe escolar não encontrada", erro.getMessage());
+  verify(equipeEscolaRepository, never()).deleteById(anyLong());
+ }
 }

@@ -1,14 +1,13 @@
 package ac.gov.br.sigei_backend.repository;
 
-import ac.gov.br.sigei_backend.models.Aldeia;
-import ac.gov.br.sigei_backend.models.Escola;
-import ac.gov.br.sigei_backend.models.Municipio;
-import ac.gov.br.sigei_backend.models.TerraIndigena;
+import ac.gov.br.sigei_backend.models.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,70 +28,116 @@ public class EscolaRepositoryTestes {
     @Autowired
     MunicipioRepository municipioRepository;
 
-    @Test
-    public void deveSalvarEscolaComSucesso() {
+    @Autowired
+    PovoRepository povoRepository;
+
+    private Escola escola;
+    private Aldeia aldeia;
+
+    @BeforeEach
+    public void prepararCenario() {
         Municipio municipio = new Municipio();
-        municipio.setNome("Tarauacá");
+        municipio.setNome("Rio Branco");
         municipioRepository.save(municipio);
 
-        TerraIndigena terra = new TerraIndigena();
-        terra.setNome("Rio Gregório");
-        terra.setMunicipio(municipio);
-        terraIndigenaRepository.save(terra);
+        TerraIndigena terraIndigena = new TerraIndigena();
+        terraIndigena.setNome("Kaxinawá");
+        terraIndigena.setMunicipio(municipio);
+        terraIndigenaRepository.save(terraIndigena);
 
-        Aldeia aldeia = new Aldeia();
-        aldeia.setNome("Aldeia Yawanawá");
-        aldeia.setTerraIndigena(terra);
+        Povo povo = new Povo();
+        povo.setNome("Huni Kuin");
+        povoRepository.save(povo);
+
+        aldeia = new Aldeia();
+        aldeia.setNome("Boa Vista");
+        aldeia.setTerraIndigena(terraIndigena);
+        aldeia.setPovo(povo);
         aldeiaRepository.save(aldeia);
 
-        Escola escola = new Escola();
-        escola.setCodigo("123456");
-        escola.setNome("Escola Indígena Modelo");
-        escola.setTipoUnidade("Polo");;
+        escola = new Escola();
+        escola.setCodigo("12345678");
+        escola.setNome("Escola Indígena");
         escola.setAldeia(aldeia);
-
         escolaRepository.save(escola);
-
-        assertNotNull(escola.getId());
-        assertEquals("123456", escola.getCodigo());
-        assertEquals("Escola Indígena Modelo", escola.getNome());
     }
 
     @Test
-    public void deveBuscarEscolaPorCodigo() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Feijó");
-        municipioRepository.save(municipio);
+    public void deveSalvarEscola() {
+        Aldeia outraAldeia = new Aldeia();
+        outraAldeia.setNome("Aldeia Nova");
+        outraAldeia.setTerraIndigena(aldeia.getTerraIndigena());
+        outraAldeia.setPovo(aldeia.getPovo());
+        aldeiaRepository.save(outraAldeia);
 
-        Escola escola = new Escola();
-        escola.setCodigo("987654");
-        escola.setNome("Escola Nova Esperança");
-        escola.setTipoUnidade("Anexo");
-        escolaRepository.save(escola);
+        Escola novaEscola = new Escola();
+        novaEscola.setCodigo("87654321");
+        novaEscola.setNome("Escola Nova");
+        novaEscola.setAldeia(outraAldeia);
 
-        Optional<Escola> escolaBuscada = escolaRepository.findEscolaByCodigo("987654");
+        escolaRepository.save(novaEscola);
 
-        assertTrue(escolaBuscada.isPresent());
-        assertEquals("Escola Nova Esperança", escolaBuscada.get().getNome());
-        assertEquals("987654", escolaBuscada.get().getCodigo());
+        assertNotEquals(null, novaEscola.getId());
     }
 
     @Test
     public void deveBuscarEscolaPorId() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Cruzeiro do Sul");
-        municipioRepository.save(municipio);
+        Optional<Escola> resultado = escolaRepository.findById(escola.getId());
 
-        Escola escola = new Escola();
-        escola.setCodigo("111222");
-        escola.setNome("Escola Central");
-        escola.setTipoUnidade("Sede");
-        escolaRepository.save(escola);
+        assertTrue(resultado.isPresent());
+        assertEquals(escola.getId(), resultado.get().getId());
+    }
 
-        Optional<Escola> escolaBuscada = escolaRepository.findById(escola.getId());
+    @Test
+    public void deveBuscarTodasPorCodigo() {
+        List<Escola> resultado = escolaRepository.findAllByCodigo("12345678");
 
-        assertTrue(escolaBuscada.isPresent());
-        assertEquals("Escola Central", escolaBuscada.get().getNome());
-        assertEquals("Sede", escolaBuscada.get().getTipoUnidade());
+        assertFalse(resultado.isEmpty());
+        assertEquals("12345678", resultado.get(0).getCodigo());
+    }
+
+    @Test
+    public void deveBuscarPrimeiraPorCodigoETipoUnidade() {
+        Optional<Escola> resultado = escolaRepository.findFirstByCodigoAndTipoUnidadeIgnoreCase("12345678", null);
+
+        assertTrue(resultado.isPresent());
+        assertEquals("12345678", resultado.get().getCodigo());
+    }
+
+    @Test
+    public void deveBuscarPrimeiraPorCodigoENome() {
+        Optional<Escola> resultado = escolaRepository.findFirstByCodigoAndNomeIgnoreCase("12345678", "escola indígena");
+
+        assertTrue(resultado.isPresent());
+        assertEquals("12345678", resultado.get().getCodigo());
+    }
+
+    @Test
+    public void deveBuscarPrimeiraPorCodigoENomeAldeia() {
+        Optional<Escola> resultado = escolaRepository.findFirstByCodigoAndAldeia_NomeIgnoreCase("12345678", "boa vista");
+
+        assertTrue(resultado.isPresent());
+        assertEquals("12345678", resultado.get().getCodigo());
+    }
+
+    @Test
+    public void deveVerificarSeExistePorCodigoENome() {
+        boolean existe = escolaRepository.existsByCodigoAndNomeIgnoreCase("12345678", "ESCOLA INDÍGENA");
+
+        assertTrue(existe);
+    }
+
+    @Test
+    public void deveContarEscolasPorMunicipioId() {
+        long total = escolaRepository.countByAldeia_TerraIndigena_Municipio_Id(escola.getAldeia().getTerraIndigena().getMunicipio().getId());
+
+        assertEquals(1L, total);
+    }
+
+    @Test
+    public void deveContarEscolasPorTerraIndigenaId() {
+        long total = escolaRepository.countByAldeia_TerraIndigena_Id(escola.getAldeia().getTerraIndigena().getId());
+
+        assertEquals(1L, total);
     }
 }

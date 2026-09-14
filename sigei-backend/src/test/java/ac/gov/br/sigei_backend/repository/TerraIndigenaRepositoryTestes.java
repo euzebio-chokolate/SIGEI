@@ -2,6 +2,7 @@ package ac.gov.br.sigei_backend.repository;
 
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -21,37 +22,59 @@ public class TerraIndigenaRepositoryTestes {
     @Autowired
     MunicipioRepository municipioRepository;
 
-    @Test
-    public void deveSalvarTerraIndigena() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Feijó");
+    private Municipio municipio;
+    private TerraIndigena terraIndigena;
+
+    @BeforeEach
+    public void prepararCenario() {
+        municipio = new Municipio();
+        municipio.setNome("Rio Branco");
         municipioRepository.save(municipio);
 
-        TerraIndigena terraIndigena = new TerraIndigena();
-        terraIndigena.setNome("Envira");
+        terraIndigena = new TerraIndigena();
+        terraIndigena.setNome("Kaxinawá");
         terraIndigena.setMunicipio(municipio);
-
         terraIndigenaRepository.save(terraIndigena);
+    }
 
-        assertNotEquals(null, terraIndigena.getId());
-        assertEquals("Envira", terraIndigena.getNome());
+    @Test
+    public void deveSalvarTerraIndigena() {
+        TerraIndigena novaTerra = new TerraIndigena();
+        novaTerra.setNome("Juruá");
+        novaTerra.setMunicipio(municipio);
+
+        terraIndigenaRepository.save(novaTerra);
+
+        assertNotEquals(null, novaTerra.getId());
     }
 
     @Test
     public void deveBuscarTerraIndigenaPorId() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Tarauacá");
-        municipioRepository.save(municipio);
+        Optional<TerraIndigena> resultado = terraIndigenaRepository.findById(terraIndigena.getId());
 
-        TerraIndigena terraIndigena = new TerraIndigena();
-        terraIndigena.setNome("Rio Gregório");
-        terraIndigena.setMunicipio(municipio);
-        terraIndigenaRepository.save(terraIndigena);
+        assertTrue(resultado.isPresent());
+        assertEquals(terraIndigena.getId(), resultado.get().getId());
+    }
 
-        Optional<TerraIndigena> terraBuscada = terraIndigenaRepository.findById(terraIndigena.getId());
+    @Test
+    public void deveBuscarPorNomeIgnoreCaseEMunicipio() {
+        Optional<TerraIndigena> resultado = terraIndigenaRepository.findByNomeIgnoreCaseAndMunicipio("kaxinawá", municipio);
 
-        assertTrue(terraBuscada.isPresent());
-        assertEquals("Rio Gregório", terraBuscada.get().getNome());
-        assertEquals("Tarauacá", terraBuscada.get().getMunicipio().getNome());
+        assertTrue(resultado.isPresent());
+        assertEquals("Kaxinawá", resultado.get().getNome());
+    }
+
+    @Test
+    public void deveVerificarSeExistePorNomeIgnoreCaseEMunicipio() {
+        boolean existe = terraIndigenaRepository.existsByNomeIgnoreCaseAndMunicipio("KAXINAWÁ", municipio);
+
+        assertTrue(existe);
+    }
+
+    @Test
+    public void deveContarPorMunicipioId() {
+        long total = terraIndigenaRepository.countByMunicipio_Id(municipio.getId());
+
+        assertEquals(1L, total);
     }
 }
