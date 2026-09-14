@@ -1,17 +1,13 @@
 package ac.gov.br.sigei_backend.repository;
 
-import ac.gov.br.sigei_backend.models.Aldeia;
-import ac.gov.br.sigei_backend.models.Escola;
-import ac.gov.br.sigei_backend.models.MatriculaSerie;
-import ac.gov.br.sigei_backend.models.Municipio;
-import ac.gov.br.sigei_backend.models.Povo;
-import ac.gov.br.sigei_backend.models.RegistroAnual;
-import ac.gov.br.sigei_backend.models.TerraIndigena;
+import ac.gov.br.sigei_backend.models.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,107 +16,110 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 public class MatriculaSerieRepositoryTestes {
 
-    @Autowired
-    MatriculaSerieRepository matriculaSerieRepository;
+ @Autowired
+ MatriculaSerieRepository matriculaSerieRepository;
 
-    @Autowired
-    RegistroAnualRepository registroAnualRepository;
+ @Autowired
+ RegistroAnualRepository registroAnualRepository;
 
-    @Autowired
-    EscolaRepository escolaRepository;
+ @Autowired
+ EscolaRepository escolaRepository;
 
-    @Autowired
-    AldeiaRepository aldeiaRepository;
+ @Autowired
+ AnoReferenciaRepository anoReferenciaRepository;
 
-    @Autowired
-    TerraIndigenaRepository terraIndigenaRepository;
+ @Autowired
+ AldeiaRepository aldeiaRepository;
 
-    @Autowired
-    MunicipioRepository municipioRepository;
+ @Autowired
+ TerraIndigenaRepository terraIndigenaRepository;
 
-    @Autowired
-    PovoRepository povoRepository;
+ @Autowired
+ MunicipioRepository municipioRepository;
 
-    @Test
-    public void deveSalvarMatriculaSerie() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Bujari");
-        municipioRepository.save(municipio);
+ @Autowired
+ PovoRepository povoRepository;
 
-        TerraIndigena terra = new TerraIndigena();
-        terra.setNome("Terra Apolima-Arara");
-        terra.setMunicipio(municipio);
-        terraIndigenaRepository.save(terra);
+ private RegistroAnual registroAnual;
+ private MatriculaSerie matriculaSerie;
 
-        Povo povo = new Povo();
-        povo.setNome("Apolima-Arara");
-        povoRepository.save(povo);
+ @BeforeEach
+ public void prepararCenario() {
+  Municipio municipio = new Municipio();
+  municipio.setNome("Rio Branco");
+  municipioRepository.save(municipio);
 
-        Aldeia aldeia = new Aldeia();
-        aldeia.setNome("Aldeia Central");
-        aldeia.setTerraIndigena(terra);
-        aldeia.setPovo(povo);
-        aldeiaRepository.save(aldeia);
+  TerraIndigena terraIndigena = new TerraIndigena();
+  terraIndigena.setNome("Kaxinawá");
+  terraIndigena.setMunicipio(municipio);
+  terraIndigenaRepository.save(terraIndigena);
 
-        Escola escola = new Escola();
-        escola.setCodigo("112233");
-        escola.setNome("Escola Indígena Apolima");
-        escola.setTipoUnidade("Polo");
-        escola.setAldeia(aldeia);
-        escolaRepository.save(escola);
+  Povo povo = new Povo();
+  povo.setNome("Huni Kuin");
+  povoRepository.save(povo);
 
-        RegistroAnual registro = new RegistroAnual();
-        registro.setEscola(escola);
-        registro.setAno(2024);
-        registro.setRede("Estadual");
-        registro.setLocalFuncionamento("Próprio");
-        registroAnualRepository.save(registro);
+  Aldeia aldeia = new Aldeia();
+  aldeia.setNome("Boa Vista");
+  aldeia.setTerraIndigena(terraIndigena);
+  aldeia.setPovo(povo);
+  aldeiaRepository.save(aldeia);
 
-        MatriculaSerie matricula = new MatriculaSerie();
-        matricula.setRegistro(registro);
-        matricula.setDenominacao("1º Ano");
-        matricula.setEtapaEnsino("Ensino Fundamental I");
-        matricula.setQtdMasculino(15);
-        matricula.setQtdFeminino(20);
+  Escola escola = new Escola();
+  escola.setCodigo("12345678");
+  escola.setNome("Escola Indígena");
+  escola.setAldeia(aldeia);
+  escolaRepository.save(escola);
 
-        matriculaSerieRepository.save(matricula);
+  AnoReferencia anoReferencia = new AnoReferencia();
+  anoReferencia.setAno(2026);
+  anoReferenciaRepository.save(anoReferencia);
 
-        assertNotNull(matricula.getId());
-        assertEquals("1º Ano", matricula.getDenominacao());
-        assertEquals(15, matricula.getQtdMasculino());
-    }
+  registroAnual = new RegistroAnual();
+  registroAnual.setEscola(escola);
+  registroAnual.setAnoReferencia(anoReferencia);
+  registroAnualRepository.save(registroAnual);
 
-    @Test
-    public void deveBuscarMatriculaSeriePorId() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Capixaba");
-        municipioRepository.save(municipio);
+  matriculaSerie = new MatriculaSerie();
+  matriculaSerie.setRegistro(registroAnual);
+  matriculaSerie.setDenominacao("1º Ano");
+  matriculaSerie.setTotal(25);
+  matriculaSerieRepository.save(matriculaSerie);
+ }
 
-        Escola escola = new Escola();
-        escola.setCodigo("445566");
-        escola.setNome("Escola Capixaba");
-        escola.setTipoUnidade("Anexo");
-        escolaRepository.save(escola);
+ @Test
+ public void deveSalvarMatriculaSerie() {
+  MatriculaSerie novaMatricula = new MatriculaSerie();
+  novaMatricula.setRegistro(registroAnual);
+  novaMatricula.setDenominacao("2º Ano");
+  novaMatricula.setTotal(20);
 
-        RegistroAnual registro = new RegistroAnual();
-        registro.setEscola(escola);
-        registro.setAno(2025);
-        registro.setRede("Municipal");
-        registro.setLocalFuncionamento("Alugado");
-        registroAnualRepository.save(registro);
+  matriculaSerieRepository.save(novaMatricula);
 
-        MatriculaSerie matricula = new MatriculaSerie();
-        matricula.setRegistro(registro);
-        matricula.setDenominacao("2º Ano");
-        matricula.setEtapaEnsino("Ensino Fundamental I");
-        matricula.setQtdMasculino(12);
-        matricula.setQtdFeminino(18);
-        matriculaSerieRepository.save(matricula);
+  assertNotEquals(null, novaMatricula.getId());
+ }
 
-        Optional<MatriculaSerie> matriculaBuscada = matriculaSerieRepository.findById(matricula.getId());
+ @Test
+ public void deveBuscarMatriculaSeriePorId() {
+  Optional<MatriculaSerie> resultado = matriculaSerieRepository.findById(matriculaSerie.getId());
 
-        assertTrue(matriculaBuscada.isPresent());
-        assertEquals("2º Ano", matriculaBuscada.get().getDenominacao());
-        assertEquals(18, matriculaBuscada.get().getQtdFeminino());
-    }
+  assertTrue(resultado.isPresent());
+  assertEquals(matriculaSerie.getId(), resultado.get().getId());
+ }
+
+ @Test
+ public void deveFindByRegistro() {
+  List<MatriculaSerie> resultado = matriculaSerieRepository.findByRegistro(registroAnual);
+
+  assertFalse(resultado.isEmpty());
+  assertEquals(1, resultado.size());
+  assertEquals("1º Ano", resultado.get(0).getDenominacao());
+ }
+
+ @Test
+ public void deveDeleteByRegistro() {
+  matriculaSerieRepository.deleteByRegistro(registroAnual);
+
+  List<MatriculaSerie> resultado = matriculaSerieRepository.findByRegistro(registroAnual);
+  assertTrue(resultado.isEmpty());
+ }
 }

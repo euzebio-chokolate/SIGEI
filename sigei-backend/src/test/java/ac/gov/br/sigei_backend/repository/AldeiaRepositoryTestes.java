@@ -2,7 +2,9 @@ package ac.gov.br.sigei_backend.repository;
 
 import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Municipio;
+import ac.gov.br.sigei_backend.models.Povo;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -23,50 +25,90 @@ public class AldeiaRepositoryTestes {
     TerraIndigenaRepository terraIndigenaRepository;
 
     @Autowired
+    PovoRepository povoRepository;
+
+    @Autowired
     MunicipioRepository municipioRepository;
 
-    @Test
-    public void deveSalvarAldeiaComSucesso() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Feijó");
+    private Municipio municipio;
+    private TerraIndigena terraIndigena;
+    private Povo povo;
+    private Aldeia aldeia;
+
+    @BeforeEach
+    public void prepararCenario() {
+        municipio = new Municipio();
+        municipio.setNome("Tarauacá");
         municipioRepository.save(municipio);
 
-        TerraIndigena terra = new TerraIndigena();
-        terra.setNome("Envira");
-        terra.setMunicipio(municipio);
-        terraIndigenaRepository.save(terra);
+        terraIndigena = new TerraIndigena();
+        terraIndigena.setNome("Rio Gregório");
+        terraIndigena.setMunicipio(municipio);
+        terraIndigenaRepository.save(terraIndigena);
 
-        Aldeia aldeia = new Aldeia();
-        aldeia.setNome("Aldeia Morada Nova");
-        aldeia.setTerraIndigena(terra);
+        povo = new Povo();
+        povo.setNome("Yawanawá");
+        povoRepository.save(povo);
 
+        aldeia = new Aldeia();
+        aldeia.setNome("Mutum");
+        aldeia.setTerraIndigena(terraIndigena);
+        aldeia.setPovo(povo);
+    }
+
+    @Test
+    public void deveSalvarAldeia() {
         aldeiaRepository.save(aldeia);
-
-        assertNotNull(aldeia.getId(), "O ID não deveria ser nulo após guardar");
-        assertEquals("Aldeia Morada Nova", aldeia.getNome());
-        assertNotNull(aldeia.getTerraIndigena());
+        assertNotEquals(null, aldeia.getId());
     }
 
     @Test
     public void deveBuscarAldeiaPorId() {
-        Municipio municipio = new Municipio();
-        municipio.setNome("Tarauacá");
-        municipioRepository.save(municipio);
-
-        TerraIndigena terra = new TerraIndigena();
-        terra.setNome("Rio Gregório");
-        terra.setMunicipio(municipio);
-        terraIndigenaRepository.save(terra);
-
-        Aldeia aldeia = new Aldeia();
-        aldeia.setNome("Aldeia Yawanawá");
-        aldeia.setTerraIndigena(terra);
         aldeiaRepository.save(aldeia);
 
         Optional<Aldeia> aldeiaBuscada = aldeiaRepository.findById(aldeia.getId());
 
-        assertTrue(aldeiaBuscada.isPresent(), "A aldeia deveria ter sido encontrada");
-        assertEquals("Aldeia Yawanawá", aldeiaBuscada.get().getNome());
-        assertEquals("Rio Gregório", aldeiaBuscada.get().getTerraIndigena().getNome());
+        assertTrue(aldeiaBuscada.isPresent());
+        assertEquals("Mutum", aldeiaBuscada.get().getNome());
+    }
+
+    @Test
+    public void deveBuscarAldeiaPorNomeTerraEPovo() {
+        aldeiaRepository.save(aldeia);
+
+        Optional<Aldeia> aldeiaBuscada = aldeiaRepository.findByNomeIgnoreCaseAndTerraIndigenaAndPovo(
+                "mutum", terraIndigena, povo
+        );
+
+        assertTrue(aldeiaBuscada.isPresent());
+    }
+
+    @Test
+    public void deveVerificarSeAldeiaExiste() {
+        aldeiaRepository.save(aldeia);
+
+        boolean existe = aldeiaRepository.existsByNomeIgnoreCaseAndTerraIndigenaAndPovo(
+                "MUTUM", terraIndigena, povo
+        );
+
+        assertTrue(existe);
+    }
+
+    @Test
+    public void deveContarAldeiasPorMunicipioId() {
+        aldeiaRepository.save(aldeia);
+
+        long total = aldeiaRepository.countByTerraIndigena_Municipio_Id(municipio.getId());
+
+        assertEquals(1L, total);
+    }
+
+    @Test
+    public void deveContarAldeiasPorTerraIndigenaId() {
+        aldeiaRepository.save(aldeia);
+
+        long total = aldeiaRepository.countByTerraIndigena_Id(terraIndigena.getId());
+
+        assertEquals(1L, total);
     }
 }
