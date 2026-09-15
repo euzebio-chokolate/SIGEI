@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.repository;
 
-import ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardEvolucaoDTO;
-import ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardItemDTO;
-import ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardResumoDTO;
+import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardEvolucaoDTO;
+import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO;
+import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardResumoDTO;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.projection.DashboardInfraestruturaProjection;
 import org.springframework.data.jpa.repository.Query;
@@ -14,7 +14,7 @@ import java.util.List;
 public interface DashboardRepository extends Repository<RegistroAnual, Long> {
 
     @Query("""
-            select new ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardResumoDTO(
+            select new ac.gov.br.sigei_backend.dto.response.dashboard.DashboardResumoDTO(
                 count(distinct e.id),
                 coalesce(sum(r.totalAlunos), 0),
                 count(distinct m.id),
@@ -30,7 +30,7 @@ public interface DashboardRepository extends Repository<RegistroAnual, Long> {
     DashboardResumoDTO buscarResumo(@Param("ano") Integer ano);
 
     @Query("""
-            select new ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardEvolucaoDTO(
+            select new ac.gov.br.sigei_backend.dto.response.dashboard.DashboardEvolucaoDTO(
                 r.anoReferencia.ano,
                 coalesce(sum(r.totalAlunos), 0)
             )
@@ -41,7 +41,7 @@ public interface DashboardRepository extends Repository<RegistroAnual, Long> {
     List<DashboardEvolucaoDTO> buscarEvolucaoMatriculas();
 
     @Query("""
-            select new ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardEvolucaoDTO(
+            select new ac.gov.br.sigei_backend.dto.response.dashboard.DashboardEvolucaoDTO(
                 r.anoReferencia.ano,
                 count(distinct r.escola.id)
             )
@@ -52,7 +52,7 @@ public interface DashboardRepository extends Repository<RegistroAnual, Long> {
     List<DashboardEvolucaoDTO> buscarEvolucaoEscolas();
 
     @Query("""
-            select new ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardItemDTO(
+            select new ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO(
                 m.nivel,
                 coalesce(sum(m.total), 0)
             )
@@ -79,7 +79,7 @@ public interface DashboardRepository extends Repository<RegistroAnual, Long> {
     DashboardInfraestruturaProjection buscarInfraestrutura(@Param("ano") Integer ano);
 
     @Query("""
-            select new ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardItemDTO(
+            select new ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO(
                 r.escola.aldeia.terraIndigena.municipio.nome,
                 count(distinct r.escola.id)
             )
@@ -93,7 +93,7 @@ public interface DashboardRepository extends Repository<RegistroAnual, Long> {
     List<DashboardItemDTO> buscarEscolasPorMunicipio(@Param("ano") Integer ano);
 
     @Query("""
-            select new ac.gov.br.sigei_backend.DTOs.response.dashboard.DashboardItemDTO(
+            select new ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO(
                 i.situacao,
                 count(i)
             )

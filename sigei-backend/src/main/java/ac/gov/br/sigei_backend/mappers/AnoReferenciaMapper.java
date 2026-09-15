@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.AnoReferenciaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.AnoReferenciaResponseDTO;
-import ac.gov.br.sigei_backend.DTOs.response.resumo.AnoReferenciaResumoDTO;
+import ac.gov.br.sigei_backend.dto.request.AnoReferenciaRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.AnoReferenciaResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.resumo.AnoReferenciaResumoDTO;
 import ac.gov.br.sigei_backend.models.AnoReferencia;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;

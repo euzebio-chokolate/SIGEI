@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.RegistroAnualRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.RegistroAnualResponseDTO;
-import ac.gov.br.sigei_backend.DTOs.response.resumo.RegistroAnualResumoDTO;
+import ac.gov.br.sigei_backend.dto.request.RegistroAnualRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.RegistroAnualResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.resumo.RegistroAnualResumoDTO;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

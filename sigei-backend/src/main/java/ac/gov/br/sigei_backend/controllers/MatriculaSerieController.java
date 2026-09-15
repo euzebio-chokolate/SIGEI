@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.MatriculaSerieRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.MatriculaSerieResponseDTO;
-import ac.gov.br.sigei_backend.services.MatriculaSerieService;
+import ac.gov.br.sigei_backend.dto.request.MatriculaSerieRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.MatriculaSerieResponseDTO;
+import ac.gov.br.sigei_backend.service.MatriculaSerieService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

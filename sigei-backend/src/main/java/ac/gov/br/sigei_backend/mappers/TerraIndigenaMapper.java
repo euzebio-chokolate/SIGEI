@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.TerraIndigenaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaResponseDTO;
-import ac.gov.br.sigei_backend.DTOs.response.resumo.TerraIndigenaResumoDTO;
+import ac.gov.br.sigei_backend.dto.request.TerraIndigenaRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.TerraIndigenaResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.resumo.TerraIndigenaResumoDTO;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

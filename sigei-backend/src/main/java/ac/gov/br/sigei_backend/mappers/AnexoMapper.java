@@ -1,7 +1,7 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.AnexoRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.AnexoResponseDTO;
+import ac.gov.br.sigei_backend.dto.request.AnexoRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.AnexoResponseDTO;
 import ac.gov.br.sigei_backend.models.Anexo;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

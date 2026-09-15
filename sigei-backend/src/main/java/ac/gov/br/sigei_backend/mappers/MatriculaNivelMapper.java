@@ -1,7 +1,7 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.MatriculaNivelRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.MatriculaNivelResponseDTO;
+import ac.gov.br.sigei_backend.dto.request.MatriculaNivelRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.MatriculaNivelResponseDTO;
 import ac.gov.br.sigei_backend.models.MatriculaNivel;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

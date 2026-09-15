@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.RegistroAnualRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.RegistroAnualResponseDTO;
-import ac.gov.br.sigei_backend.services.RegistroAnualService;
+import ac.gov.br.sigei_backend.dto.request.RegistroAnualRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.RegistroAnualResponseDTO;
+import ac.gov.br.sigei_backend.service.RegistroAnualService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

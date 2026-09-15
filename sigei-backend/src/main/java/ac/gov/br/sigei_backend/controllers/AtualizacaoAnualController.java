@@ -1,6 +1,6 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.services.AtualizacaoAnualService;
+import ac.gov.br.sigei_backend.service.AtualizacaoAnualService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

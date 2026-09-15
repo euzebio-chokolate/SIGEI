@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.AnexoRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.AnexoResponseDTO;
-import ac.gov.br.sigei_backend.services.AnexoService;
+import ac.gov.br.sigei_backend.dto.request.AnexoRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.AnexoResponseDTO;
+import ac.gov.br.sigei_backend.service.AnexoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

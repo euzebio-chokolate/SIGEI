@@ -1,9 +1,9 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.TerraIndigenaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaEstatisticaResponseDTO;
-import ac.gov.br.sigei_backend.DTOs.response.TerraIndigenaResponseDTO;
-import ac.gov.br.sigei_backend.services.TerraIndigenaService;
+import ac.gov.br.sigei_backend.dto.request.TerraIndigenaRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.TerraIndigenaEstatisticaResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.TerraIndigenaResponseDTO;
+import ac.gov.br.sigei_backend.service.TerraIndigenaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -1,7 +1,7 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.InfraestruturaEscolaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.InfraestruturaEscolaResponseDTO;
+import ac.gov.br.sigei_backend.dto.request.InfraestruturaEscolaRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.InfraestruturaEscolaResponseDTO;
 import ac.gov.br.sigei_backend.models.InfraestruturaEscola;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

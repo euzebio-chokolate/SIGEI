@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.MunicipioRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.MunicipioResponseDTO;
-import ac.gov.br.sigei_backend.DTOs.response.resumo.MunicipioResumoDTO;
+import ac.gov.br.sigei_backend.dto.request.MunicipioRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.MunicipioResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.resumo.MunicipioResumoDTO;
 import ac.gov.br.sigei_backend.models.Municipio;
 import org.mapstruct.Mapper;
 
