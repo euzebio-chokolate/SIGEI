@@ -1,9 +1,9 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.AldeiaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.AldeiaResponseDTO;
+import ac.gov.br.sigei_backend.dto.request.AldeiaRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.AldeiaResponseDTO;
 import ac.gov.br.sigei_backend.models.Aldeia;
-import ac.gov.br.sigei_backend.services.AldeiaService;
+import ac.gov.br.sigei_backend.service.AldeiaService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

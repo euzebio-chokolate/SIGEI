@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.AnoReferenciaRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.AnoReferenciaResponseDTO;
-import ac.gov.br.sigei_backend.services.AnoReferenciaService;
+import ac.gov.br.sigei_backend.dto.request.AnoReferenciaRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.AnoReferenciaResponseDTO;
+import ac.gov.br.sigei_backend.service.AnoReferenciaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

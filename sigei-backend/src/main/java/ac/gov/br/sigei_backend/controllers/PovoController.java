@@ -1,8 +1,8 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.PovoRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.PovoResponseDTO;
-import ac.gov.br.sigei_backend.services.PovoService;
+import ac.gov.br.sigei_backend.dto.request.PovoRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.PovoResponseDTO;
+import ac.gov.br.sigei_backend.service.PovoService;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

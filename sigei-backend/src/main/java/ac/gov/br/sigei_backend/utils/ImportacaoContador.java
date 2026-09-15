@@ -1,6 +1,6 @@
 package ac.gov.br.sigei_backend.utils;
 
-import ac.gov.br.sigei_backend.DTOs.ImportacaoResultadoDTO;
+import ac.gov.br.sigei_backend.dto.response.ImportacaoResultadoDTO;
 
 import java.util.ArrayList;
 import java.util.List;

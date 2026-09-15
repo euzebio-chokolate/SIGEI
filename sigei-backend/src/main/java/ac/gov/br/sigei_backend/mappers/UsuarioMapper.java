@@ -1,7 +1,7 @@
 package ac.gov.br.sigei_backend.mappers;
 
-import ac.gov.br.sigei_backend.DTOs.request.UsuarioRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.UsuarioResponseDTO;
+import ac.gov.br.sigei_backend.dto.request.UsuarioRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.UsuarioResponseDTO;
 import ac.gov.br.sigei_backend.models.Usuario;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

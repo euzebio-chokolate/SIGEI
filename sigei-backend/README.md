@@ -2,6 +2,29 @@
 
 API do SIGEI em Java 21, Spring Boot e PostgreSQL.
 
+## Organização do código
+
+Os pacotes em `src/main/java/ac/gov/br/sigei_backend` seguem uma estrutura por camadas:
+
+- `config`: configurações, com `security`, `cloudinary` e `initializer`.
+- `controllers`: endpoints HTTP, com subpacotes `auth`, `dashboard` e `importacao`.
+- `dto`: contratos de entrada em `request` e de saída em `response`; respostas especializadas em `dashboard`, `detalhe` e `resumo`.
+- `exceptions`: exceções da aplicação e tratamento HTTP em `handler`.
+- `mappers`: conversões entre entidades e DTOs.
+- `models`: entidades e enumerações em `enums`.
+- `repository`: acesso aos dados e projeções em `projection`.
+- `service`: regras de negócio, com subpacotes `auth`, `armazenamento` e `importacao`.
+- `utils`: auxiliares de Excel, coordenadas e contadores de importação.
+
+Os testes em `src/test/java` espelham os pacotes de produção. Use o sufixo
+`Test` para novas classes de teste, permitindo sua descoberta automática pelo
+Maven. Auxiliares exclusivos dos testes de repositório ficam em `repository`.
+Em testes com muitos cenários, agrupe as operações com `@Nested`, como em
+`RegistroAnualServiceTest`.
+
+Com Java 21 configurado, execute a suíte completa com `./mvnw clean test`
+(no PowerShell, `./mvnw.cmd clean test`).
+
 ## Execução com Docker
 
 ```bash

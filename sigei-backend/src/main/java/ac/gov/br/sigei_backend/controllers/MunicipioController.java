@@ -1,9 +1,9 @@
 package ac.gov.br.sigei_backend.controllers;
 
-import ac.gov.br.sigei_backend.DTOs.request.MunicipioRequestDTO;
-import ac.gov.br.sigei_backend.DTOs.response.MunicipioEstatisticaResponseDTO;
-import ac.gov.br.sigei_backend.DTOs.response.MunicipioResponseDTO;
-import ac.gov.br.sigei_backend.services.MunicipioService;
+import ac.gov.br.sigei_backend.dto.request.MunicipioRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.MunicipioEstatisticaResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.MunicipioResponseDTO;
+import ac.gov.br.sigei_backend.service.MunicipioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
