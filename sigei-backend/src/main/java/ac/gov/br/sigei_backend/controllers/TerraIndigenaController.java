@@ -6,6 +6,8 @@ import ac.gov.br.sigei_backend.dto.response.TerraIndigenaResponseDTO;
 import ac.gov.br.sigei_backend.service.TerraIndigenaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,11 +28,15 @@ public class TerraIndigenaController {
     TerraIndigenaService terraIndigenaService;
 
     @PostMapping("/salvar")
-    @Operation(
-            summary = "Salvar terra indígena", description = "Cadastra uma nova terra indígena")
+    @Operation(summary = "Salvar terra indígena",
+            description = "Cadastra um novo registro de terra indígena com os dados informados no corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Terra indígena cadastrada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos")
+            @ApiResponse(responseCode = "201", description = "Operação realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Registro relacionado não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito de integridade ou registro duplicado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
     public ResponseEntity<TerraIndigenaResponseDTO> salvar(@Valid @RequestBody TerraIndigenaRequestDTO terraIndigenaDTO) {
         TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.salvar(terraIndigenaDTO);
@@ -38,28 +44,41 @@ public class TerraIndigenaController {
     }
 
     @GetMapping
-    @Operation(summary = "Buscar terras indígenas", description = "Retorna todas as terras indígenas cadastradas")
-    @ApiResponse(
-            responseCode = "200",
-            description = "Lista de terras indígenas retornada com sucesso")
+    @Operation(summary = "Buscar terras indígenas",
+            description = "Retorna todos os registros de terras indígenas. Retorna uma lista vazia quando não há cadastros. Requer perfil ADMIN ou USUARIO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
+    })
     public ResponseEntity<List<TerraIndigenaResponseDTO>> buscar() {
         List<TerraIndigenaResponseDTO> terrasIndigenas = terraIndigenaService.buscarTudo();
         return new ResponseEntity<>(terrasIndigenas, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Buscar terra indígena por ID", description = "Retorna os detalhes de uma terra indígena específica através do seu ID")
+    @Operation(summary = "Buscar terra indígena por ID",
+            description = "Retorna os detalhes de terra indígena correspondente ao ID informado. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Terra indígena encontrada com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Terra indígena não encontrada")
+            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID em formato inválido", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
     public ResponseEntity<TerraIndigenaResponseDTO> buscarPorId(@Parameter(description = "ID da terra indígena", example = "1") @PathVariable Long id) {
         TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.buscarPorId(id);
         return new ResponseEntity<>(terraIndigenaResponseDTO, HttpStatus.OK);
     }
 
-
     @GetMapping("/estatisticas")
+    @Operation(summary = "Buscar estatísticas das terras indígenas",
+            description = "Retorna o município e a quantidade de aldeias e escolas por terra indígena. Requer perfil ADMIN ou USUARIO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
+    })
     public ResponseEntity<List<TerraIndigenaEstatisticaResponseDTO>> buscarEstatisticas() {
 
         List<TerraIndigenaEstatisticaResponseDTO> terras =
@@ -72,11 +91,16 @@ public class TerraIndigenaController {
     }
 
     @PutMapping("/editar")
-    @Operation(summary = "Editar terra indígena", description = "Atualiza os dados de uma terra indígena")
+    @Operation(summary = "Editar terra indígena",
+            description = "Atualiza os dados de terra indígena identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Terra indígena atualizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "404", description = "Terra indígena não encontrada")})
+            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Registro ou relacionamento informado não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito de integridade na atualização", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
+    })
 
     public ResponseEntity<TerraIndigenaResponseDTO> editar(@RequestBody TerraIndigenaRequestDTO terraIndigenaDTO) {
         TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.editar(terraIndigenaDTO);
@@ -84,10 +108,15 @@ public class TerraIndigenaController {
     }
 
     @DeleteMapping("/excluir/{id}")
-    @Operation(summary = "Excluir terra indígena", description = "Remove uma terra indígena pelo ID")
+    @Operation(summary = "Excluir terra indígena",
+            description = "Remove o registro de terra indígena pelo ID. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Terra indígena excluída com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Terra indígena não encontrada")
+            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso", content = @Content),
+            @ApiResponse(responseCode = "400", description = "ID em formato inválido", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "409", description = "O registro possui vínculos que impedem a exclusão", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
     public ResponseEntity<Void> excluir(@Parameter(description = "ID da terra indígena", example = "1") @PathVariable Long id) {
         terraIndigenaService.excluir(id);
