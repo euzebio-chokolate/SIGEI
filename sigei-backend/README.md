@@ -2,6 +2,26 @@
 
 API do SIGEI em Java 21, Spring Boot e PostgreSQL.
 
+## Documentação
+
+- API HTTP: Swagger em `/swagger-ui.html` e OpenAPI em `/v3/api-docs` com a aplicação em execução.
+- [Banco de dados](docs/BANCO_DE_DADOS.md): diagrama de relacionamentos, dicionário das 13 tabelas, chaves, nulabilidade e cascatas, com base nas entidades JPA.
+- [Modelo ER gerado automaticamente](docs/MODELO_ER.md): tabelas, colunas e relacionamentos extraídos das entidades JPA.
+
+Para atualizar o modelo ER após alterar as entidades, execute na raiz:
+
+```powershell
+.\scripts\gerar-modelo-er.ps1
+# Apenas verificar se o arquivo versionado está atualizado:
+.\scripts\gerar-modelo-er.ps1 -Check
+```
+
+O gerador usa PowerShell, sem iniciar a API ou acessar o banco. O arquivo contém
+Mermaid para visualização em um renderizador compatível. É um extrator dos
+mapeamentos usados neste projeto, não um interpretador completo de JPA:
+herança, chaves compostas, tabelas de junção e estratégias de nomes personalizadas
+exigem ampliar o script. A geração é executada pelo comando, não pelo build Maven.
+
 ## Organização do código
 
 Os pacotes em `src/main/java/ac/gov/br/sigei_backend` seguem uma estrutura por camadas:
