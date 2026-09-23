@@ -29,5 +29,7 @@ export const SERIES_MATRICULA: readonly SerieMatriculaConfig[] = [
   { denominacao: '9º ANO', etapaEnsino: 'FUNDAMENTAL_ANOS_FINAIS' },
   { denominacao: '1ª SÉRIE', etapaEnsino: 'ENSINO_MEDIO' },
   { denominacao: '2ª SÉRIE', etapaEnsino: 'ENSINO_MEDIO' },
-  { denominacao: '3ª SÉRIE', etapaEnsino: 'ENSINO_MEDIO' }
+  { denominacao: '3ª SÉRIE', etapaEnsino: 'ENSINO_MEDIO' },
+  { denominacao: 'CICLO 1', etapaEnsino: 'EJA' },
+  { denominacao: 'CICLO 2', etapaEnsino: 'EJA' }
 ];
