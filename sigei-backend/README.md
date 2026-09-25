@@ -5,6 +5,7 @@ API do SIGEI em Java 21, Spring Boot e PostgreSQL.
 ## Documentação
 
 - API HTTP: Swagger em `/swagger-ui.html` e OpenAPI em `/v3/api-docs` com a aplicação em execução.
+- [Histórico anual das escolas](docs/HISTORICO_ESCOLAS.md): cadastro retroativo, consulta por período e integração com gráficos.
 - [Banco de dados](docs/BANCO_DE_DADOS.md): diagrama de relacionamentos, dicionário das 13 tabelas, chaves, nulabilidade e cascatas, com base nas entidades JPA.
 - [Modelo ER gerado automaticamente](docs/MODELO_ER.md): tabelas, colunas e relacionamentos extraídos das entidades JPA.
 

@@ -9,6 +9,7 @@ public record RegistroAnualResponseDTO(
         AnoReferenciaResumoDTO anoReferencia,
         String rede,
         String localFuncionamento,
+        Integer totalAlunos,
         EquipeEscolaResponseDTO equipe,
         InfraestruturaEscolaResponseDTO infraestrutura,
         List<MatriculaNivelResponseDTO>matriculasNivel,

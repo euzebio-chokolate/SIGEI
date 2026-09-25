@@ -48,7 +48,7 @@ class RegistroAnualServiceTest {
 
         @Test
         void deveSalvarRegistroAnualComSucesso() {
-            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2L, "Estadual", "Urbana");
+            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2L, "Estadual", "Urbana", null);
 
             Escola escola = new Escola();
             escola.setId(1L);
@@ -78,7 +78,7 @@ class RegistroAnualServiceTest {
 
         @Test
         void deveLancarExcecaoAoSalvarComEscolaInvalida() {
-            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 99L, 2L, "Estadual", "Urbana");
+            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 99L, 2L, "Estadual", "Urbana", null);
 
             when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -91,7 +91,7 @@ class RegistroAnualServiceTest {
 
         @Test
         void deveLancarExcecaoAoSalvarComAnoReferenciaInvalido() {
-            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 99L, "Estadual", "Urbana");
+            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 99L, "Estadual", "Urbana", null);
             Escola escola = new Escola();
             escola.setId(1L);
 
@@ -106,7 +106,7 @@ class RegistroAnualServiceTest {
 
         @Test
         void deveLancarExcecaoAoSalvarRegistroDuplicado() {
-            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2L, "Estadual", "Urbana");
+            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2L, "Estadual", "Urbana", null);
 
             Escola escola = new Escola();
             escola.setId(1L);
@@ -212,7 +212,7 @@ class RegistroAnualServiceTest {
 
         @Test
         void deveEditarRegistroAnualComSucesso() {
-            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(1L, 2L, 3L, "Estadual", "Urbana");
+            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(1L, 2L, 3L, "Estadual", "Urbana", null);
 
             RegistroAnual registroExistente = new RegistroAnual();
             registroExistente.setId(1L);
@@ -244,7 +244,7 @@ class RegistroAnualServiceTest {
 
         @Test
         void deveLancarExcecaoAoEditarRegistroInexistente() {
-            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(99L, 1L, 2L, "Estadual", "Urbana");
+            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(99L, 1L, 2L, "Estadual", "Urbana", null);
             when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
 
             NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.editar(requestDTO));

@@ -69,6 +69,25 @@ public class RegistroAnualController {
         return new ResponseEntity<>(registro, HttpStatus.OK);
     }
 
+    @GetMapping("/historico")
+    @Operation(summary = "Consultar histórico da escola",
+            description = "Retorna os registros da escola em ordem crescente de ano, incluindo total de alunos, "
+                    + "matrículas, equipe e infraestrutura. Os limites do período são opcionais e inclusivos. "
+                    + "Anos sem registro não são incluídos. Requer perfil ADMIN ou USUARIO.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Histórico encontrado; lista vazia quando não há registros no período"),
+            @ApiResponse(responseCode = "400", description = "ID ou período inválido", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Escola não encontrada", content = @Content),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão", content = @Content)
+    })
+    public ResponseEntity<List<RegistroAnualResponseDTO>> buscarHistorico(
+            @Parameter(description = "ID da escola", example = "1") @RequestParam Long escolaId,
+            @Parameter(description = "Primeiro ano do período", example = "1990") @RequestParam(required = false) Integer anoInicial,
+            @Parameter(description = "Último ano do período", example = "2026") @RequestParam(required = false) Integer anoFinal) {
+        return ResponseEntity.ok(registroAnualService.buscarHistorico(escolaId, anoInicial, anoFinal));
+    }
+
     @GetMapping("/buscarPorAno")
     @Operation(summary = "Buscar registros anuais por ano",
             description = "Retorna os registros de registros anuais do ano informado. Retorna uma lista vazia quando não há resultados. Requer perfil ADMIN ou USUARIO.")
