@@ -7,6 +7,7 @@ import ac.gov.br.sigei_backend.models.RegistroAnual;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
 
 @Mapper(
         componentModel = "spring",
@@ -29,6 +30,7 @@ public interface RegistroAnualMapper {
     RegistroAnual converter(RegistroAnualRequestDTO dto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "totalAlunos", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "escola", ignore = true)
     @Mapping(target = "anoReferencia", ignore = true)
     void atualizar(RegistroAnualRequestDTO dto,

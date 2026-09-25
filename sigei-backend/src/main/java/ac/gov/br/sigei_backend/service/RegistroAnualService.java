@@ -75,6 +75,25 @@ public class RegistroAnualService {
         return registroAnualMapper.converter(registro);
     }
 
+    public List<RegistroAnualResponseDTO> buscarHistorico(Long escolaId, Integer anoInicial, Integer anoFinal) {
+        if (escolaId == null || escolaId <= 0) {
+            throw new IllegalArgumentException("ID da escola deve ser positivo");
+        }
+        if ((anoInicial != null && anoInicial <= 0) || (anoFinal != null && anoFinal <= 0)) {
+            throw new IllegalArgumentException("Os anos do período devem ser positivos");
+        }
+        if (anoInicial != null && anoFinal != null && anoInicial > anoFinal) {
+            throw new IllegalArgumentException("Ano inicial não pode ser maior que o ano final");
+        }
+        if (!escolaRepository.existsById(escolaId)) {
+            throw new NoSuchElementException("Escola não encontrada");
+        }
+        return registroAnualRepository.buscarHistorico(escolaId, anoInicial, anoFinal)
+                .stream()
+                .map(registroAnualMapper::converter)
+                .toList();
+    }
+
     public List<RegistroAnualResponseDTO> buscarPorAno(Integer ano) {
 
         return registroAnualRepository
