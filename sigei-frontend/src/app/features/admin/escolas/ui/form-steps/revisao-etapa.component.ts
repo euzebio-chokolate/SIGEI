@@ -27,6 +27,7 @@ export class RevisaoEtapaComponent {
     anoReferenciaId: number;
     rede: string;
     localFuncionamento: string;
+    totalAlunos: number | null;
   };
 
   @Input({ required: true })

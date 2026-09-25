@@ -14,4 +14,8 @@ export class AnoReferenciaService {
   listar(): Observable<AnoReferencia[]> {
     return this.http.get<AnoReferencia[]>(this.apiUrl);
   }
+
+  salvar(ano: number): Observable<AnoReferencia> {
+    return this.http.post<AnoReferencia>(`${this.apiUrl}/salvar`, { ano });
+  }
 }

@@ -99,6 +99,7 @@ export interface RegistroAnualDetalhe {
   anoReferencia: AnoReferenciaResumo;
   rede: string;
   localFuncionamento: string;
+  totalAlunos: number | null;
   equipe: EquipeEscola | null;
   infraestrutura: InfraestruturaEscolaDetalhe | null;
   matriculasNivel: MatriculaNivel[];

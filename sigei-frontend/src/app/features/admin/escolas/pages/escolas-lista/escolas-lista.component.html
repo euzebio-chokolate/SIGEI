@@ -177,6 +177,9 @@
                   <button type="button" (click)="abrirDetalhes(escola)" [disabled]="visualizandoId !== null" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 disabled:opacity-50 transition-all" title="Ver detalhes">
                     <i class="fa-solid text-xs" [class.fa-eye]="visualizandoId !== escola.id" [class.fa-circle-notch]="visualizandoId === escola.id" [class.animate-spin]="visualizandoId === escola.id"></i>
                   </button>
+                  <a [routerLink]="['/admin/historico-escolas']" [queryParams]="{ escolaId: escola.id }" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-amber-600 hover:bg-amber-50 transition-all" title="Histórico por ano">
+                    <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+                  </a>
                   <a [routerLink]="['/admin/escolas/editar', escola.id]" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Editar">
                     <i class="fa-solid fa-pen-to-square text-xs"></i>
                   </a>

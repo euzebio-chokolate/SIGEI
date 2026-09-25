@@ -12,9 +12,36 @@
   <!-- Cabeçalho -->
   <div>
     <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Histórico de Escolas</h1>
-    <p class="text-sm text-slate-500 mt-1">Consulte os dados das escolas por ano de referência.</p>
+    <p class="text-sm text-slate-500 mt-1">Consulte os dados das escolas por ano de referência ou a evolução de uma escola ao longo dos anos.</p>
   </div>
 
+  <!-- Modo de consulta -->
+  <div class="inline-flex p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
+    <button
+      type="button"
+      (click)="alterarModo('ano')"
+      class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+      [class.bg-emerald-600]="modo === 'ano'"
+      [class.text-white]="modo === 'ano'"
+      [class.text-slate-500]="modo !== 'ano'"
+    >
+      <i class="fa-solid fa-calendar mr-1.5 text-xs"></i>
+      Por ano
+    </button>
+    <button
+      type="button"
+      (click)="alterarModo('escola')"
+      class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+      [class.bg-emerald-600]="modo === 'escola'"
+      [class.text-white]="modo === 'escola'"
+      [class.text-slate-500]="modo !== 'escola'"
+    >
+      <i class="fa-solid fa-school mr-1.5 text-xs"></i>
+      Por escola
+    </button>
+  </div>
+
+  @if (modo === 'ano') {
   <!-- Filtros -->
   <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,7 +162,11 @@
 
                 <!-- Total -->
                 <td class="px-6 py-4">
-                  <span class="font-bold text-slate-800">{{ obterTotalAlunos(registro) }}</span>
+                  @if (obterTotalAlunos(registro) !== null) {
+                    <span class="font-bold text-slate-800">{{ obterTotalAlunos(registro) }}</span>
+                  } @else {
+                    <span class="text-xs text-slate-400">Não informado</span>
+                  }
                 </td>
 
                 <!-- Ação -->
@@ -195,10 +226,201 @@
       {{ erroMensagem }}
     </div>
   }
+  }
+
+  @if (modo === 'escola') {
+    <!-- Filtros por escola -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+      <form (ngSubmit)="consultarHistorico()" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div class="md:col-span-2">
+          <label for="escola" class="block text-xs font-semibold text-slate-700 mb-1.5">Escola</label>
+          <select
+            id="escola"
+            name="escola"
+            [(ngModel)]="escolaSelecionadaId"
+            (ngModelChange)="aoSelecionarEscola()"
+            class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+          >
+            <option [ngValue]="0">Selecione a escola...</option>
+            @for (escola of escolas; track escola.id) {
+              <option [ngValue]="escola.id">{{ escola.nome }} ({{ escola.codigo }})</option>
+            }
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="anoInicial" class="block text-xs font-semibold text-slate-700 mb-1.5">De</label>
+            <input
+              id="anoInicial"
+              name="anoInicial"
+              type="number"
+              min="1900"
+              [(ngModel)]="anoInicial"
+              placeholder="Ano"
+              class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            />
+          </div>
+          <div>
+            <label for="anoFinal" class="block text-xs font-semibold text-slate-700 mb-1.5">Até</label>
+            <input
+              id="anoFinal"
+              name="anoFinal"
+              type="number"
+              min="1900"
+              [(ngModel)]="anoFinal"
+              placeholder="Ano"
+              class="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="!escolaSelecionadaId || carregandoHistorico"
+          class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
+        >
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          Consultar
+        </button>
+      </form>
+    </div>
+
+    @if (erroHistorico) {
+      <div class="p-4 rounded-xl bg-rose-50 border border-rose-100 text-sm text-rose-600">
+        {{ erroHistorico }}
+      </div>
+    }
+
+    @if (!escolaSelecionadaId) {
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-10 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+          <i class="fa-solid fa-school text-xl"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-700 mt-4">Selecione uma escola</h3>
+        <p class="text-sm text-slate-400 mt-1">Veja todos os anos registrados da escola e cadastre dados de anos anteriores.</p>
+      </div>
+    }
+
+    @if (escolaSelecionadaId && carregandoHistorico) {
+      <div class="bg-white rounded-2xl border border-slate-200 p-8 text-center">
+        <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
+        <p class="text-sm text-slate-500 mt-2">Carregando histórico...</p>
+      </div>
+    }
+
+    @if (escolaSelecionadaId && historicoConsultado && !carregandoHistorico) {
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <!-- Cabeçalho -->
+        <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p class="font-bold text-slate-800">{{ escolaSelecionada?.nome ?? 'Escola' }}</p>
+            <p class="text-xs text-slate-400 mt-0.5">
+              {{ historico.length }} {{ historico.length === 1 ? 'ano registrado' : 'anos registrados' }}
+              @if (historico.length > 0) {
+                · de {{ historico[0].anoReferencia.ano }} a {{ historico[historico.length - 1].anoReferencia.ano }}
+              }
+            </p>
+          </div>
+
+          <a
+            data-admin-action
+            [routerLink]="['/admin/escolas/editar', escolaSelecionadaId]"
+            [queryParams]="{ novoAno: true }"
+            class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
+          >
+            <i class="fa-solid fa-calendar-plus text-xs"></i>
+            Cadastrar ano anterior
+          </a>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50/80 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100">
+                <th class="px-6 py-3.5">Ano</th>
+                <th class="px-6 py-3.5">Rede</th>
+                <th class="px-6 py-3.5">Funcionamento</th>
+                <th class="px-6 py-3.5 min-w-56">Total de Alunos</th>
+                <th class="px-6 py-3.5">Salas</th>
+                <th class="px-6 py-3.5 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+              @for (registro of historico; track registro.id) {
+                <tr class="hover:bg-slate-50/60 transition-colors">
+                  <td class="px-6 py-4">
+                    <span class="inline-flex px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 text-xs font-semibold">
+                      {{ registro.anoReferencia.ano }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 font-semibold text-slate-600">{{ registro.rede }}</td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">
+                      {{ registro.localFuncionamento }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4">
+                    @if (obterTotalAlunos(registro) !== null) {
+                      <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-800 w-12 tabular-nums">{{ obterTotalAlunos(registro) }}</span>
+                        <div class="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+                          <div class="h-full rounded-full bg-emerald-500" [style.width.%]="larguraBarra(registro)"></div>
+                        </div>
+                      </div>
+                    } @else {
+                      <span class="text-xs text-slate-400">Não informado</span>
+                    }
+                  </td>
+                  <td class="px-6 py-4">{{ registro.infraestrutura?.numSalas ?? '-' }}</td>
+                  <td class="px-6 py-4 text-right whitespace-nowrap">
+                    <button
+                      type="button"
+                      (click)="abrirDetalhes(registro)"
+                      class="w-9 h-9 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all"
+                      title="Ver detalhes"
+                    >
+                      <i class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                    <a
+                      [routerLink]="['/admin/escolas/editar', escolaSelecionadaId]"
+                      [queryParams]="{ ano: registro.anoReferencia.ano }"
+                      class="w-9 h-9 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                      title="Editar dados deste ano"
+                    >
+                      <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    </a>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="px-6 py-10 text-center text-slate-400">
+                    Nenhum registro encontrado para esta escola no período.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (anosSemRegistro.length > 0) {
+          <div class="px-6 py-4 border-t border-slate-100 bg-amber-50/40">
+            <p class="text-xs font-semibold text-amber-700">
+              <i class="fa-solid fa-circle-info mr-1"></i>
+              Anos sem registro no intervalo ({{ anosSemRegistro.length }}):
+            </p>
+            <p class="text-xs text-amber-700/80 mt-1 leading-relaxed">{{ anosSemRegistro.join(', ') }}</p>
+          </div>
+        }
+      </div>
+    }
+  }
 
   <app-historico-escola-modal
     [aberto]="registroSelecionado !== null"
     [registro]="registroSelecionado"
+    [nomeEscola]="modo === 'escola' ? (escolaSelecionada?.nome ?? null) : null"
+    [codigoEscola]="modo === 'escola' ? (escolaSelecionada?.codigo ?? null) : null"
     (fechar)="fecharDetalhes()"
   />
 </div>
