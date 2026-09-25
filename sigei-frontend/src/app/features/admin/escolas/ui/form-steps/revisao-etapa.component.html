@@ -65,7 +65,7 @@
         Registro Anual
       </h3>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
         <div>
           <p class="text-xs text-slate-400">
             Ano de Referência
@@ -90,6 +90,15 @@
           </p>
           <p class="font-semibold text-slate-700 mt-1">
             {{ registro.localFuncionamento }}
+          </p>
+        </div>
+
+        <div>
+          <p class="text-xs text-slate-400">
+            Total de Alunos no Ano
+          </p>
+          <p class="font-semibold text-slate-700 mt-1">
+            {{ registro.totalAlunos ?? (totalMatriculas > 0 ? totalMatriculas : 'Não informado') }}
           </p>
         </div>
       </div>

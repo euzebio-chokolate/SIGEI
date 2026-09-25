@@ -22,8 +22,23 @@ export class HistoricoEscolaModalComponent {
   @Input()
   registro: RegistroAnualResponse | null = null;
 
+  /** Usados quando o registro do ano não tem infraestrutura (comum em anos anteriores). */
+  @Input()
+  nomeEscola: string | null = null;
+
+  @Input()
+  codigoEscola: string | null = null;
+
   @Output()
   fechar = new EventEmitter<void>();
+
+  get nome(): string {
+    return this.registro?.infraestrutura?.escola?.nome ?? this.nomeEscola ?? '-';
+  }
+
+  get codigo(): string {
+    return this.registro?.infraestrutura?.escola?.codigo ?? this.codigoEscola ?? '-';
+  }
 
   fecharModal(): void {
     this.fechar.emit();
@@ -33,7 +48,11 @@ export class HistoricoEscolaModalComponent {
     return valor ? 'Sim' : 'Não';
   }
 
-  obterTotalGeral(): number {
+  obterTotalGeral(): number | string {
+
+    if (this.registro?.totalAlunos !== null && this.registro?.totalAlunos !== undefined) {
+      return this.registro.totalAlunos;
+    }
 
     const total =
       this.registro?.matriculasNivel
@@ -42,7 +61,7 @@ export class HistoricoEscolaModalComponent {
             item.nivel === 'TOTAL_GERAL'
         );
 
-    return total?.total ?? 0;
+    return total?.total ?? 'Não informado';
   }
 
   formatarNivel(nivel: string): string {

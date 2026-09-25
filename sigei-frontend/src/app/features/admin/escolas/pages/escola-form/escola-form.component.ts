@@ -1,19 +1,21 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { forkJoin, map, of, switchMap } from 'rxjs';
+import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, filter, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { EscolaResponse, EscolaService } from '@domains/escolas/data-access/escola.service';
 import { AldeiaResponse, AldeiaService } from '@domains/territorios/data-access/aldeia.service';
 import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
-import { RegistroAnualService } from '@domains/escolas/data-access/registro-anual.service';
+import { RegistroAnualResponse, RegistroAnualService } from '@domains/escolas/data-access/registro-anual.service';
+import { RegistroAnualDetalhe } from '@domains/escolas/models/escola.models';
 import { EquipeEscolaService } from '@domains/escolas/data-access/equipe-escola.service';
 import { InfraestruturaService } from '@domains/escolas/data-access/infraestrutura.service';
 import { MatriculaNivelService } from '@domains/escolas/data-access/matricula-nivel.service';
 import { MatriculaSerieService } from '@domains/escolas/data-access/matricula-serie.service';
 
 import { EscolaEtapaComponent } from '@features/admin/escolas/ui/form-steps/escola-etapa.component';
-import { RegistroAnualEtapaComponent } from '@features/admin/escolas/ui/form-steps/registro-anual-etapa.component';
+import { RegistroAnualEtapaComponent, StatusAnoRegistro } from '@features/admin/escolas/ui/form-steps/registro-anual-etapa.component';
 import { EquipeEtapaComponent } from '@features/admin/escolas/ui/form-steps/equipe-etapa.component';
 import { InfraestruturaEtapaComponent } from '@features/admin/escolas/ui/form-steps/infraestrutura-etapa.component';
 import { MatriculasNivelEtapaComponent } from '@features/admin/escolas/ui/form-steps/matriculas-nivel-etapa.component';
@@ -53,6 +55,7 @@ export class EscolaFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   etapaAtual = 1;
   salvando = false;
@@ -62,6 +65,14 @@ export class EscolaFormComponent implements OnInit {
   editando = false;
   escolaId: number | null = null;
   carregandoEdicao = false;
+
+  // Estado do ano selecionado na edição: permite cadastrar/editar anos anteriores
+  statusAno: StatusAnoRegistro = null;
+  salvandoAno = false;
+  erroNovoAno = '';
+  private escolaCarregada = false;
+  private anoPendente: number | null = null;
+  private voltarParaHistorico = false;
 
   registroAnualId: number | null = null;
   equipeId: number | null = null;
@@ -97,7 +108,8 @@ export class EscolaFormComponent implements OnInit {
   registroForm = this.fb.nonNullable.group({
     anoReferenciaId: [0, [Validators.required, Validators.min(1)]],
     rede: ['', Validators.required],
-    localFuncionamento: ['', Validators.required]
+    localFuncionamento: ['', Validators.required],
+    totalAlunos: this.fb.control<number | null>(null, Validators.min(0))
   });
 
   equipeForm = this.fb.nonNullable.group({
@@ -162,9 +174,22 @@ export class EscolaFormComponent implements OnInit {
     if (idParam) {
       const id = Number(idParam);
       if (!Number.isNaN(id)) {
+        // ?ano=1990 abre o registro daquele ano; ?novoAno=true inicia o cadastro de um ano anterior
+        const query = this.route.snapshot.queryParamMap;
+        const anoParam = Number(query.get('ano')) || null;
+        const novoAno = query.get('novoAno') === 'true';
+
         this.editando = true;
         this.escolaId = id;
-        this.carregarEscolaParaEdicao(id);
+        this.anoPendente = anoParam;
+        this.voltarParaHistorico = !!anoParam || novoAno;
+
+        if (this.voltarParaHistorico) {
+          this.etapaAtual = 2;
+        }
+
+        this.observarTrocaDeAno();
+        this.carregarEscolaParaEdicao(id, novoAno);
       }
     }
   }
@@ -186,7 +211,7 @@ export class EscolaFormComponent implements OnInit {
     return this.matriculasSerieForm.controls.matriculas;
   }
 
-  carregarEscolaParaEdicao(id: number): void {
+  carregarEscolaParaEdicao(id: number, novoAno = false): void {
     this.carregandoEdicao = true;
     this.erroMensagem = '';
 
@@ -202,91 +227,21 @@ export class EscolaFormComponent implements OnInit {
 
         this.aoAlterarTipoUnidade();
 
-        if (!escola.registroAnual) {
-          this.carregandoEdicao = false;
-          this.cdr.markForCheck();
-          return;
-        }
-
         const registro = escola.registroAnual;
-        this.registroAnualId = registro.id;
 
-        this.registroForm.patchValue({
-          anoReferenciaId: registro.anoReferencia?.id ?? 0,
-          rede: registro.rede ?? '',
-          localFuncionamento: registro.localFuncionamento ?? ''
-        });
-
-        if (registro.equipe) {
-          this.equipeId = registro.equipe.id;
-          this.equipeForm.patchValue({
-            temProfessorResponsavel: registro.equipe.temProfessorResponsavel,
-            temEquipeGestora: registro.equipe.temEquipeGestora,
-            temMerendeira: registro.equipe.temMerendeira,
-            temZeladora: registro.equipe.temZeladora,
-            temBarqueiro: registro.equipe.temBarqueiro,
-            necessitaTransporte: registro.equipe.necessitaTransporte
-          });
+        if (registro && (novoAno || this.anoPendente)) {
+          // Outro ano será carregado/criado: reaproveita apenas rede e local como sugestão
+          this.registroForm.patchValue({
+            rede: registro.rede ?? '',
+            localFuncionamento: registro.localFuncionamento ?? ''
+          }, { emitEvent: false });
+        } else if (registro) {
+          this.aplicarRegistro(registro);
+          this.statusAno = 'existente';
         }
 
-        if (registro.infraestrutura) {
-          this.fotoUrlAtual = registro.infraestrutura.fotoUrl ?? null;
-          this.infraestruturaId = registro.infraestrutura.id;
-
-          this.infraestruturaForm.patchValue({
-            anoConstrucao: registro.infraestrutura.anoConstrucao,
-            numSalas: registro.infraestrutura.numSalas,
-            latitude: registro.infraestrutura.latitude,
-            longitude: registro.infraestrutura.longitude,
-            situacao: registro.infraestrutura.situacao ?? '',
-            tipoAcesso: registro.infraestrutura.tipoAcesso ?? '',
-            temPredio: registro.infraestrutura.temPredio,
-            tipoAgua: registro.infraestrutura.tipoAgua ?? '',
-            temInternet: registro.infraestrutura.temInternet,
-            tipoEnergia: registro.infraestrutura.tipoEnergia ?? '',
-            temRegistroFotografico: registro.infraestrutura.temRegistroFotografico
-          });
-        }
-
-        this.matriculasNivelIds.clear();
-        const totalGeralExistente = registro.matriculasNivel?.find(item => item.nivel === 'TOTAL_GERAL');
-
-        if (totalGeralExistente) {
-          this.matriculasNivelIds.set('TOTAL_GERAL', totalGeralExistente.id);
-        }
-
-        for (const grupo of this.matriculasNivel.controls) {
-          const nivel = grupo.controls.nivel.value;
-          const encontrada = registro.matriculasNivel?.find(item => item.nivel === nivel);
-
-          if (encontrada) {
-            this.matriculasNivelIds.set(nivel, encontrada.id);
-            grupo.patchValue({
-              qtdMasculino: encontrada.qtdMasculino,
-              qtdFeminino: encontrada.qtdFeminino
-            });
-          }
-        }
-
-        this.matriculasSerieIds.clear();
-
-        for (const grupo of this.matriculasSerie.controls) {
-          const denominacao = grupo.controls.denominacao.value;
-          const etapaEnsino = grupo.controls.etapaEnsino.value;
-          const encontrada = registro.matriculasSerie?.find(
-            item => item.denominacao === denominacao && item.etapaEnsino === etapaEnsino
-          );
-
-          if (encontrada) {
-            const chave = `${denominacao}|${etapaEnsino}`;
-            this.matriculasSerieIds.set(chave, encontrada.id);
-            grupo.patchValue({
-              qtdMasculino: encontrada.qtdMasculino,
-              qtdFeminino: encontrada.qtdFeminino
-            });
-          }
-        }
-
+        this.escolaCarregada = true;
+        this.selecionarAnoPendente();
         this.carregandoEdicao = false;
         this.cdr.markForCheck();
       },
@@ -297,6 +252,217 @@ export class EscolaFormComponent implements OnInit {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  /**
+   * Na edição, trocar o ano carrega o registro daquele ano (ou prepara um novo),
+   * em vez de mover o registro atual para outro ano.
+   */
+  private observarTrocaDeAno(): void {
+    this.registroForm.controls.anoReferenciaId.valueChanges.pipe(
+      filter(() => this.escolaId !== null),
+      tap(() => this.limparIdsAnuais()),
+      switchMap(anoReferenciaId => this.buscarRegistroDoAno(anoReferenciaId)),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(registro => {
+      if (registro) {
+        this.aplicarRegistro(registro);
+        this.statusAno = 'existente';
+      } else if (this.statusAno === 'carregando') {
+        this.limparDadosAnuais();
+        this.statusAno = 'novo';
+      }
+      this.cdr.markForCheck();
+    });
+  }
+
+  private buscarRegistroDoAno(anoReferenciaId: number): Observable<RegistroAnualResponse | null> {
+    const ano = this.anosReferencia.find(item => item.id === anoReferenciaId)?.ano;
+
+    if (!ano || this.escolaId === null) {
+      this.limparDadosAnuais();
+      this.statusAno = null;
+      return EMPTY;
+    }
+
+    this.statusAno = 'carregando';
+    this.erroAnos = '';
+    this.cdr.markForCheck();
+
+    return this.registroAnualService.buscarPorEscolaEAno(this.escolaId, ano).pipe(
+      catchError(erro => {
+        if (erro?.status === 404) return of(null);
+
+        console.error('Erro ao carregar registro do ano:', erro);
+        // Sem saber se o ano já tem registro, não é seguro salvar: força nova seleção
+        this.limparDadosAnuais();
+        this.statusAno = null;
+        this.registroForm.controls.anoReferenciaId.setValue(0, { emitEvent: false });
+        this.erroAnos = `Não foi possível carregar os dados de ${ano}. Tente novamente.`;
+        this.cdr.markForCheck();
+        return EMPTY;
+      })
+    );
+  }
+
+  private selecionarAnoPendente(): void {
+    if (!this.anoPendente || !this.escolaCarregada || this.anosReferencia.length === 0) return;
+
+    const anoReferencia = this.anosReferencia.find(item => item.ano === this.anoPendente);
+    this.anoPendente = null;
+
+    if (anoReferencia) {
+      this.registroForm.controls.anoReferenciaId.setValue(anoReferencia.id);
+    }
+  }
+
+  private limparIdsAnuais(): void {
+    this.registroAnualId = null;
+    this.equipeId = null;
+    this.infraestruturaId = null;
+    this.matriculasNivelIds.clear();
+    this.matriculasSerieIds.clear();
+  }
+
+  /** Limpa os dados do ano, mantendo escola, ano, rede e local selecionados. */
+  private limparDadosAnuais(): void {
+    this.limparIdsAnuais();
+
+    this.registroForm.controls.totalAlunos.reset(null);
+    this.equipeForm.reset();
+    this.infraestruturaForm.reset();
+
+    for (const grupo of this.matriculasNivel.controls) {
+      grupo.patchValue({ qtdMasculino: null, qtdFeminino: null });
+    }
+
+    for (const grupo of this.matriculasSerie.controls) {
+      grupo.patchValue({ qtdMasculino: null, qtdFeminino: null });
+    }
+
+    this.fotoEscola = null;
+    this.fotoUrlAtual = null;
+    this.fotoAtualRemovida = false;
+  }
+
+  private aplicarRegistro(registro: RegistroAnualDetalhe | RegistroAnualResponse): void {
+    this.limparDadosAnuais();
+    this.registroAnualId = registro.id;
+
+    this.registroForm.patchValue({
+      anoReferenciaId: registro.anoReferencia?.id ?? 0,
+      rede: registro.rede ?? '',
+      localFuncionamento: registro.localFuncionamento ?? '',
+      totalAlunos: registro.totalAlunos ?? null
+    }, { emitEvent: false });
+
+    if (registro.equipe) {
+      this.equipeId = registro.equipe.id;
+      this.equipeForm.patchValue({
+        temProfessorResponsavel: registro.equipe.temProfessorResponsavel,
+        temEquipeGestora: registro.equipe.temEquipeGestora,
+        temMerendeira: registro.equipe.temMerendeira,
+        temZeladora: registro.equipe.temZeladora,
+        temBarqueiro: registro.equipe.temBarqueiro,
+        necessitaTransporte: registro.equipe.necessitaTransporte
+      });
+    }
+
+    if (registro.infraestrutura) {
+      this.fotoUrlAtual = registro.infraestrutura.fotoUrl ?? null;
+      this.infraestruturaId = registro.infraestrutura.id;
+
+      this.infraestruturaForm.patchValue({
+        anoConstrucao: registro.infraestrutura.anoConstrucao,
+        numSalas: registro.infraestrutura.numSalas,
+        latitude: registro.infraestrutura.latitude,
+        longitude: registro.infraestrutura.longitude,
+        situacao: registro.infraestrutura.situacao ?? '',
+        tipoAcesso: registro.infraestrutura.tipoAcesso ?? '',
+        temPredio: registro.infraestrutura.temPredio,
+        tipoAgua: registro.infraestrutura.tipoAgua ?? '',
+        temInternet: registro.infraestrutura.temInternet,
+        tipoEnergia: registro.infraestrutura.tipoEnergia ?? '',
+        temRegistroFotografico: registro.infraestrutura.temRegistroFotografico
+      });
+    }
+
+    const totalGeralExistente = registro.matriculasNivel?.find(item => item.nivel === 'TOTAL_GERAL');
+
+    if (totalGeralExistente) {
+      this.matriculasNivelIds.set('TOTAL_GERAL', totalGeralExistente.id);
+    }
+
+    for (const grupo of this.matriculasNivel.controls) {
+      const nivel = grupo.controls.nivel.value;
+      const encontrada = registro.matriculasNivel?.find(item => item.nivel === nivel);
+
+      if (encontrada) {
+        this.matriculasNivelIds.set(nivel, encontrada.id);
+        grupo.patchValue({
+          qtdMasculino: encontrada.qtdMasculino,
+          qtdFeminino: encontrada.qtdFeminino
+        });
+      }
+    }
+
+    for (const grupo of this.matriculasSerie.controls) {
+      const denominacao = grupo.controls.denominacao.value;
+      const etapaEnsino = grupo.controls.etapaEnsino.value;
+      const encontrada = registro.matriculasSerie?.find(
+        item => item.denominacao === denominacao && item.etapaEnsino === etapaEnsino
+      );
+
+      if (encontrada) {
+        const chave = `${denominacao}|${etapaEnsino}`;
+        this.matriculasSerieIds.set(chave, encontrada.id);
+        grupo.patchValue({
+          qtdMasculino: encontrada.qtdMasculino,
+          qtdFeminino: encontrada.qtdFeminino
+        });
+      }
+    }
+  }
+
+  adicionarAnoReferencia(ano: number): void {
+    const anoAtual = new Date().getFullYear();
+    this.erroNovoAno = '';
+
+    if (!Number.isInteger(ano) || ano < 1900 || ano > anoAtual) {
+      this.erroNovoAno = `Informe um ano entre 1900 e ${anoAtual}.`;
+      return;
+    }
+
+    const existente = this.anosReferencia.find(item => item.ano === ano);
+    if (existente) {
+      this.selecionarAnoReferencia(existente.id);
+      return;
+    }
+
+    this.salvandoAno = true;
+
+    this.anoReferenciaService.salvar(ano).subscribe({
+      next: novo => {
+        this.anosReferencia = [...this.anosReferencia, novo].sort((a, b) => b.ano - a.ano);
+        this.salvandoAno = false;
+        this.selecionarAnoReferencia(novo.id);
+        this.cdr.markForCheck();
+      },
+      error: erro => {
+        console.error('Erro ao adicionar ano de referência:', erro);
+        this.salvandoAno = false;
+        this.erroNovoAno = erro?.status === 409
+          ? 'Este ano já está cadastrado. Atualize a lista e selecione-o.'
+          : 'Não foi possível adicionar o ano.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private selecionarAnoReferencia(id: number): void {
+    const control = this.registroForm.controls.anoReferenciaId;
+    control.setValue(id);
+    control.markAsTouched();
   }
 
   carregarAldeias(): void {
@@ -326,6 +492,7 @@ export class EscolaFormComponent implements OnInit {
       next: (dados) => {
         this.anosReferencia = [...(dados ?? [])].sort((a, b) => b.ano - a.ano);
         this.carregandoAnos = false;
+        this.selecionarAnoPendente();
         this.cdr.markForCheck();
       },
       error: (erro) => {
@@ -410,6 +577,8 @@ export class EscolaFormComponent implements OnInit {
     }
 
     if (this.etapaAtual === 2) {
+      if (this.statusAno === 'carregando') return;
+
       if (this.registroForm.invalid) {
         this.registroForm.markAllAsTouched();
         return;
@@ -586,6 +755,13 @@ if (
   salvarCadastro(): void {
     if (this.salvando) return;
 
+    // Ao abrir direto na etapa do ano (vindo do histórico), a etapa 1 não foi validada
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.erroMensagem = 'Confira os dados da escola na etapa 1 antes de salvar.';
+      return;
+    }
+
     this.salvando = true;
     this.erroMensagem = '';
 
@@ -609,7 +785,8 @@ if (
           escolaId: escolaSalva.id,
           anoReferenciaId: this.registroForm.controls.anoReferenciaId.value,
           rede: this.registroForm.controls.rede.value,
-          localFuncionamento: this.registroForm.controls.localFuncionamento.value
+          localFuncionamento: this.registroForm.controls.localFuncionamento.value,
+          totalAlunos: this.obterTotalAlunosRegistro()
         };
 
         const registro$ = this.editando && this.registroAnualId
@@ -738,10 +915,15 @@ if (
         console.log(this.editando ? 'Escola atualizada com sucesso:' : 'Escola cadastrada com sucesso:', resultado);
         this.salvando = false;
 
-        this.tituloSucesso = this.editando ? 'Escola atualizada' : 'Escola cadastrada';
-        this.mensagemSucesso = this.editando
-          ? 'Os dados da escola foram atualizados com sucesso.'
-          : 'A nova escola foi cadastrada com sucesso.';
+        if (this.voltarParaHistorico) {
+          this.tituloSucesso = `Registro de ${resultado.registro.anoReferencia.ano} salvo`;
+          this.mensagemSucesso = 'Os dados do ano foram salvos. Os registros dos demais anos foram preservados.';
+        } else {
+          this.tituloSucesso = this.editando ? 'Escola atualizada' : 'Escola cadastrada';
+          this.mensagemSucesso = this.editando
+            ? 'Os dados da escola foram atualizados com sucesso.'
+            : 'A nova escola foi cadastrada com sucesso.';
+        }
 
         this.modalSucessoAberto = true;
         this.cdr.markForCheck();
@@ -760,7 +942,24 @@ if (
 
   fecharModalSucesso(): void {
     this.modalSucessoAberto = false;
+
+    if (this.voltarParaHistorico && this.escolaId) {
+      this.router.navigate(['/admin/historico-escolas'], { queryParams: { escolaId: this.escolaId } });
+      return;
+    }
+
     this.router.navigate(['/admin/escolas']);
+  }
+
+  /** Total informado manualmente; na falta dele, o total das matrículas por nível (se houver). */
+  obterTotalAlunosRegistro(): number | null {
+    const informado = this.registroForm.controls.totalAlunos.value;
+    if (informado !== null && informado !== undefined && String(informado) !== '') {
+      return Number(informado);
+    }
+
+    const totalMatriculas = this.calcularTotalGeral();
+    return totalMatriculas > 0 ? totalMatriculas : null;
   }
 
   private obterMensagemErroCadastro(erro: any): string {

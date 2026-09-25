@@ -9,6 +9,7 @@ export interface RegistroAnualRequest {
   anoReferenciaId: number;
   rede: string;
   localFuncionamento: string;
+  totalAlunos?: number | null;
 }
 
 export interface EscolaRegistroResumo {
@@ -88,6 +89,8 @@ export interface RegistroAnualResponse {
   rede: string;
 
   localFuncionamento: string;
+
+  totalAlunos: number | null;
 
   equipe: EquipeRegistroResponse | null;
 

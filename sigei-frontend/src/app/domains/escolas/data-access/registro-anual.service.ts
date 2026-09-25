@@ -30,4 +30,15 @@ export class RegistroAnualService {
   buscarPorAno(ano: number): Observable<RegistroAnualResponse[]> {
     return this.http.get<RegistroAnualResponse[]>(`${this.apiUrl}/buscarPorAno`, { params: {ano} });
   }
+
+  buscarPorEscolaEAno(escolaId: number, ano: number): Observable<RegistroAnualResponse> {
+    return this.http.get<RegistroAnualResponse>(`${this.apiUrl}/buscarPorEscolaEAno`, { params: { escolaId, ano } });
+  }
+
+  buscarHistorico(escolaId: number, anoInicial?: number | null, anoFinal?: number | null): Observable<RegistroAnualResponse[]> {
+    const params: Record<string, number> = { escolaId };
+    if (anoInicial) params['anoInicial'] = anoInicial;
+    if (anoFinal) params['anoFinal'] = anoFinal;
+    return this.http.get<RegistroAnualResponse[]>(`${this.apiUrl}/historico`, { params });
+  }
 }

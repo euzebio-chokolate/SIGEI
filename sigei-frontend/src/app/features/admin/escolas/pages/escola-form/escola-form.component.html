@@ -19,7 +19,7 @@
        <p class="text-sm text-slate-500 mt-1">
         {{
           editando
-            ? 'Atualize os dados da escola e do registro anual.'
+            ? 'Atualize os dados da escola e do registro anual. Para cadastrar ou corrigir um ano anterior, escolha o ano na etapa Registro.'
             : 'Preencha os dados da escola e seu registro anual.'
         }}
         </p>
@@ -200,6 +200,12 @@
         [anosReferencia]="anosReferencia"
         [carregandoAnos]="carregandoAnos"
         [erroMensagem]="erroAnos"
+        [editando]="editando"
+        [statusAno]="statusAno"
+        [salvandoAno]="salvandoAno"
+        [erroNovoAno]="erroNovoAno"
+        [totalMatriculas]="calcularTotalGeral()"
+        (adicionarAno)="adicionarAnoReferencia($event)"
         (avancar)="avancar()"
         (voltar)="voltarEtapa()"
       />
