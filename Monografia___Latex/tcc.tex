@@ -71,17 +71,22 @@
 % ---- Lista de abreviaturas e siglas ----
 \begin{siglas}
   \item[ABNT]   Associação Brasileira de Normas Técnicas
+  \item[AEE]    Atendimento Educacional Especializado
   \item[API]    \textit{Application Programming Interface}
+  \item[CORS]   \textit{Cross-Origin Resource Sharing}
   \item[CRUD]   \textit{Create, Read, Update, Delete}
   \item[CSS]    \textit{Cascading Style Sheets}
   \item[DTO]    \textit{Data Transfer Object}
+  \item[EJA]    Educação de Jovens e Adultos
   \item[FUNAI]  Fundação Nacional dos Povos Indígenas
   \item[HTML]   \textit{HyperText Markup Language}
   \item[HTTP]   \textit{HyperText Transfer Protocol}
   \item[IBGE]   Instituto Brasileiro de Geografia e Estatística
   \item[IFAC]   Instituto Federal de Educação, Ciência e Tecnologia do Acre
+  \item[INEP]   Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira
   \item[JPA]    \textit{Java Persistence API}
   \item[JSON]   \textit{JavaScript Object Notation}
+  \item[JWT]    \textit{JSON Web Token}
   \item[LDB]    Lei de Diretrizes e Bases da Educação Nacional
   \item[MEC]    Ministério da Educação
   \item[OIT]    Organização Internacional do Trabalho
@@ -92,6 +97,7 @@
   \item[SEE/AC] Secretaria de Estado de Educação, Cultura e Esportes do Acre
   \item[SIG]    Sistema de Informação Geográfica
   \item[SIGEI]  Sistema de Gerenciamento Escolar Indígena
+  \item[SPA]    \textit{Single Page Application}
   \item[SQL]    \textit{Structured Query Language}
   \item[TCC]    Trabalho de Conclusão de Curso
   \item[UML]    \textit{Unified Modeling Language}
@@ -150,7 +156,7 @@ Para atingir o objetivo geral proposto, foram estabelecidos os seguintes objetiv
 
 \section{Estrutura do Projeto}
 
-O presente projeto encontra-se organizado em cinco seções principais. O Capítulo 1 apresenta a introdução, contextualizando o problema, a justificativa e os objetivos do estudo. O Capítulo 2 desenvolve a revisão de literatura, fornecendo a fundamentação teórica que embasa o sistema. O Capítulo 3 descreve os materiais e métodos que serão adotados no desenvolvimento. O Capítulo 4 apresenta o cronograma de execução previsto. Por fim, são listadas as referências bibliográficas utilizadas.
+O presente projeto encontra-se organizado em cinco seções principais. O Capítulo 1 apresenta a introdução, contextualizando o problema, a justificativa e os objetivos do estudo. O Capítulo 2 desenvolve a revisão de literatura, fornecendo a fundamentação teórica que embasa o sistema. O Capítulo 3 descreve os materiais e métodos adotados no desenvolvimento. O Capítulo 4 apresenta o desenvolvimento do sistema e os resultados obtidos. O Capítulo 5 apresenta o cronograma de execução. Por fim, são listadas as referências bibliográficas utilizadas.
 
 
 % CAPÍTULO 2 — REVISÃO DE LITERATURA
@@ -426,7 +432,10 @@ No \textit{backend}, o SIGEI será desenvolvido em Java 17, utilizando o Spring 
 O banco de dados relacional PostgreSQL será utilizado para o armazenamento de todas as informações gerenciadas pelo SIGEI. O esquema será criado e mantido por meio do Hibernate com a propriedade \texttt{spring.jpa.hibernate.ddl-auto}. As coordenadas geográficas das escolas serão armazenadas como colunas numéricas de precisão dupla (\texttt{DOUBLE PRECISION}) para latitude e longitude.
 
 
-% CAPÍTULO 4 — CRONOGRAMA
+\input{desenvolvimento}
+
+
+% CAPÍTULO 5 — CRONOGRAMA
 
 \chapter{CRONOGRAMA}
 \label{cap:cronograma}
