@@ -1,228 +1,168 @@
-# SIGEI
+# SIGEI — Sistema de Gerenciamento Escolar Indígena
 
-Sistema de Gerenciamento Escolar Indígena desenvolvido para centralizar, organizar e disponibilizar informações das escolas indígenas do Estado do Acre.
+Plataforma web que centraliza as informações das escolas indígenas do Estado
+do Acre: localização, povos, aldeias, terras indígenas, matrículas, equipes
+escolares e infraestrutura, com histórico por ano.
 
-O sistema reúne dados de localização, povos, aldeias, terras indígenas, matrículas, equipes escolares e infraestrutura. Também oferece um **mapa público interativo** para consulta das escolas e uma **área administrativa** para gerenciamento e geração de relatórios.
+O sistema tem duas partes:
 
-## Estado atual
+- um **mapa público**, sem login, com a localização georreferenciada das escolas;
+- uma **área administrativa**, com login, para cadastros, histórico anual e indicadores.
 
-O projeto está em desenvolvimento.
-
-- **Back-end:** API REST em fase final de implementação, com entidades, DTOs, mapeadores, serviços, repositórios e controladores.
-- **Front-end:** desenvolvimento iniciado pelo mapa público, com layout responsivo e componentes independentes.
-- **Banco de dados:** modelo relacional estruturado no PostgreSQL.
-- **Área administrativa:** prevista para as próximas etapas do desenvolvimento.
+Projeto desenvolvido como Trabalho de Conclusão de Curso no IFAC.
 
 ## Funcionalidades
 
-- Visualização georreferenciada das escolas indígenas em mapa público.
-- Consulta de informações por escola.
-- Filtros por município, terra indígena, aldeia, povo e ano de referência.
-- Cadastro e atualização de escolas.
-- Gerenciamento de municípios, terras indígenas, aldeias e povos.
-- Registro anual de matrículas, equipe escolar e infraestrutura.
-- Consulta ao histórico anual de cada escola.
-- Identificação de escolas-sede e unidades anexas.
-- Geração de relatórios administrativos.
-- Registro fotográfico das escolas.
+**Mapa público**
+- Marcadores das escolas no mapa do Acre, com cor conforme a situação (em funcionamento ou paralisada).
+- Busca por nome ou código INEP.
+- Filtros por situação, tipo de acesso, internet e prédio.
+- Quatro camadas de fundo: padrão, satélite, terreno e escuro.
+- Janela com foto e dados resumidos de cada escola.
 
-## Stack
+**Área administrativa**
+- Dashboard com totais, evolução histórica de matrículas e escolas, matrículas por nível, infraestrutura e escolas por município.
+- Cadastro de terras indígenas, aldeias e povos. Os municípios do Acre são carregados automaticamente.
+- Cadastro de escolas em sete etapas: dados da escola, registro anual, equipe, infraestrutura com foto, matrículas por nível, matrículas por série e revisão.
+- Distinção entre escola-sede e anexo.
+- Histórico anual por ano ou por escola, incluindo o cadastro retroativo de anos anteriores.
+- Abertura de um novo ano letivo, copiando o último registro de cada escola.
+- Importação das planilhas de infraestrutura e de matrículas do censo (apenas pela API).
+- Gestão de usuários com os perfis `ADMIN` (leitura e escrita) e `USUARIO` (somente leitura).
+- Troca de senha obrigatória no primeiro acesso.
 
-- **Back-end:** Java, Spring Boot, Spring Data JPA, Hibernate, MapStruct e Jakarta Bean Validation.
-- **Front-end:** Angular standalone, TypeScript, Tailwind CSS e Leaflet.
-- **Banco de dados:** PostgreSQL.
-- **Arquitetura:** API REST com separação em controllers, services, repositories, DTOs e mappers.
-- **Build:** Maven no back-end e Angular CLI no front-end.
+## Arquitetura
+
+```text
+Navegador ──► Frontend (Angular + Leaflet, servido por Nginx)
+                 │  HTTP/JSON + JWT
+                 ▼
+             Backend (Spring Boot, API REST)
+                 │  JPA/Hibernate          │  upload de fotos
+                 ▼                         ▼
+             PostgreSQL                Cloudinary
+```
+
+| Camada | Tecnologias |
+| --- | --- |
+| Frontend | Angular 21 (standalone, sem Zone.js), TypeScript 5.9, Tailwind CSS 4, Leaflet 1.9 |
+| Backend | Java 21, Spring Boot 4.0.5, Spring Data JPA/Hibernate, Spring Security + JWT, Bean Validation, MapStruct, Apache POI, Springdoc OpenAPI |
+| Banco de dados | PostgreSQL (produção), H2 (testes) |
+| Imagens | Cloudinary |
+| Implantação | Docker e Docker Compose; Nginx no frontend |
 
 ## Estrutura do repositório
 
 ```text
-sigei/
-├── sigei-backend/
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/ac/gov/br/sigei_backend/
-│   │   │   │   ├── controllers/
-│   │   │   │   ├── dtos/
-│   │   │   │   ├── exceptions/
-│   │   │   │   ├── mappers/
-│   │   │   │   ├── models/
-│   │   │   │   ├── repository/
-│   │   │   │   └── services/
-│   │   │   └── resources/
-│   │   │       └── application.properties
-│   │   └── test/
-│   └── pom.xml
-├── sigei-frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── core/
-│   │   │   ├── features/
-│   │   │   │   ├── mapa/
-│   │   │   │   └── administrativo/
-│   │   │   └── shared/
-│   │   ├── styles.css
-│   │   └── main.ts
-│   ├── angular.json
-│   ├── package.json
-│   └── tailwind.config.js
-└── README.md
+SIGEI/
+├── sigei-backend/        # API REST (Spring Boot)
+│   ├── src/main/java/ac/gov/br/sigei_backend/
+│   │   ├── config/       # segurança, inicializadores, Cloudinary
+│   │   ├── controllers/  # rotas HTTP
+│   │   ├── dto/          # contratos de entrada e saída
+│   │   ├── mappers/      # conversões MapStruct
+│   │   ├── models/       # entidades JPA
+│   │   ├── repository/   # acesso a dados
+│   │   └── service/      # regras de negócio
+│   ├── docs/             # banco de dados, modelo ER, histórico anual
+│   └── planilhas/        # carga inicial de dados
+├── sigei-frontend/       # aplicação Angular
+│   ├── src/app/
+│   │   ├── core/         # autenticação
+│   │   ├── domains/      # serviços HTTP e modelos por domínio
+│   │   ├── features/     # telas (mapa público, login, área administrativa)
+│   │   └── shared/       # componentes reutilizáveis
+│   └── docs/             # documentação técnica do frontend
 ```
-
-> A estrutura pode variar conforme a organização local adotada para as pastas do back-end e do front-end.
-
-## Pré-requisitos
-
-Antes de executar o projeto, instale:
-
-- Java 17 ou superior.
-- Maven 3.9 ou superior.
-- Node.js 20 ou superior.
-- npm 10 ou superior.
-- PostgreSQL.
-- Angular CLI.
-
-## Configuração do banco de dados
-
-Crie um banco chamado `sigei` no PostgreSQL:
-
-```sql
-CREATE DATABASE sigei;
-```
-
-Configure a conexão em `sigei-backend/src/main/resources/application.properties`:
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/sigei
-spring.datasource.username=postgres
-spring.datasource.password=SUA_SENHA
-
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-```
-
-Não envie senhas reais para o repositório. Em produção, utilize variáveis de ambiente ou um gerenciador de segredos.
 
 ## Como executar
 
-### Back-end
+### Com Docker (recomendado)
 
-Entre na pasta do back-end:
+Pré-requisito: Docker com Compose.
+
+1. Suba o backend e o banco:
+
+   ```bash
+   cd sigei-backend
+   cp .env.example .env    # troque todas as senhas e segredos
+   docker compose up --build -d
+   ```
+
+   A API fica em `http://localhost:8080` (health check em `/actuator/health`).
+   Na primeira execução com banco vazio, a aplicação cadastra os municípios do
+   Acre e importa as planilhas da pasta `planilhas/`.
+
+2. Suba o frontend:
+
+   ```bash
+   cd sigei-frontend
+   cp .env.example .env
+   docker compose up --build -d
+   ```
+
+   A aplicação fica em `http://localhost:4200`.
+
+### Sem Docker
+
+Pré-requisitos: JDK 21, Node.js 22, npm e um PostgreSQL acessível.
 
 ```bash
+# Backend: configure DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD e JWT_SECRET
+# (no ambiente ou em sigei-backend/.env)
 cd sigei-backend
-```
+./mvnw spring-boot:run        # Windows: .\mvnw.cmd spring-boot:run
 
-Execute a aplicação:
-
-```bash
-./mvnw spring-boot:run
-```
-
-No Windows:
-
-```powershell
-mvnw.cmd spring-boot:run
-```
-
-A API ficará disponível, por padrão, em:
-
-```text
-http://localhost:8080
-```
-
-### Front-end
-
-Em outro terminal, entre na pasta do front-end:
-
-```bash
+# Frontend, em outro terminal
 cd sigei-frontend
-```
-
-Instale as dependências:
-
-```bash
-npm install
-```
-
-Inicie o servidor de desenvolvimento:
-
-```bash
+npm ci
 npm start
 ```
 
-Caso o script `start` não esteja configurado, utilize:
+> O proxy de desenvolvimento do frontend (`proxy.conf.json`) encaminha `/api`
+> para a porta **8081**. Rode o backend com `PORT=8081` ou ajuste o proxy
+> para 8080.
 
-```bash
-ng serve
-```
+### Primeiro acesso
 
-O front-end ficará disponível em:
-
-```text
-http://localhost:4200
-```
-
-## Mapa público
-
-O mapa público é a página inicial de consulta do SIGEI. Ele utiliza o Leaflet para exibir as escolas a partir de suas coordenadas geográficas.
-
-Principais componentes:
-
-- `MapaHome`: organiza a página pública.
-- `MapaView`: renderiza o mapa e os marcadores.
-- `MapaFiltro`: disponibiliza os filtros de consulta.
-- `MapaPopup`: apresenta os dados resumidos da escola selecionada.
-
-## Modelo de dados
-
-As principais entidades do sistema são:
-
-- `Municipio`
-- `TerraIndigena`
-- `Aldeia`
-- `Povo`
-- `Escola`
-- `AnoReferencia`
-- `RegistroAnual`
-- `EquipeEscola`
-- `InfraestruturaEscola`
-- `MatriculaNivel`
-- `MatriculaSerie`
-- `Anexo`
-
-Cada escola pertence a uma aldeia, que está vinculada a uma terra indígena e a um município. Os dados que mudam ao longo do tempo são armazenados por ano de referência, preservando o histórico da unidade escolar.
+O administrador inicial é criado a partir de `SIGEI_ADMIN_EMAIL` e
+`SIGEI_ADMIN_PASSWORD`. Se nenhuma senha for configurada, o backend gera uma
+temporária e a registra no log. No primeiro login o sistema exige a troca da
+senha.
 
 ## Testes
 
-Para executar os testes do back-end:
-
 ```bash
 cd sigei-backend
-./mvnw test
+./mvnw clean test             # 27 classes de teste (services e repositories), H2 em memória
 ```
 
-Para executar os testes do front-end:
+O frontend tem o Vitest configurado (`npm test`), mas ainda não possui testes.
 
-```bash
-cd sigei-frontend
-npm test
-```
+## Documentação
 
-## Próximas etapas
+| Assunto | Documento |
+| --- | --- |
+| Arquitetura, contratos HTTP, segurança e configuração do backend | [sigei-backend/CLAUDE.md](sigei-backend/CLAUDE.md) |
+| Execução, Docker e hospedagem do backend | [sigei-backend/README.md](sigei-backend/README.md) |
+| Dicionário de dados e relacionamentos | [sigei-backend/docs/BANCO_DE_DADOS.md](sigei-backend/docs/BANCO_DE_DADOS.md) |
+| Modelo ER gerado das entidades | [sigei-backend/docs/MODELO_ER.md](sigei-backend/docs/MODELO_ER.md) |
+| Histórico anual das escolas | [sigei-backend/docs/HISTORICO_ESCOLAS.md](sigei-backend/docs/HISTORICO_ESCOLAS.md) |
+| Arquitetura, rotas e telas do frontend | [sigei-frontend/docs/FRONTEND.md](sigei-frontend/docs/FRONTEND.md) |
+| Execução, Docker e hospedagem do frontend | [sigei-frontend/README.md](sigei-frontend/README.md) |
+| API interativa | Swagger em `http://localhost:8080/swagger-ui.html` |
 
-- Concluir a integração entre o mapa público e a API.
-- Implementar autenticação e controle de acesso.
-- Desenvolver a área administrativa.
-- Implementar relatórios e exportação de dados.
-- Finalizar o processo de atualização anual das escolas.
-- Ampliar a cobertura de testes automatizados.
+## Limitações conhecidas
+
+- A importação de planilhas lê abas e colunas fixas e o ano 2025; não é um importador genérico.
+- Não há renovação de token: após 24 horas é preciso entrar de novo.
+- O cadastro de uma escola é gravado em várias requisições, não em uma transação única.
+- Divergências entre frontend e backend estão listadas em [sigei-frontend/docs/FRONTEND.md](sigei-frontend/docs/FRONTEND.md#divergências-conhecidas).
 
 ## Autor
 
-**Euzébio do Nascimento Oliveira Neto**  
+**Euzébio do Nascimento Oliveira Neto**
 Instituto Federal do Acre — IFAC, Campus Rio Branco.
+Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas.
 
-Projeto desenvolvido como Trabalho de Conclusão de Curso, sob orientação do **Prof. Me. Marlon Amaro Coelho Teixeira**.
+Orientação: **Prof. Me. Marlon Amaro Coelho Teixeira**.
