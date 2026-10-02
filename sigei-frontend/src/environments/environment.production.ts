@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
-  // O Nginx encaminha /api para o backend sem expor sua URL ao navegador.
-  apiUrl: 'https://sigei-x4nv.onrender.com'
+  // O Nginx encaminha /api para o backend (API_UPSTREAM). A mesma origem é
+  // obrigatória: a sessão usa cookies HttpOnly com SameSite=Strict.
+  apiUrl: '/api'
 };

@@ -1,20 +1,50 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { Router } from '@angular/router';
+import { catchError, of, switchMap, throwError } from 'rxjs';
 
+import { AuthService } from './auth.service';
+
+const ROTAS_DE_SESSAO = /\/auth\/(login|refresh|logout)(?:\?|$)/;
+
+const naoAutorizado = (erro: unknown): boolean =>
+  erro instanceof HttpErrorResponse && erro.status === 401;
+
+/**
+ * A sessão trafega em cookies HttpOnly enviados automaticamente pelo navegador,
+ * e o token CSRF é anexado pelo suporte nativo do HttpClient (cookie XSRF-TOKEN
+ * → cabeçalho X-XSRF-TOKEN). Este interceptador só trata a expiração: diante
+ * de um 401, renova a sessão e repete a requisição uma única vez.
+ */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const token = localStorage.getItem('sigei_token');
-  const requisicaoDeLogin = /\/auth\/login(?:\?|$)/.test(req.url);
-
-  // Um token expirado salvo no navegador não pode bloquear uma nova tentativa
-  // de autenticação. O endpoint de login deve sempre ser chamado sem Bearer.
-  if (!token || requisicaoDeLogin) {
+  if (ROTAS_DE_SESSAO.test(req.url)) {
     return next(req);
   }
 
-  const reqAutenticada = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${token}`
-    }
-  });
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-  return next(reqAutenticada);
+  const encerrarSessao = () => {
+    authService.limparSessao();
+    router.navigate(['/login']);
+  };
+
+  return next(req).pipe(
+    catchError((erro: unknown) => {
+      if (!naoAutorizado(erro) || !authService.estaLogado()) {
+        return throwError(() => erro);
+      }
+
+      return authService.renovarSessao().pipe(
+        // Renovação recusada: outra aba pode ter renovado com o mesmo cookie e o
+        // navegador já ter os cookies novos, então a requisição é repetida assim mesmo
+        catchError((falha: unknown) => naoAutorizado(falha) ? of(undefined) : throwError(() => falha)),
+        switchMap(() => next(req)),
+        catchError((ultima: unknown) => {
+          if (naoAutorizado(ultima)) encerrarSessao();
+          return throwError(() => ultima);
+        })
+      );
+    })
+  );
 };

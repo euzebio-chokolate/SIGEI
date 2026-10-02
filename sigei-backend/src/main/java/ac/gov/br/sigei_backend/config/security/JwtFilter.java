@@ -33,20 +33,9 @@ public class JwtFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String authorizationHeader =
-                request.getHeader("Authorization");
+        String token = extrairToken(request);
 
-        if (authorizationHeader == null ||
-                !authorizationHeader.startsWith("Bearer ")) {
-
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        String token =
-                authorizationHeader.substring(7);
-
-        if (!jwtService.tokenValido(token)) {
+        if (token == null || !jwtService.tokenValido(token)) {
 
             filterChain.doFilter(request, response);
             return;
@@ -84,5 +73,17 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * O navegador envia o token no cookie HttpOnly; clientes de API (Bruno,
+     * scripts) podem usar o cabeçalho Bearer, que tem precedência.
+     */
+    private String extrairToken(HttpServletRequest request) {
+        String authorizationHeader = request.getHeader("Authorization");
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            return authorizationHeader.substring(7);
+        }
+        return CookiesSessao.ler(request, CookiesSessao.COOKIE_ACESSO);
     }
 }
