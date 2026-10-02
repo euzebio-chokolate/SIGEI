@@ -12,6 +12,7 @@ API de gestão da educação escolar indígena do Acre: municípios, terras ind�
 - MapStruct 1.6.3 para conversões; Apache POI 5.4.1 para Excel.
 - JWT com JJWT 0.12.6; senhas com BCrypt.
 - Cloudinary 2.0.0 para imagens; Springdoc 2.8.13 declarado no `pom.xml` para OpenAPI/Swagger.
+- Flyway 11 (gerenciado pelo Spring Boot) para versionar o esquema; Testcontainers 2 nos testes de migração.
 - JUnit Jupiter e Mockito nos testes.
 
 As versões acima são as declaradas no repositório, não uma afirmação de compatibilidade validada entre todas as dependências.
@@ -164,7 +165,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `DATABASE_URL` | URL JDBC; padrão `jdbc:postgresql://localhost:5432/sigei`. |
 | `DATABASE_USERNAME`, `DATABASE_PASSWORD` | Credenciais; fallback para `POSTGRES_USER` / `POSTGRES_PASSWORD`. |
 | `DATABASE_POOL_SIZE`, `DATABASE_POOL_MIN_IDLE` | Pool Hikari; padrões 10 e 1. |
-| `JPA_DDL_AUTO`, `JPA_SHOW_SQL` | Padrões `update` e `false`. |
+| `JPA_DDL_AUTO`, `JPA_SHOW_SQL` | Padrões `validate` e `false`. Não use `update`: o esquema é responsabilidade do Flyway. |
 | `JWT_SECRET` | Obrigatório; use segredo aleatório com pelo menos 32 bytes para a chave HMAC. |
 | `JWT_EXPIRATION` | Validade do token de acesso em milissegundos; padrão 15 minutos. |
 | `JWT_REFRESH_EXPIRATION` | Validade do refresh token em milissegundos; padrão 7 dias. |
@@ -176,7 +177,13 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `SIGEI_PLANILHA_INFRAESTRUTURA`, `SIGEI_PLANILHA_MATRICULAS` | Resources das planilhas; padrões apontam para `planilhas/`. |
 | `PORT` | Porta local da API; padrão 8080. No Compose, controla a porta publicada, com a API interna em 8080. |
 
-`spring.jpa.open-in-view=false`: mantenha o acesso a relacionamentos necessários ao DTO dentro do contexto transacional. Não há Flyway/Liquibase declarado; o schema é administrado atualmente pelo Hibernate conforme `JPA_DDL_AUTO`.
+`spring.jpa.open-in-view=false`: mantenha o acesso a relacionamentos necessários ao DTO dentro do contexto transacional. O esquema é versionado pelo Flyway em `src/main/resources/db/migration`, e o Hibernate apenas o valida (`ddl-auto=validate`):
+
+- `V1__esquema_inicial.sql` reproduz exatamente o DDL que o Hibernate gerava antes do Flyway, inclusive os nomes das constraints.
+- `V2__refresh_token.sql` cria `refresh_token` de forma idempotente, pois a tabela pode já existir em bancos de desenvolvimento.
+- Bancos criados antes do Flyway, sem `flyway_schema_history`, recebem baseline na versão 1 (`spring.flyway.baseline-on-migrate`) e executam só as migrações seguintes.
+
+Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL PostgreSQL correspondente e nunca edite uma migração já aplicada. Para obter o DDL que o Hibernate espera, gere o script com `jakarta.persistence.schema-generation.scripts.action=create` e o dialeto PostgreSQL. `FlywayMigracoesTest` aplica as migrações em um PostgreSQL real (Testcontainers) e sobe o contexto com `validate`. Ele exige Docker e é ignorado quando o Docker não está disponível.
 
 Na inicialização:
 
@@ -211,7 +218,7 @@ Em Linux/macOS, use `./mvnw` nos mesmos comandos. Com `.env` configurado, `docke
 
 API local: `http://localhost:8080`; health: `/actuator/health`.
 
-Testes em `src/test/java` espelham os pacotes principais. Services usam Mockito; repositories usam `@DataJpaTest` com `@ActiveProfiles("test")`. Há teste de carregamento do contexto e teste do inicializador de municípios. O perfil `test` configura H2 em memória, schema `create-drop`, segredo JWT de teste e desabilita a carga de planilhas.
+Testes em `src/test/java` espelham os pacotes principais. Services usam Mockito; repositories usam `@DataJpaTest` com `@ActiveProfiles("test")`. Há teste de carregamento do contexto, teste do inicializador de municípios e `FlywayMigracoesTest` (PostgreSQL via Testcontainers). O perfil `test` configura H2 em memória, schema `create-drop`, Flyway desligado (as migrações usam SQL do PostgreSQL), segredo JWT de teste e desabilita a carga de planilhas.
 
 Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organizar cenários, seguindo `RegistroAnualServiceTest`. Fixtures de persistência ficam em `repository/RepositoryTestFixtures.java`. Requisições manuais estão em `tests - bruno/Sample API Collection/`; elas não substituem testes automatizados. Testes H2 não garantem compatibilidade de toda consulta com PostgreSQL.
 
@@ -237,6 +244,6 @@ Ao trabalhar no projeto:
 - Use imports `jakarta.*` para JPA/validação. Não introduza Lombok ou outra estrutura sem necessidade: as entidades atuais têm métodos explícitos.
 - Não edite implementações MapStruct geradas em `target/`; altere as interfaces em `mappers`.
 - Ao mudar segurança, confira a ordem dos matchers e os casos público, sem token, `USUARIO`, `ADMIN` e troca obrigatória de senha, além de cookies e CSRF (`AuthSessaoHttpTest`).
-- Ao mudar persistência, revise unicidade, cascatas, transações, carregamento de relações e reflexos nos indicadores e importações.
+- Ao mudar persistência, revise unicidade, cascatas, transações, carregamento de relações e reflexos nos indicadores e importações, e crie a migração Flyway correspondente.
 - Verifique alterações de lógica com os testes relevantes e informe o que foi efetivamente executado. Não trate o build Docker como execução da suíte.
 - Atualize este arquivo quando houver mudanças de arquitetura, configuração, endpoints ou regras centrais.

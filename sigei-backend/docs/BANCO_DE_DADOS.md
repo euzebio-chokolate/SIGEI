@@ -2,7 +2,7 @@
 
 Documentação das 13 entidades persistidas da API, com dicionário de dados e diagrama de relacionamentos. Fonte: [entidades JPA](../src/main/java/ac/gov/br/sigei_backend/models) e [configuração da aplicação](../src/main/resources/application.properties).
 
-Este documento descreve o modelo definido no código, sem consultar uma instância do banco. Nomes e tipos SQL abaixo são os esperados para PostgreSQL com a configuração atual. Como `JPA_DDL_AUTO` tem padrão `update`, bancos existentes podem conter diferenças de schema ou objetos antigos. Não é um script de migração nem uma auditoria do banco implantado.
+Este documento descreve o modelo definido no código, sem consultar uma instância do banco. Nomes e tipos SQL abaixo são os esperados para PostgreSQL com a configuração atual. O esquema é criado e evoluído pelas migrações do Flyway em [`src/main/resources/db/migration`](../src/main/resources/db/migration), e o Hibernate apenas o valida (`ddl-auto=validate`). Bancos criados antes do Flyway pelo antigo `ddl-auto=update` podem conter colunas ou objetos antigos que não constam nas entidades. Este documento não substitui as migrações nem é uma auditoria do banco implantado.
 
 ## Convenções
 
