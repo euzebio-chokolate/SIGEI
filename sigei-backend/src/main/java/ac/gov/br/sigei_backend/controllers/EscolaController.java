@@ -1,8 +1,11 @@
 package ac.gov.br.sigei_backend.controllers;
 
+import ac.gov.br.sigei_backend.dto.request.CadastroEscolaRequestDTO;
 import ac.gov.br.sigei_backend.dto.request.EscolaRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.CadastroEscolaResponseDTO;
 import ac.gov.br.sigei_backend.dto.response.EscolaResponseDTO;
 import ac.gov.br.sigei_backend.dto.response.detalhe.EscolaDetalheResponseDTO;
+import ac.gov.br.sigei_backend.service.CadastroEscolaService;
 import ac.gov.br.sigei_backend.service.EscolaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,9 +17,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -25,6 +31,9 @@ import java.util.List;
 public class EscolaController {
     @Autowired
     EscolaService escolaService;
+
+    @Autowired
+    CadastroEscolaService cadastroEscolaService;
 
     @PostMapping("/salvar")
     @Operation(summary = "Salvar escola",
@@ -84,6 +93,48 @@ public class EscolaController {
     public ResponseEntity<EscolaResponseDTO> editar(@RequestBody EscolaRequestDTO escolaDTO){
         EscolaResponseDTO escolaResponseDTO = escolaService.editar(escolaDTO);
         return new ResponseEntity<EscolaResponseDTO>(escolaResponseDTO, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/salvarCompleto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Salvar cadastro completo de escola",
+            description = "Cadastra, em uma única transação, a escola e o registro do ano informado com equipe, infraestrutura, matrículas e foto opcional. "
+                    + "Envie multipart/form-data com a parte dados (JSON) e, opcionalmente, a parte foto. Se qualquer etapa falhar, nada é gravado. Requer perfil ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Operação realizada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CadastroEscolaResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Registro relacionado não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito de integridade ou registro duplicado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "503", description = "Foto enviada sem armazenamento de imagens configurado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
+    })
+    public ResponseEntity<CadastroEscolaResponseDTO> salvarCompleto(
+            @Valid @RequestPart("dados") CadastroEscolaRequestDTO dados,
+            @Parameter(description = "Foto da infraestrutura (opcional)") @RequestPart(value = "foto", required = false) MultipartFile foto
+    ) throws IOException {
+        CadastroEscolaResponseDTO cadastro = cadastroEscolaService.salvar(dados, foto);
+        return new ResponseEntity<>(cadastro, HttpStatus.CREATED);
+    }
+
+    @PutMapping(value = "/editarCompleto", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Editar cadastro completo de escola",
+            description = "Atualiza, em uma única transação, a escola identificada por dados.escola.id e cria ou atualiza o registro do ano informado com equipe, infraestrutura, matrículas e foto opcional. "
+                    + "Registros de outros anos não são alterados. Se qualquer etapa falhar, nada é gravado. Requer perfil ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CadastroEscolaResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Escola ou relacionamento informado não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito de integridade na atualização", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "503", description = "Foto enviada sem armazenamento de imagens configurado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
+    })
+    public ResponseEntity<CadastroEscolaResponseDTO> editarCompleto(
+            @Valid @RequestPart("dados") CadastroEscolaRequestDTO dados,
+            @Parameter(description = "Foto da infraestrutura (opcional)") @RequestPart(value = "foto", required = false) MultipartFile foto
+    ) throws IOException {
+        CadastroEscolaResponseDTO cadastro = cadastroEscolaService.editar(dados, foto);
+        return ResponseEntity.ok(cadastro);
     }
 
     @DeleteMapping("/excluir/{id}")

@@ -1,44 +1,65 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { finalize, map, Observable, shareReplay, tap } from 'rxjs';
 import { environment } from '@environments/environment';
 
 import type { LoginRequest, LoginResponse, AlterarSenhaRequest, UsuarioAutenticado } from './auth.models';
 export type { LoginRequest, LoginResponse, AlterarSenhaRequest, UsuarioAutenticado } from './auth.models';
 
+/**
+ * Os tokens de acesso e de renovação ficam em cookies HttpOnly gravados pelo
+ * backend e nunca passam pelo JavaScript. O navegador guarda aqui apenas os
+ * dados de exibição do usuário, usados pelos guards de rota; a autorização
+ * efetiva é sempre decidida pelo backend.
+ */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/auth`;
+  private readonly chaveUsuario = 'sigei_usuario';
   private readonly chaveSenhaTemporaria = 'sigei_senha_temporaria';
+
+  /** Renovação em andamento, compartilhada pelas requisições que receberem 401 ao mesmo tempo. */
+  private renovacao$: Observable<void> | null = null;
+
+  constructor() {
+    // Remove tokens gravados por versões anteriores, que usavam o localStorage
+    localStorage.removeItem('sigei_token');
+    localStorage.removeItem('sigei_refresh_token');
+  }
 
   login(dados: LoginRequest): Observable<LoginResponse> {
     // Descarta uma sessão expirada antes de iniciar uma nova autenticação.
-    localStorage.removeItem('sigei_token');
-    localStorage.removeItem('sigei_usuario');
+    this.limparSessao();
 
     return this.http.post<LoginResponse>(`${this.apiUrl}/login`, dados).pipe(
-      tap(resposta => {
-        const usuario = this.normalizarUsuario(resposta);
-        localStorage.setItem('sigei_token', resposta.token);
-        localStorage.setItem(
-          'sigei_usuario',
-          JSON.stringify(usuario)
-        );
-      })
+      tap(resposta => this.guardarUsuario(resposta))
     );
+  }
+
+  /**
+   * Pede ao backend novos cookies de sessão a partir do cookie de renovação.
+   * Chamadas simultâneas reaproveitam a mesma requisição, pois cada refresh token só vale uma vez.
+   */
+  renovarSessao(): Observable<void> {
+    if (this.renovacao$) return this.renovacao$;
+
+    this.renovacao$ = this.http.post<LoginResponse>(`${this.apiUrl}/refresh`, null).pipe(
+      tap(resposta => this.guardarUsuario(resposta)),
+      map(() => undefined),
+      finalize(() => this.renovacao$ = null),
+      shareReplay(1)
+    );
+
+    return this.renovacao$;
   }
 
   alterarSenha(dados: AlterarSenhaRequest): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/alterar-senha`, dados);
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('sigei_token');
-  }
-
   getUsuario(): UsuarioAutenticado | null {
-    const usuario = localStorage.getItem('sigei_usuario');
+    const usuario = localStorage.getItem(this.chaveUsuario);
     if (!usuario) return null;
     try {
       const salvo = JSON.parse(usuario) as Partial<UsuarioAutenticado>;
@@ -56,8 +77,13 @@ export class AuthService {
     }
   }
 
+  /**
+   * Indica se há uma sessão iniciada neste navegador. Os cookies HttpOnly não
+   * são legíveis; se a sessão tiver expirado, a primeira requisição recusada
+   * tenta renová-la e, se não conseguir, encerra a sessão local.
+   */
   estaLogado(): boolean {
-    return !!this.getToken();
+    return this.getUsuario() !== null;
   }
 
   deveAlterarSenha(): boolean {
@@ -82,17 +108,25 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('sigei_token');
-    localStorage.removeItem('sigei_usuario');
+    // Revoga a sessão e remove os cookies no servidor; falhas de rede não impedem a saída local
+    this.http.post<void>(`${this.apiUrl}/logout`, null).subscribe({ error: () => undefined });
+    this.limparSessao();
+  }
+
+  /** Remove a sessão apenas do navegador, sem avisar o servidor. */
+  limparSessao(): void {
+    localStorage.removeItem(this.chaveUsuario);
     sessionStorage.removeItem(this.chaveSenhaTemporaria);
   }
 
+  private guardarUsuario(resposta: LoginResponse): void {
+    localStorage.setItem(this.chaveUsuario, JSON.stringify(this.normalizarUsuario(resposta)));
+  }
 
   private normalizarUsuario(resposta: LoginResponse): UsuarioAutenticado {
-    const claims = this.lerClaimsJwt(resposta.token);
-    const authorities = this.extrairAuthorities(resposta.authorities ?? claims?.['authorities'] ?? claims?.['roles'] ?? claims?.['scope']);
+    const authorities = this.extrairAuthorities(resposta.authorities);
     const perfil = resposta.perfil ?? this.perfilDasAuthorities(authorities);
-    const alterarSenha = resposta.alterarSenha === true || claims?.['alterarSenha'] === true || authorities.includes('ROLE_TROCAR_SENHA');
+    const alterarSenha = resposta.alterarSenha === true || authorities.includes('ROLE_TROCAR_SENHA');
 
     return {
       id: resposta.id,
@@ -102,17 +136,6 @@ export class AuthService {
       alterarSenha,
       authorities
     };
-  }
-
-  private lerClaimsJwt(token: string): Record<string, unknown> | null {
-    try {
-      const payload = token.split('.')[1];
-      if (!payload) return null;
-      const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-      return JSON.parse(decodeURIComponent(escape(atob(base64)))) as Record<string, unknown>;
-    } catch {
-      return null;
-    }
   }
 
   private extrairAuthorities(valor: unknown): string[] {

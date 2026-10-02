@@ -1,18 +1,14 @@
 import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, filter, forkJoin, map, Observable, of, switchMap, tap } from 'rxjs';
+import { catchError, EMPTY, filter, Observable, of, switchMap } from 'rxjs';
 import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { EscolaResponse, EscolaService } from '@domains/escolas/data-access/escola.service';
+import { CadastroEscolaRequest, EscolaResponse, EscolaService } from '@domains/escolas/data-access/escola.service';
 import { AldeiaResponse, AldeiaService } from '@domains/territorios/data-access/aldeia.service';
 import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
 import { RegistroAnualResponse, RegistroAnualService } from '@domains/escolas/data-access/registro-anual.service';
 import { RegistroAnualDetalhe } from '@domains/escolas/models/escola.models';
-import { EquipeEscolaService } from '@domains/escolas/data-access/equipe-escola.service';
-import { InfraestruturaService } from '@domains/escolas/data-access/infraestrutura.service';
-import { MatriculaNivelService } from '@domains/escolas/data-access/matricula-nivel.service';
-import { MatriculaSerieService } from '@domains/escolas/data-access/matricula-serie.service';
 
 import { EscolaEtapaComponent } from '@features/admin/escolas/ui/form-steps/escola-etapa.component';
 import { RegistroAnualEtapaComponent, StatusAnoRegistro } from '@features/admin/escolas/ui/form-steps/registro-anual-etapa.component';
@@ -48,10 +44,6 @@ export class EscolaFormComponent implements OnInit {
   private readonly aldeiaService = inject(AldeiaService);
   private readonly anoReferenciaService = inject(AnoReferenciaService);
   private readonly registroAnualService = inject(RegistroAnualService);
-  private readonly equipeEscolaService = inject(EquipeEscolaService);
-  private readonly infraestruturaService = inject(InfraestruturaService);
-  private readonly matriculaNivelService = inject(MatriculaNivelService);
-  private readonly matriculaSerieService = inject(MatriculaSerieService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
@@ -73,13 +65,6 @@ export class EscolaFormComponent implements OnInit {
   private escolaCarregada = false;
   private anoPendente: number | null = null;
   private voltarParaHistorico = false;
-
-  registroAnualId: number | null = null;
-  equipeId: number | null = null;
-  infraestruturaId: number | null = null;
-
-  matriculasNivelIds = new Map<string, number>();
-  matriculasSerieIds = new Map<string, number>();
 
   erroMensagem = '';
   erroAnos = '';
@@ -261,7 +246,6 @@ export class EscolaFormComponent implements OnInit {
   private observarTrocaDeAno(): void {
     this.registroForm.controls.anoReferenciaId.valueChanges.pipe(
       filter(() => this.escolaId !== null),
-      tap(() => this.limparIdsAnuais()),
       switchMap(anoReferenciaId => this.buscarRegistroDoAno(anoReferenciaId)),
       takeUntilDestroyed(this.destroyRef)
     ).subscribe(registro => {
@@ -316,18 +300,8 @@ export class EscolaFormComponent implements OnInit {
     }
   }
 
-  private limparIdsAnuais(): void {
-    this.registroAnualId = null;
-    this.equipeId = null;
-    this.infraestruturaId = null;
-    this.matriculasNivelIds.clear();
-    this.matriculasSerieIds.clear();
-  }
-
   /** Limpa os dados do ano, mantendo escola, ano, rede e local selecionados. */
   private limparDadosAnuais(): void {
-    this.limparIdsAnuais();
-
     this.registroForm.controls.totalAlunos.reset(null);
     this.equipeForm.reset();
     this.infraestruturaForm.reset();
@@ -347,7 +321,6 @@ export class EscolaFormComponent implements OnInit {
 
   private aplicarRegistro(registro: RegistroAnualDetalhe | RegistroAnualResponse): void {
     this.limparDadosAnuais();
-    this.registroAnualId = registro.id;
 
     this.registroForm.patchValue({
       anoReferenciaId: registro.anoReferencia?.id ?? 0,
@@ -357,7 +330,6 @@ export class EscolaFormComponent implements OnInit {
     }, { emitEvent: false });
 
     if (registro.equipe) {
-      this.equipeId = registro.equipe.id;
       this.equipeForm.patchValue({
         temProfessorResponsavel: registro.equipe.temProfessorResponsavel,
         temEquipeGestora: registro.equipe.temEquipeGestora,
@@ -370,7 +342,6 @@ export class EscolaFormComponent implements OnInit {
 
     if (registro.infraestrutura) {
       this.fotoUrlAtual = registro.infraestrutura.fotoUrl ?? null;
-      this.infraestruturaId = registro.infraestrutura.id;
 
       this.infraestruturaForm.patchValue({
         anoConstrucao: registro.infraestrutura.anoConstrucao,
@@ -387,18 +358,11 @@ export class EscolaFormComponent implements OnInit {
       });
     }
 
-    const totalGeralExistente = registro.matriculasNivel?.find(item => item.nivel === 'TOTAL_GERAL');
-
-    if (totalGeralExistente) {
-      this.matriculasNivelIds.set('TOTAL_GERAL', totalGeralExistente.id);
-    }
-
     for (const grupo of this.matriculasNivel.controls) {
       const nivel = grupo.controls.nivel.value;
       const encontrada = registro.matriculasNivel?.find(item => item.nivel === nivel);
 
       if (encontrada) {
-        this.matriculasNivelIds.set(nivel, encontrada.id);
         grupo.patchValue({
           qtdMasculino: encontrada.qtdMasculino,
           qtdFeminino: encontrada.qtdFeminino
@@ -414,8 +378,6 @@ export class EscolaFormComponent implements OnInit {
       );
 
       if (encontrada) {
-        const chave = `${denominacao}|${etapaEnsino}`;
-        this.matriculasSerieIds.set(chave, encontrada.id);
         grupo.patchValue({
           qtdMasculino: encontrada.qtdMasculino,
           qtdFeminino: encontrada.qtdFeminino
@@ -765,152 +727,32 @@ if (
     this.salvando = true;
     this.erroMensagem = '';
 
-    const dadosEscola = {
-      ...(this.editando && this.escolaId ? { id: this.escolaId } : {}),
-      codigo: this.form.controls.codigo.value,
-      nome: this.form.controls.nome.value,
-      tipoUnidade: this.form.controls.tipoUnidade.value,
-      escolaSedeId: this.form.controls.escolaSedeId.value,
-      aldeiaId: this.form.controls.aldeiaId.value
+    const dados: CadastroEscolaRequest = {
+      escola: {
+        ...(this.editando && this.escolaId ? { id: this.escolaId } : {}),
+        codigo: this.form.controls.codigo.value,
+        nome: this.form.controls.nome.value,
+        tipoUnidade: this.form.controls.tipoUnidade.value,
+        escolaSedeId: this.form.controls.escolaSedeId.value,
+        aldeiaId: this.form.controls.aldeiaId.value
+      },
+      anoReferenciaId: this.registroForm.controls.anoReferenciaId.value,
+      rede: this.registroForm.controls.rede.value,
+      localFuncionamento: this.registroForm.controls.localFuncionamento.value,
+      totalAlunos: this.obterTotalAlunosRegistro(),
+      equipe: this.equipeForm.getRawValue(),
+      infraestrutura: this.infraestruturaForm.getRawValue(),
+      matriculasNivel: this.montarMatriculasNivel(),
+      matriculasSerie: this.montarMatriculasSerie(),
+      removerFoto: !this.fotoEscola && this.fotoAtualRemovida
     };
 
-    const escola$ = this.editando
-      ? this.escolaService.editar(dadosEscola)
-      : this.escolaService.salvar(dadosEscola);
+    // Uma única requisição: o backend grava todo o cadastro em uma transação
+    const cadastro$ = this.editando
+      ? this.escolaService.editarCompleto(dados, this.fotoEscola)
+      : this.escolaService.salvarCompleto(dados, this.fotoEscola);
 
-    escola$.pipe(
-      switchMap(escolaSalva => {
-        const dadosRegistro = {
-          ...(this.editando && this.registroAnualId ? { id: this.registroAnualId } : {}),
-          escolaId: escolaSalva.id,
-          anoReferenciaId: this.registroForm.controls.anoReferenciaId.value,
-          rede: this.registroForm.controls.rede.value,
-          localFuncionamento: this.registroForm.controls.localFuncionamento.value,
-          totalAlunos: this.obterTotalAlunosRegistro()
-        };
-
-        const registro$ = this.editando && this.registroAnualId
-          ? this.registroAnualService.editar(dadosRegistro)
-          : this.registroAnualService.salvar(dadosRegistro);
-
-        return registro$.pipe(
-          map(registroSalvo => ({
-            escola: escolaSalva,
-            registro: registroSalvo
-          }))
-        );
-      }),
-      switchMap(({ escola, registro }) => {
-        const registroId = registro.id;
-
-        const dadosEquipe = {
-          ...(this.editando && this.equipeId ? { id: this.equipeId } : {}),
-          registroAnualId: registroId,
-          temProfessorResponsavel: this.equipeForm.controls.temProfessorResponsavel.value,
-          temEquipeGestora: this.equipeForm.controls.temEquipeGestora.value,
-          temMerendeira: this.equipeForm.controls.temMerendeira.value,
-          temZeladora: this.equipeForm.controls.temZeladora.value,
-          temBarqueiro: this.equipeForm.controls.temBarqueiro.value,
-          necessitaTransporte: this.equipeForm.controls.necessitaTransporte.value
-        };
-
-        const equipe$ = this.editando && this.equipeId
-          ? this.equipeEscolaService.editar(dadosEquipe)
-          : this.equipeEscolaService.salvar(dadosEquipe);
-
-        const dadosInfraestrutura = {
-          ...(this.editando && this.infraestruturaId ? { id: this.infraestruturaId } : {}),
-          registroAnualId: registroId,
-          anoConstrucao: this.infraestruturaForm.controls.anoConstrucao.value,
-          numSalas: this.infraestruturaForm.controls.numSalas.value,
-          latitude: this.infraestruturaForm.controls.latitude.value,
-          longitude: this.infraestruturaForm.controls.longitude.value,
-          situacao: this.infraestruturaForm.controls.situacao.value,
-          tipoAcesso: this.infraestruturaForm.controls.tipoAcesso.value,
-          temPredio: this.infraestruturaForm.controls.temPredio.value,
-          tipoAgua: this.infraestruturaForm.controls.tipoAgua.value,
-          temInternet: this.infraestruturaForm.controls.temInternet.value,
-          tipoEnergia: this.infraestruturaForm.controls.tipoEnergia.value,
-          temRegistroFotografico: this.infraestruturaForm.controls.temRegistroFotografico.value
-        };
-
-        const salvarInfraestrutura$ = this.editando && this.infraestruturaId
-          ? this.infraestruturaService.editar(dadosInfraestrutura)
-          : this.infraestruturaService.salvar(dadosInfraestrutura);
-
-        const infraestrutura$ = salvarInfraestrutura$.pipe(
-          switchMap(infraestruturaSalva => {
-            if (this.fotoEscola) {
-              return this.infraestruturaService.adicionarFoto(
-                infraestruturaSalva.id,
-                this.fotoEscola
-              );
-            }
-
-            if (this.fotoAtualRemovida) {
-              return this.infraestruturaService.excluirFoto(
-                infraestruturaSalva.id
-              ).pipe(map(() => infraestruturaSalva));
-            }
-
-            return of(infraestruturaSalva);
-          })
-        );
-
-        const chamadasNivel = this.montarMatriculasNivel().map(matricula => {
-          const idExistente = this.matriculasNivelIds.get(matricula.nivel);
-          const dados = {
-            ...(idExistente ? { id: idExistente } : {}),
-            registroId,
-            nivel: matricula.nivel,
-            qtdMasculino: matricula.qtdMasculino,
-            qtdFeminino: matricula.qtdFeminino,
-            total: matricula.total
-          };
-
-          if (this.editando && idExistente) {
-            return this.matriculaNivelService.editar(dados);
-          }
-          return this.matriculaNivelService.salvar(dados);
-        });
-
-        const matriculasNivel$ = forkJoin(chamadasNivel);
-
-        const chamadasSerie = this.montarMatriculasSerie().map(matricula => {
-          const chave = `${matricula.denominacao}|${matricula.etapaEnsino}`;
-          const idExistente = this.matriculasSerieIds.get(chave);
-          const dados = {
-            ...(idExistente ? { id: idExistente } : {}),
-            registroId,
-            denominacao: matricula.denominacao,
-            etapaEnsino: matricula.etapaEnsino,
-            qtdMasculino: matricula.qtdMasculino,
-            qtdFeminino: matricula.qtdFeminino,
-            total: matricula.total
-          };
-
-          if (this.editando && idExistente) {
-            return this.matriculaSerieService.editar(dados);
-          }
-          return this.matriculaSerieService.salvar(dados);
-        });
-
-        const matriculasSerie$ = forkJoin(chamadasSerie);
-
-        return forkJoin({
-          equipe: equipe$,
-          infraestrutura: infraestrutura$,
-          matriculasNivel: matriculasNivel$,
-          matriculasSerie: matriculasSerie$
-        }).pipe(
-          map(resultado => ({
-            escola,
-            registro,
-            ...resultado
-          }))
-        );
-      })
-    ).subscribe({
+    cadastro$.subscribe({
       next: resultado => {
         console.log(this.editando ? 'Escola atualizada com sucesso:' : 'Escola cadastrada com sucesso:', resultado);
         this.salvando = false;

@@ -105,21 +105,27 @@ para quem não é administrador (`ehAdmin`).
 Fluxo implementado em `core/auth/auth.service.ts`:
 
 1. `login()` apaga uma sessão anterior e chama `POST /auth/login`.
-2. A resposta é normalizada: o perfil e o indicador `alterarSenha` vêm do
-   corpo da resposta ou, na falta deles, das *claims* do JWT.
-3. O token é salvo em `localStorage['sigei_token']` e os dados do usuário em
-   `localStorage['sigei_usuario']`.
-4. `authInterceptor` adiciona `Authorization: Bearer <token>` a toda
-   requisição, exceto a de login. Assim, um token expirado não bloqueia um
-   novo login.
+2. O backend grava o token de acesso (15 min) e o refresh token (7 dias) em
+   cookies `HttpOnly` e `SameSite=Strict`. Os tokens nunca passam pelo
+   JavaScript; o corpo da resposta traz só os dados do usuário, salvos em
+   `localStorage['sigei_usuario']` para os guards e o menu.
+3. O navegador envia os cookies automaticamente, porque a API é acessada pela
+   mesma origem (`/api`). Em métodos não seguros, o `HttpClient` copia o
+   cookie `XSRF-TOKEN` para o cabeçalho `X-XSRF-TOKEN` (proteção CSRF nativa
+   do Angular, que só atua em URLs relativas).
+4. Ao receber `401`, `authInterceptor` chama `POST /auth/refresh` (uma única
+   chamada compartilhada entre requisições simultâneas) e repete a requisição.
+   Se ela falhar de novo com `401`, a sessão local é apagada e o usuário vai
+   para o login.
 5. Se `alterarSenha` for verdadeiro, a senha digitada no login fica em
    `sessionStorage['sigei_senha_temporaria']` apenas para preencher o campo
    "senha atual" da tela de troca. Ela é removida assim que essa tela lê o
    valor, e também no logout.
-6. `logout()` apaga as três chaves.
+6. `logout()` chama `POST /auth/logout`, que revoga a sessão e remove os
+   cookies, e apaga as chaves locais.
 
-Não há renovação de token nem logout automático quando o token expira. Uma
-resposta `401` não redireciona para o login; a tela exibe o erro da chamada.
+`estaLogado()` indica apenas que houve login neste navegador, pois os cookies
+`HttpOnly` não são legíveis. Quem decide a autorização é sempre o backend.
 
 ## Comunicação com a API
 
@@ -128,7 +134,11 @@ resposta `401` não redireciona para o login; a tela exibe o erro da chamada.
 | Ambiente | Arquivo | `apiUrl` | Encaminhamento |
 | --- | --- | --- | --- |
 | Desenvolvimento | `environment.ts` | `/api` | `proxy.conf.json` remove `/api` e encaminha para `http://127.0.0.1:8081`. |
-| Produção | `environment.production.ts` | `https://sigei-x4nv.onrender.com` | Chamada direta ao backend (exige CORS liberado). |
+| Produção | `environment.production.ts` | `/api` | O Nginx encaminha para `API_UPSTREAM`. |
+
+> A mesma origem é obrigatória: os cookies de sessão usam `SameSite=Strict` e
+> a proteção CSRF do Angular só atua em URLs relativas. Não aponte `apiUrl`
+> diretamente para outro domínio.
 
 > O proxy de desenvolvimento aponta para a porta **8081**, e o backend usa
 > **8080** por padrão. Ajuste `proxy.conf.json` ou a variável `PORT` do
@@ -152,7 +162,7 @@ Serviços HTTP e rotas consumidas:
 | `PovoService` | `/povo` | CRUD e `GET /{id}` |
 | `UsuarioService` | `/usuario` | CRUD e `GET /{id}` |
 | `DashboardService` | `/dashboard` | `GET` com `ano` opcional |
-| `AuthService` | `/auth` | `POST /login`, `PUT /alterar-senha` |
+| `AuthService` | `/auth` | `POST /login`, `POST /refresh`, `POST /logout`, `PUT /alterar-senha` |
 
 ## Telas
 

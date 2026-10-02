@@ -8,7 +8,6 @@ export interface LoginResponse {
   nome: string;
   email: string;
   perfil: string;
-  token: string;
   alterarSenha: boolean;
   authorities?: string[];
 }
@@ -19,7 +18,7 @@ export interface AlterarSenhaRequest {
   confirmacaoSenha: string;
 }
 
-export interface UsuarioAutenticado extends Omit<LoginResponse, 'token'> {
+export interface UsuarioAutenticado extends LoginResponse {
   alterarSenha: boolean;
   authorities: string[];
 }
