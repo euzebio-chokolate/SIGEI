@@ -79,6 +79,11 @@ Use o `Dockerfile` e um PostgreSQL gerenciado. Configure:
 A sessão usa cookies `HttpOnly` e `SameSite=Strict`, portanto o frontend deve
 acessar a API pela mesma origem, pelo proxy `/api` do Nginx do frontend.
 
+O esquema do banco é criado e atualizado pelo Flyway na inicialização
+(`src/main/resources/db/migration`). Bancos já existentes, criados pelo Hibernate
+antes do Flyway, recebem baseline automaticamente e só executam as migrações novas.
+Faça backup do banco antes da primeira implantação com o Flyway.
+
 Para fotografias, configure `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` e
 `CLOUDINARY_API_SECRET`. O health check da hospedagem deve usar
 `/actuator/health`.

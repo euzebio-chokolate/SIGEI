@@ -1,10 +1,11 @@
 # Alterações sugeridas para a monografia
 
-Este arquivo reúne os trechos do `desenvolvimento.tex` que ficaram desatualizados após três melhorias no sistema:
+Este arquivo reúne os trechos do `desenvolvimento.tex` que ficaram desatualizados após quatro melhorias no sistema:
 
 1. **Cadastro de escola em transação única:** o formulário de escolas passou a enviar uma única requisição, e o *backend* grava escola, registro anual, equipe, infraestrutura, matrículas e fotografia em uma só transação.
 2. **Renovação automática da sessão:** o *login* passou a emitir também um *refresh token*. Com ele, o *frontend* renova o *token* de acesso automaticamente, sem exigir nova autenticação.
 3. **Tokens em cookies protegidos:** os *tokens* deixaram de ser guardados no `localStorage`. Agora ficam em *cookies* `HttpOnly` e `SameSite=Strict`, inacessíveis a *scripts* da página, e as requisições que alteram dados exigem um *token* CSRF. Para isso, o *frontend* passou a acessar a API pela mesma origem, por meio do *proxy* `/api`.
+4. **Versionamento do esquema com Flyway:** o esquema do banco passou a ser criado e evoluído por migrações SQL versionadas, e o Hibernate apenas o valida.
 
 Cada item indica a seção, a linha aproximada no `desenvolvimento.tex`, o texto atual e o texto novo, já em LaTeX. Os números de linha valem para a versão atual do arquivo e mudam à medida que as alterações forem aplicadas; prefira localizar os trechos pelo texto.
 
@@ -153,7 +154,7 @@ O controle de acesso é garantido pela autenticação JWT, com renovação de se
 
 **Onde:** primeiro parágrafo da seção (linha 308).
 
-O repositório tem agora **31 classes de teste**. Antes destas alterações eram 28, e o texto atual cita 27; vale conferir esse número antes de publicar. Foram acrescentadas `CadastroEscolaServiceTest`, `RefreshTokenFluxoTest` e `AuthSessaoHttpTest`.
+O repositório tem agora **32 classes de teste**. Antes destas alterações eram 28, e o texto atual cita 27; vale conferir esse número antes de publicar. Foram acrescentadas `CadastroEscolaServiceTest`, `RefreshTokenFluxoTest`, `AuthSessaoHttpTest` e `FlywayMigracoesTest`.
 
 **Texto atual:**
 
@@ -164,7 +165,7 @@ A verificação do \textit{backend} foi realizada com testes automatizados escri
 **Substituir por:**
 
 ```latex
-A verificação do \textit{backend} foi realizada com testes automatizados escritos com JUnit 5 e Mockito, organizados em 31 classes de teste que espelham os pacotes da aplicação \cite{sommerville2019}. Os testes de serviço isolam as regras de negócio por meio de objetos simulados (\textit{mocks}) dos repositórios. Os testes de repositório utilizam a anotação \texttt{@DataJpaTest} com um banco de dados H2 em memória, verificando os mapeamentos, as consultas personalizadas e as agregações do painel de indicadores. Também foram testados o inicializador de municípios e o histórico anual das escolas. O cadastro completo de escolas e a renovação de sessão foram verificados com transações reais, confirmando que uma falha intermediária desfaz todo o cadastro e que \textit{refresh tokens} utilizados, expirados ou revogados são rejeitados. As rotas de sessão foram testadas também com a configuração de segurança completa da aplicação, verificando os atributos dos \textit{cookies} e a recusa de requisições sem o \textit{token} CSRF.
+A verificação do \textit{backend} foi realizada com testes automatizados escritos com JUnit 5 e Mockito, organizados em 32 classes de teste que espelham os pacotes da aplicação \cite{sommerville2019}. Os testes de serviço isolam as regras de negócio por meio de objetos simulados (\textit{mocks}) dos repositórios. Os testes de repositório utilizam a anotação \texttt{@DataJpaTest} com um banco de dados H2 em memória, verificando os mapeamentos, as consultas personalizadas e as agregações do painel de indicadores. Também foram testados o inicializador de municípios e o histórico anual das escolas. O cadastro completo de escolas e a renovação de sessão foram verificados com transações reais, confirmando que uma falha intermediária desfaz todo o cadastro e que \textit{refresh tokens} utilizados, expirados ou revogados são rejeitados. As rotas de sessão foram testadas também com a configuração de segurança completa da aplicação, verificando os atributos dos \textit{cookies} e a recusa de requisições sem o \textit{token} CSRF.
 ```
 
 ---
@@ -173,12 +174,15 @@ A verificação do \textit{backend} foi realizada com testes automatizados escri
 
 **Onde:** lista `alineas` da seção (linhas 316–323).
 
-**Remover estes dois itens**, pois as limitações foram resolvidas:
+**Remover estes três itens**, pois as limitações foram resolvidas:
 
 ```latex
   \item o cadastro de uma escola é gravado por uma sequência de requisições à API, e não por uma única transação, de modo que uma falha intermediária pode deixar o cadastro incompleto até nova gravação;
   \item não há renovação automática do \textit{token} de acesso; após o período de validade, o usuário precisa se autenticar novamente;
+  \item o esquema do banco de dados é mantido pelo Hibernate, e a adoção de uma ferramenta de versionamento de esquema, como Flyway, é recomendável antes do uso em produção.
 ```
+
+> Com a remoção do último item, o item anterior ("o \textit{frontend} não possui testes automatizados...") passa a ser o último da lista e deve terminar com ponto final, e não com ponto e vírgula.
 
 > A limitação sobre o armazenamento dos *tokens* no `localStorage`, sugerida em versão anterior deste arquivo, também foi resolvida (cookies `HttpOnly` com proteção CSRF) e não deve ser incluída.
 
@@ -188,8 +192,7 @@ A verificação do \textit{backend} foi realizada com testes automatizados escri
 \begin{alineas}
   \item a exportação de relatórios em formatos como PDF ou planilha ainda não foi implementada;
   \item o módulo de importação foi construído para o leiaute das planilhas disponibilizadas pela SEE/AC, com colunas e ano de referência fixos, e precisa ser generalizado para cargas de anos futuros;
-  \item o \textit{frontend} não possui testes automatizados, e não foram realizadas avaliações formais de desempenho e de usabilidade com os gestores da SEE/AC;
-  \item o esquema do banco de dados é mantido pelo Hibernate, e a adoção de uma ferramenta de versionamento de esquema, como Flyway, é recomendável antes do uso em produção.
+  \item o \textit{frontend} não possui testes automatizados, e não foram realizadas avaliações formais de desempenho e de usabilidade com os gestores da SEE/AC.
 \end{alineas}
 ```
 
@@ -224,6 +227,42 @@ A entidade \texttt{Usuario} armazena as credenciais e o perfil de acesso, e a en
 ```
 
 > Se o diagrama entidade-relacionamento (imagem) for atualizado, inclua a tabela `refresh_token`, ligada a `usuario` por um relacionamento um-para-muitos.
+
+---
+
+## 10. Seção do modelo de dados: gerenciamento do esquema
+
+**Onde:** parágrafo logo após o comentário da figura do modelo de dados (linha 103).
+
+**Texto atual:**
+
+```latex
+O esquema do banco é gerado e atualizado pelo Hibernate a partir das entidades, conforme a propriedade \texttt{spring.jpa.hibernate.ddl-auto}.
+```
+
+**Substituir por:**
+
+```latex
+O esquema do banco é versionado com a ferramenta Flyway. Cada alteração estrutural é registrada em um \textit{script} SQL numerado, aplicado automaticamente na inicialização da aplicação e registrado em uma tabela de histórico, o que torna a evolução do esquema reproduzível e auditável em todos os ambientes. O Hibernate deixou de criar ou alterar tabelas e passou apenas a validar, na inicialização, se as entidades correspondem ao esquema migrado. A primeira migração reproduz o esquema que o Hibernate gerava anteriormente; bancos já existentes são marcados com essa versão como linha de base e recebem somente as migrações posteriores, sem perda de dados.
+```
+
+> O restante do parágrafo (coordenadas geográficas armazenadas como números de precisão dupla) permanece igual.
+
+---
+
+## 11. Quadro de pacotes ou tecnologias, se houver
+
+Se a monografia listar as tecnologias do *backend* (por exemplo, no capítulo de métodos ou na arquitetura), acrescente:
+
+```latex
+Flyway, para o versionamento do esquema do banco de dados
+```
+
+Na seção "Testes", pode-se acrescentar ao texto do item 7:
+
+```latex
+As migrações do esquema também são verificadas automaticamente em uma instância real do PostgreSQL, criada em contêiner pela biblioteca Testcontainers, tanto para um banco novo quanto para bancos criados antes da adoção do Flyway.
+```
 
 ---
 
