@@ -91,9 +91,15 @@ erDiagram
         bigint id PK
         varchar email UK
     }
+    refresh_token {
+        bigint id PK
+        bigint usuario_id FK
+        varchar token_hash UK
+    }
+    usuario ||--o{ refresh_token : "possui"
 ```
 
-As UKs de `aldeia_id` e `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. As unicidades compostas de `anexo` e `registro_anual` estão detalhadas adiante. `usuario` não possui FK para as tabelas do domínio.
+As UKs de `aldeia_id` e `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. As unicidades compostas de `anexo` e `registro_anual` estão detalhadas adiante. `usuario` não possui FK para as tabelas do domínio; apenas `refresh_token` referencia `usuario`.
 
 ## Dicionário de dados
 
@@ -265,7 +271,22 @@ Entidade [Usuario.java](../src/main/java/ac/gov/br/sigei_backend/models/Usuario.
 | `ativo` | `boolean` | Não | Inicializado em `true` no Java, sem default SQL explícito. |
 | `alterar_senha` | `boolean` | Não | Inicializado em `true` no Java e com `@ColumnDefault("true")`. |
 
-Não há tabela de tokens JWT nem tabela separada para os perfis no modelo atual.
+Não há tabela separada para os perfis no modelo atual.
+
+### `refresh_token`
+
+Entidade [RefreshToken.java](../src/main/java/ac/gov/br/sigei_backend/models/RefreshToken.java). Sessões renováveis emitidas no login e em `POST /auth/refresh`. O token JWT de acesso não é persistido.
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `usuario_id` | `bigint` | Não | FK → `usuario.id`, com `ON DELETE CASCADE` (`@OnDelete`). |
+| `token_hash` | `varchar(64)` | Não | Hash SHA-256 (hexadecimal) do token entregue ao cliente; UK. O valor original não é gravado. |
+| `criado_em` | `timestamp` | Não | Momento da emissão. |
+| `expira_em` | `timestamp` | Não | Fim da validade (`jwt.refresh-expiration`). |
+| `revogado` | `boolean` | Não | `true` após uso (rotação), logout, troca de senha ou detecção de reutilização. |
+| `revogado_em` | `timestamp` | Sim | Momento da revogação; distingue concorrência entre abas (até 30 s) de reutilização suspeita. |
+
+Tokens revogados são mantidos para detectar reutilização; os expirados de um usuário são apagados quando ele recebe um novo token.
 
 ## Cascatas e exclusões
 
@@ -279,7 +300,7 @@ Não há tabela de tokens JWT nem tabela separada para os perfis no modelo atual
 
 As demais associações não declaram cascata de remoção. Por exemplo, excluir um povo não implica excluir suas aldeias automaticamente. Referências existentes podem impedir exclusões.
 
-Essas cascatas são do ORM: não equivalem a `ON DELETE CASCADE` no PostgreSQL. Nenhuma entidade declara `@OnDelete`. Exclusões por SQL direto ou operações em lote podem ter comportamento diferente das operações de entidade. A remoção de uma linha de infraestrutura também não descreve, por si só, a remoção do arquivo no Cloudinary.
+Essas cascatas são do ORM: não equivalem a `ON DELETE CASCADE` no PostgreSQL. A única exceção é `refresh_token.usuario_id`, que declara `@OnDelete(CASCADE)`: excluir um usuário remove seus tokens no próprio banco. Exclusões por SQL direto ou operações em lote podem ter comportamento diferente das operações de entidade. A remoção de uma linha de infraestrutura também não descreve, por si só, a remoção do arquivo no Cloudinary.
 
 ## Como manter esta documentação
 

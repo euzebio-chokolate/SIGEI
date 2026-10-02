@@ -64,6 +64,10 @@ O navegador acessará apenas `https://seu-front/api/...`; a URL configurada fica
 no Nginx. Isso evita recompilar o Angular ao trocar o endereço da API e elimina
 problemas de CORS quando frontend e proxy usam a mesma origem.
 
+O proxy `/api` é obrigatório: a sessão usa cookies `HttpOnly` com
+`SameSite=Strict`, que só funcionam quando frontend e API estão na mesma origem.
+Publicar o frontend chamando a API diretamente em outro domínio impede o login.
+
 No backend, mantenha `CORS_ALLOWED_ORIGINS` com a URL HTTPS pública do frontend
 caso a API também seja acessada diretamente. Nunca publique segredos, `.env` ou
 credenciais administrativas no repositório.

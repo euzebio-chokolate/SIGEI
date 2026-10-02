@@ -9,8 +9,7 @@ public record LoginResponseDTO(
         String nome,
         String email,
         PerfilUsuario perfil,
-        Boolean alterarSenha,
-        String token
+        Boolean alterarSenha
 
 ) {
 }
