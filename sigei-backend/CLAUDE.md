@@ -66,7 +66,7 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/povo` | CRUD base e `GET /{id}`. |
 | `/municipio` | CRUD base e `GET /estatisticas`. |
 | `/terra` | CRUD base, `GET /{id}` e `GET /estatisticas`. |
-| `/escola` | CRUD base e `GET /{id}` com detalhes e registro anual mais recente da escola. |
+| `/escola` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `POST /salvarCompleto` e `PUT /editarCompleto` (multipart: parte `dados` em JSON e parte opcional `foto`). |
 | `/anexo` | CRUD base. |
 | `/anos` | CRUD base. |
 | `/registroAnual` | CRUD base, `GET /buscarPorAno?ano=2025` e `GET /buscarPorEscolaEAno?escolaId=1&ano=2025`. |
@@ -75,7 +75,7 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/matriculaNivel` | CRUD base. |
 | `/matriculaSerie` | CRUD base. |
 | `/usuario` | CRUD base e `GET /{id}`. |
-| `/auth` | `POST /login` e `PUT /alterar-senha`. |
+| `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /alterar-senha`. |
 | `/dashboard` | `GET`, com parâmetro opcional `ano`. |
 | `/atualizacao-anual` | `POST /iniciar`, sem corpo. |
 | `/importacoes` | `POST /infraestrutura` e `POST /matriculas`, multipart com campo `arquivo`. |
@@ -86,7 +86,11 @@ Swagger: `/swagger-ui.html` e `/swagger-ui/**`; OpenAPI: `/v3/api-docs`. As anot
 
 ## Segurança e autenticação
 
-Fonte principal: `config/security/SecurityConfig.java`. A aplicação é stateless, sem form login ou HTTP Basic, com CSRF desabilitado. O `JwtFilter` executa antes de `UsernamePasswordAuthenticationFilter`.
+Fonte principal: `config/security/SecurityConfig.java`. A aplicação é stateless, sem form login ou HTTP Basic. O `JwtFilter` executa antes de `UsernamePasswordAuthenticationFilter`.
+
+Os tokens trafegam em cookies `HttpOnly`, `SameSite=Strict` e `Path=/` gravados por `CookiesSessao`: `sigei_acesso` (JWT) e `sigei_renovacao` (refresh token). Nenhum token segue no corpo das respostas. O atributo `Secure` vem de `SIGEI_COOKIE_SECURE` (padrão `true`). Por causa de `SameSite=Strict`, o frontend precisa acessar a API pela mesma origem, via proxy `/api` (Nginx em produção, `proxy.conf.json` em desenvolvimento).
+
+CSRF usa `csrf.spa()` (double submit cookie): o cookie `XSRF-TOKEN`, legível por JavaScript, é gravado em toda resposta e deve voltar no cabeçalho `X-XSRF-TOKEN` em métodos não seguros. O `HttpClient` do Angular faz isso automaticamente para URLs relativas. Ficam dispensados `/auth/login` e requisições com `Authorization: Bearer`, que não dependem de cookies. Falha de CSRF gera `403`.
 
 As regras são avaliadas nesta ordem:
 
@@ -94,7 +98,7 @@ As regras são avaliadas nesta ordem:
 | --- | --- |
 | `OPTIONS /**` | Público. |
 | `/actuator/health` e descendentes | Público. |
-| `/auth/login` | Público. |
+| `/auth/login`, `/auth/refresh`, `/auth/logout` | Público. |
 | Rotas Swagger/OpenAPI configuradas | Público. |
 | `/auth/alterar-senha` | Qualquer usuário autenticado. |
 | `GET /infraestrutura` e descendentes | Público. |
@@ -106,15 +110,19 @@ Esses matchers não criam endpoints. A exceção pública de infraestrutura não
 Fluxo de autenticação:
 
 1. `POST /auth/login` recebe `email` e `senha`; o service consulta o usuário, verifica se está ativo e compara a senha com BCrypt.
-2. A resposta inclui `id`, `nome`, `email`, `perfil`, `alterarSenha` e `token`.
-3. Envie o token em `Authorization: Bearer <token>`. O subject é o e-mail; há claims de ID, nome e perfil. Expiração padrão: `86400000` milissegundos (24 horas).
+2. A resposta grava os cookies de sessão e devolve no corpo apenas `id`, `nome`, `email`, `perfil` e `alterarSenha`.
+3. O navegador envia `sigei_acesso` automaticamente. O filtro aceita também `Authorization: Bearer <token>` (com precedência) para clientes de API, mas a API não expõe mais o token. O subject é o e-mail; há claims de ID, nome e perfil. Expiração padrão do token de acesso: `900000` milissegundos (15 minutos).
 4. O filtro valida o JWT e consulta novamente o usuário no banco. A autorização usa o perfil e o estado atuais do cadastro.
 5. Se `alterarSenha=true`, a única autoridade atribuída é `ROLE_TROCAR_SENHA`. O usuário pode alterar a própria senha e acessar rotas públicas, mas não recebe os privilégios normais do perfil.
-6. `PUT /auth/alterar-senha` recebe `senhaAtual`, `novaSenha` e `confirmacaoSenha`; valida as senhas, impede reutilizar a atual, grava BCrypt e define `alterarSenha=false`. Retorna `204`.
+6. `PUT /auth/alterar-senha` recebe `senhaAtual`, `novaSenha` e `confirmacaoSenha`; valida as senhas, impede reutilizar a atual, grava BCrypt, define `alterarSenha=false`, revoga todos os refresh tokens do usuário e remove os cookies de sessão. Retorna `204`.
+7. `POST /auth/refresh` lê o cookie `sigei_renovacao`, grava novos cookies e devolve o mesmo corpo do login. `RefreshTokenService` grava apenas o hash SHA-256, valida por 7 dias (`jwt.refresh-expiration`) e rotaciona: o token usado é revogado por update condicional, de modo que duas renovações simultâneas não geram duas sessões. Reapresentar um token revogado há mais de 30 segundos (`TOLERANCIA_CONCORRENCIA`) revoga todas as sessões do usuário; dentro desse intervalo, que cobre abas renovando ao mesmo tempo com o mesmo cookie, o token é só recusado. Cookie ausente ou token desconhecido, expirado, revogado ou de usuário inativo resulta em `401` e na remoção dos cookies; a transação não é desfeita nesses casos, para manter as revogações.
+8. `POST /auth/logout` revoga o refresh token do cookie, remove os cookies e retorna `204` mesmo sem sessão.
 
-Token ausente ou inválido segue pelo filtro sem autenticar; uma rota protegida responde `401`. Falta de permissão para usuário autenticado resulta em `403`. Não há endpoint de refresh ou logout implementado.
+No frontend, os tokens nunca passam pelo JavaScript: o `localStorage` guarda só os dados de exibição do usuário (`sigei_usuario`), usados pelos guards. Após um `401`, `authInterceptor` renova a sessão com uma única chamada compartilhada e repete a requisição; se ela ainda falhar com `401`, limpa a sessão local e redireciona ao login.
 
-CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origens separadas por vírgula, permite credenciais e os métodos GET/POST/PUT/DELETE/PATCH/OPTIONS. Headers permitidos: `Authorization`, `Content-Type`, `Accept`, `Origin`; `Authorization` é exposto à resposta.
+Token ausente ou inválido segue pelo filtro sem autenticar; uma rota protegida responde `401`. Falta de permissão para usuário autenticado resulta em `403`.
+
+CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origens separadas por vírgula, permite credenciais e os métodos GET/POST/PUT/DELETE/PATCH/OPTIONS. Headers permitidos: `Authorization`, `Content-Type`, `Accept`, `Origin`, `X-XSRF-TOKEN`; `Authorization` é exposto à resposta. Com o proxy `/api`, o navegador não faz requisições entre origens; o CORS serve a acessos diretos à API.
 
 ## Fluxos importantes
 
@@ -123,6 +131,15 @@ CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origen
 `AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia rede, local de funcionamento, equipe, infraestrutura (inclusive URL da foto) e matrículas para novas entidades. Escolas sem registro anterior são ignoradas.
 
 A implementação atual não copia explicitamente `RegistroAnual.totalAlunos` nem `MatriculaSerie.total`. Não suponha que todos os totais sejam recalculados ou zerados; confira esse fluxo antes de alterar indicadores ou a virada anual.
+
+### Cadastro completo de escola
+
+`CadastroEscolaService` grava, em uma única transação, escola, registro do ano informado, equipe, infraestrutura, matrículas e foto (`CadastroEscolaRequestDTO`). É o fluxo usado pelo formulário de escolas do frontend; os endpoints individuais de cada entidade continuam existindo.
+
+- `salvarCompleto` exige `escola.id` nulo e retorna `201`; `editarCompleto` exige `escola.id` e retorna `200`. Ambos retornam `CadastroEscolaResponseDTO` (`escola` e `registro`).
+- O registro é localizado por escola + ano: se existir, é atualizado; senão, é criado. Registros de outros anos não são alterados.
+- Matrículas são casadas por `nivel` e por `denominacao` + `etapaEnsino`; itens ausentes na requisição são preservados e chaves repetidas geram `400`.
+- `removerFoto=true` limpa a referência da foto. O upload ao Cloudinary ocorre após o flush do banco; se a transação for desfeita depois do upload, a imagem é removida por compensação.
 
 ### Importação de Excel
 
@@ -149,7 +166,9 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `DATABASE_POOL_SIZE`, `DATABASE_POOL_MIN_IDLE` | Pool Hikari; padrões 10 e 1. |
 | `JPA_DDL_AUTO`, `JPA_SHOW_SQL` | Padrões `update` e `false`. |
 | `JWT_SECRET` | Obrigatório; use segredo aleatório com pelo menos 32 bytes para a chave HMAC. |
-| `JWT_EXPIRATION` | Validade do token em milissegundos. |
+| `JWT_EXPIRATION` | Validade do token de acesso em milissegundos; padrão 15 minutos. |
+| `JWT_REFRESH_EXPIRATION` | Validade do refresh token em milissegundos; padrão 7 dias. |
+| `SIGEI_COOKIE_SECURE` | Atributo `Secure` dos cookies de sessão; padrão `true`. Use `false` só em acesso HTTP sem TLS por IP da rede. |
 | `CORS_ALLOWED_ORIGINS` | Origens permitidas do frontend. |
 | `SIGEI_ADMIN_NAME`, `SIGEI_ADMIN_EMAIL`, `SIGEI_ADMIN_PASSWORD` | Administrador inicial. |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Armazenamento de imagens. |
@@ -186,6 +205,8 @@ Execute na raiz com JDK 21 configurado. No PowerShell:
 .\mvnw.cmd spring-boot:run
 ```
 
+O `pom.xml` não declara `annotationProcessorPaths`; com JDK 23 ou superior o MapStruct não é executado implicitamente e os testes falham por falta dos mappers. Nesse caso, acrescente `"-Dmaven.compiler.proc=full"` aos comandos.
+
 Em Linux/macOS, use `./mvnw` nos mesmos comandos. Com `.env` configurado, `docker compose up --build -d` inicia os serviços; `docker compose logs -f api` acompanha a aplicação. `docker compose down` para os serviços mantendo o volume. Não use `down -v` para uma parada comum: remove os dados persistidos.
 
 API local: `http://localhost:8080`; health: `/actuator/health`.
@@ -205,6 +226,7 @@ Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organiz
 | `NoSuchElementException` | `404`, mensagem textual. |
 | `DataIntegrityViolationException` | `409`, mensagem textual. |
 | `ArmazenamentoImagemNaoConfiguradoException` | `503`, mensagem textual. |
+| `TokenInvalidoException` | `401`, mensagem textual; em `/auth/refresh` é tratada no próprio controller, que também remove os cookies. |
 
 Não existe um formato universal de erro. O login lança `NoSuchElementException` para e-mail não encontrado e `RuntimeException` para senha incorreta/usuário inativo; estes últimos não têm tratamento específico nesse advice e podem resultar em `500`. Não documente todos os erros de login como `401` sem implementar essa mudança.
 
@@ -214,7 +236,7 @@ Ao trabalhar no projeto:
 - Mantenha regras de negócio nos services e consultas nos repositories. Retorne DTOs e use os mappers existentes.
 - Use imports `jakarta.*` para JPA/validação. Não introduza Lombok ou outra estrutura sem necessidade: as entidades atuais têm métodos explícitos.
 - Não edite implementações MapStruct geradas em `target/`; altere as interfaces em `mappers`.
-- Ao mudar segurança, confira a ordem dos matchers e os casos público, sem token, `USUARIO`, `ADMIN` e troca obrigatória de senha.
+- Ao mudar segurança, confira a ordem dos matchers e os casos público, sem token, `USUARIO`, `ADMIN` e troca obrigatória de senha, além de cookies e CSRF (`AuthSessaoHttpTest`).
 - Ao mudar persistência, revise unicidade, cascatas, transações, carregamento de relações e reflexos nos indicadores e importações.
 - Verifique alterações de lógica com os testes relevantes e informe o que foi efetivamente executado. Não trate o build Docker como execução da suíte.
 - Atualize este arquivo quando houver mudanças de arquitetura, configuração, endpoints ou regras centrais.

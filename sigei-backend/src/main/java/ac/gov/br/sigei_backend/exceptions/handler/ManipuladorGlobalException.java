@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.exceptions.handler;
 
 import ac.gov.br.sigei_backend.exceptions.ArmazenamentoImagemNaoConfiguradoException;
+import ac.gov.br.sigei_backend.exceptions.TokenInvalidoException;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -49,5 +50,10 @@ public class ManipuladorGlobalException {
     public ResponseEntity<String> tratarArmazenamentoImagemNaoConfiguradoException(
             ArmazenamentoImagemNaoConfiguradoException erro) {
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(erro.getMessage());
+    }
+
+    @ExceptionHandler(TokenInvalidoException.class)
+    public ResponseEntity<String> tratarTokenInvalidoException(TokenInvalidoException erro) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erro.getMessage());
     }
 }

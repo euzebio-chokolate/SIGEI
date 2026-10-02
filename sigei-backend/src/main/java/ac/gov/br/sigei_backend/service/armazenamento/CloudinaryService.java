@@ -43,6 +43,10 @@ public class CloudinaryService {
         );
     }
 
+    public void excluirImagem(String publicId) throws IOException {
+        cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+    }
+
     private boolean credencialAusente(String valor) {
         return valor == null
                 || valor.isBlank()
