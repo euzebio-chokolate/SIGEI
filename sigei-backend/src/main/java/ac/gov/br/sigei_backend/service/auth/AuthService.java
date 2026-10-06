@@ -3,7 +3,9 @@ package ac.gov.br.sigei_backend.service.auth;
 import ac.gov.br.sigei_backend.dto.request.AlterarSenhaRequestDTO;
 import ac.gov.br.sigei_backend.dto.request.LoginRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.LoginResponseDTO;
+import ac.gov.br.sigei_backend.exceptions.CredenciaisInvalidasException;
 import ac.gov.br.sigei_backend.exceptions.TokenInvalidoException;
+import ac.gov.br.sigei_backend.exceptions.UsuarioDesativadoException;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -28,34 +31,42 @@ public class AuthService {
     @Autowired
     RefreshTokenService refreshTokenService;
 
+    /** Hash de uma senha aleatória, comparado quando o e-mail não existe. */
+    private volatile String hashFicticio;
+
+    /**
+     * E-mail inexistente e senha incorreta resultam na mesma resposta (401), e a
+     * comparação BCrypt é feita mesmo sem usuário, para que nem a mensagem nem o
+     * tempo de resposta revelem quais e-mails estão cadastrados. O estado da conta
+     * só é informado (403) a quem acerta a senha.
+     */
     public SessaoAutenticada login(LoginRequestDTO dto) {
 
         Usuario usuario = usuarioRepository
                 .findByEmail(dto.email())
-                .orElseThrow(() ->
-                        new NoSuchElementException(
-                                "E-mail ou senha inválidos"
-                        )
-                );
-
-        if (!usuario.getAtivo()) {
-            throw new RuntimeException(
-                    "Usuário desativado"
-            );
-        }
+                .orElse(null);
 
         boolean senhaValida = passwordEncoder.matches(
                 dto.senha(),
-                usuario.getSenha()
+                usuario != null ? usuario.getSenha() : hashFicticio()
         );
 
-        if (!senhaValida) {
-            throw new RuntimeException(
-                    "E-mail ou senha inválidos"
-            );
+        if (usuario == null || !senhaValida) {
+            throw new CredenciaisInvalidasException();
+        }
+
+        if (!usuario.getAtivo()) {
+            throw new UsuarioDesativadoException();
         }
 
         return gerarSessao(usuario);
+    }
+
+    private String hashFicticio() {
+        if (hashFicticio == null) {
+            hashFicticio = passwordEncoder.encode(UUID.randomUUID().toString());
+        }
+        return hashFicticio;
     }
 
     /** Troca um refresh token válido por um novo par de tokens (rotação). */

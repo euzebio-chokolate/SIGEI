@@ -166,6 +166,39 @@ class AuthSessaoHttpTest {
         mvc.perform(comCsrf(post("/auth/refresh")).cookie(renovacao)).andExpect(status().isUnauthorized());
     }
 
+    @Test
+    void emailInexistenteESenhaIncorretaDevemTerAMesmaResposta401() throws Exception {
+        MockHttpServletResponse senhaIncorreta = tentarLogin(EMAIL, "senha-errada")
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(containsString("E-mail ou senha")))
+                .andReturn().getResponse();
+        MockHttpServletResponse emailInexistente = tentarLogin("naoexiste@sigei.com", SENHA)
+                .andExpect(status().isUnauthorized())
+                .andReturn().getResponse();
+
+        assertEquals(senhaIncorreta.getContentAsString(), emailInexistente.getContentAsString());
+        assertTrue(senhaIncorreta.getHeaders(HttpHeaders.SET_COOKIE).stream()
+                .noneMatch(valor -> valor.startsWith(CookiesSessao.COOKIE_ACESSO + "=")));
+    }
+
+    @Test
+    void usuarioDesativadoSoDeveSerInformadoAQuemAcertaASenha() throws Exception {
+        usuario.setAtivo(false);
+        usuarios.save(usuario);
+
+        tentarLogin(EMAIL, SENHA)
+                .andExpect(status().isForbidden())
+                .andExpect(content().string(containsString("desativado")));
+        tentarLogin(EMAIL, "senha-errada")
+                .andExpect(status().isUnauthorized());
+    }
+
+    private org.springframework.test.web.servlet.ResultActions tentarLogin(String email, String senha) throws Exception {
+        return mvc.perform(post("/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"" + email + "\",\"senha\":\"" + senha + "\"}"));
+    }
+
     private MockHttpServletResponse login() throws Exception {
         return mvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
