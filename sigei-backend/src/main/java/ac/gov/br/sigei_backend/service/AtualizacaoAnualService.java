@@ -74,12 +74,17 @@ public class AtualizacaoAnualService {
                     registroAnterior.getLocalFuncionamento()
             );
 
+            novoRegistro.setTotalAlunos(
+                    registroAnterior.getTotalAlunos()
+            );
+
             RegistroAnual registroSalvo =
                     registroAnualRepository.save(novoRegistro);
 
             copiarEquipe(
                     registroAnterior,
-                    registroSalvo
+                    registroSalvo,
+                    novoAnoSalvo
             );
 
             copiarInfraestrutura(
@@ -101,7 +106,8 @@ public class AtualizacaoAnualService {
 
     private void copiarEquipe(
             RegistroAnual registroAnterior,
-            RegistroAnual novoRegistro
+            RegistroAnual novoRegistro,
+            AnoReferencia novoAno
     ) {
 
         EquipeEscola equipeAnterior =
@@ -114,6 +120,8 @@ public class AtualizacaoAnualService {
         EquipeEscola novaEquipe = new EquipeEscola();
 
         novaEquipe.setRegistroAnual(novoRegistro);
+
+        novaEquipe.setAnoReferencia(novoAno);
 
         novaEquipe.setTemProfessorResponsavel(
                 equipeAnterior.isTemProfessorResponsavel()
@@ -203,6 +211,9 @@ public class AtualizacaoAnualService {
         novaInfraestrutura.setTemRegistroFotografico(
                 infraestruturaAnterior.getTemRegistroFotografico()
         );
+        // Só a URL é copiada: a imagem fica compartilhada entre os anos, e o
+        // fotoPublicId continua apenas no registro que fez o upload, para que
+        // uma remoção no Cloudinary não apague a foto de outro ano.
         novaInfraestrutura.setFotoUrl(
                 infraestruturaAnterior.getFotoUrl());
 
@@ -277,6 +288,10 @@ public class AtualizacaoAnualService {
 
             novaMatricula.setQtdFeminino(
                     matriculaAnterior.getQtdFeminino()
+            );
+
+            novaMatricula.setTotal(
+                    matriculaAnterior.getTotal()
             );
 
             novoRegistro.getMatriculasSerie()
