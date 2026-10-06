@@ -49,7 +49,7 @@ class FlywayMigracoesTest {
         List<String> versoes = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertEquals(List.of("1", "2", "3"), versoes);
+        assertEquals(List.of("1", "2", "3", "4"), versoes);
     }
 
     @Test
@@ -59,8 +59,8 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(2, resultado.migrationsExecuted);
-        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3"), historico(schema));
+        assertEquals(3, resultado.migrationsExecuted);
+        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4"), historico(schema));
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -83,7 +83,7 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(2, resultado.migrationsExecuted);
+        assertEquals(3, resultado.migrationsExecuted);
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -111,6 +111,12 @@ class FlywayMigracoesTest {
                         + schema + ".escola order by id", String.class));
         assertFalse(colunaExiste(schema, "anexo", "id"));
 
+        // V4: o estado existente entra na revisão inicial da auditoria, atribuída ao sistema
+        assertEquals(List.of("2:1:0", "5:4:0"), jdbc.queryForList(
+                "select id || ':' || coalesce(escola_sede_id::text, 'null') || ':' || revtype from "
+                        + schema + ".escola_aud where id in (2, 5) order by id", String.class));
+        assertEquals(1, jdbc.queryForObject(
+                "select count(*) from " + schema + ".revisao where usuario_id is null", Integer.class));
     }
 
     private Flyway flyway(String schema) {

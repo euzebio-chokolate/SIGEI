@@ -1,11 +1,13 @@
 package ac.gov.br.sigei_backend.models;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
+@Audited
 public class Povo {
 
     @Id

@@ -5,10 +5,13 @@ import ac.gov.br.sigei_backend.dto.request.EscolaRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.CadastroEscolaResponseDTO;
 import ac.gov.br.sigei_backend.dto.response.EscolaResponseDTO;
 import ac.gov.br.sigei_backend.dto.response.detalhe.EscolaDetalheResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.historico.AlteracaoHistoricoDTO;
 import ac.gov.br.sigei_backend.service.CadastroEscolaService;
 import ac.gov.br.sigei_backend.service.EscolaService;
+import ac.gov.br.sigei_backend.service.HistoricoEscolaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -34,6 +37,9 @@ public class EscolaController {
 
     @Autowired
     CadastroEscolaService cadastroEscolaService;
+
+    @Autowired
+    HistoricoEscolaService historicoEscolaService;
 
     @PostMapping("/salvar")
     @Operation(summary = "Salvar escola",
@@ -77,6 +83,22 @@ public class EscolaController {
     public ResponseEntity<EscolaDetalheResponseDTO> buscarPorId(@Parameter(description = "ID do registro de escola", example = "1") @PathVariable Long id) {
         EscolaDetalheResponseDTO escola = escolaService.buscarPorId(id);
         return ResponseEntity.ok(escola);
+    }
+
+    @GetMapping("/{id}/historico")
+    @Operation(summary = "Buscar trilha de auditoria da escola",
+            description = "Retorna as alterações da escola, de seus registros anuais e, em cada registro, de equipe, infraestrutura e matrículas, "
+                    + "da mais recente à mais antiga, com data e hora, autor (nulo quando a alteração foi feita pelo sistema), operação e campos alterados. "
+                    + "Escolas excluídas mantêm o histórico. Requer perfil ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AlteracaoHistoricoDTO.class)))),
+            @ApiResponse(responseCode = "400", description = "ID em formato inválido", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "404", description = "Escola sem histórico de auditoria", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
+    })
+    public ResponseEntity<List<AlteracaoHistoricoDTO>> buscarHistorico(@Parameter(description = "ID da escola", example = "1") @PathVariable Long id) {
+        return ResponseEntity.ok(historicoEscolaService.buscarPorEscola(id));
     }
 
     @PutMapping("/editar")

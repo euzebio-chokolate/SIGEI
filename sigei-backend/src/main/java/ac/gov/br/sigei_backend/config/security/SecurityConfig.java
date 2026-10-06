@@ -54,6 +54,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/auth/alterar-senha").authenticated()
                         .requestMatchers(HttpMethod.GET, "/infraestrutura", "/infraestrutura/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/escola/*/historico").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ADMIN", "USUARIO")
                         .anyRequest().hasRole("ADMIN")
                 )
