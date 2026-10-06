@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
+import { SITUACOES_ESCOLA, TIPOS_ACESSO } from '@domains/escolas/models/infraestrutura-opcoes';
+
 export interface MapaFiltros {
   situacao: string;
   tipoAcesso: string;
@@ -17,6 +19,9 @@ export interface MapaFiltros {
 export class MapaFiltrosComponent {
   @Input() totalResultados = 0;
   @Output() filtrosAlterados = new EventEmitter<MapaFiltros>();
+
+  readonly situacoes = SITUACOES_ESCOLA;
+  readonly tiposAcesso = TIPOS_ACESSO;
 
   isAberto = true;
 

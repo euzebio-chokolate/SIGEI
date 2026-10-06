@@ -205,8 +205,8 @@ Entidade [InfraestruturaEscola.java](../src/main/java/ac/gov/br/sigei_backend/mo
 | `num_salas` | `integer` | Sim | Número de salas. |
 | `latitude` | `double precision` | Sim | Latitude. |
 | `longitude` | `double precision` | Sim | Longitude. |
-| `situacao` | `varchar(255)` | Sim | Situação da escola. |
-| `tipo_acesso` | `varchar(255)` | Sim | Tipo de acesso à unidade. |
+| `situacao` | `varchar(255)` | Sim | `FUNCIONANDO`, `PARALISADA` ou `DESATIVADA` (enum `SituacaoEscola`); nulo = não informada. A restrição é aplicada pela aplicação, não por constraint do banco. |
+| `tipo_acesso` | `varchar(255)` | Sim | `TERRESTRE`, `FLUVIAL` ou `MISTO` (enum `TipoAcesso`); nulo = não informado. A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tem_predio` | `boolean` | Sim | Existência de prédio. |
 | `tipo_agua` | `varchar(255)` | Sim | Forma de abastecimento de água. |
 | `tem_internet` | `boolean` | Sim | Disponibilidade de internet. |

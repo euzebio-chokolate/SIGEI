@@ -184,7 +184,7 @@ class HistoricoEscolaServiceTest {
                 "Prédio próprio",
                 totalAlunos,
                 new CadastroEscolaRequestDTO.EquipeDTO(true, false, true, false, false, true),
-                new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, numSalas, -8.1, -70.5, "ATIVA", "FLUVIAL",
+                new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, numSalas, -8.1, -70.5, "FUNCIONANDO", "FLUVIAL",
                         true, "POCO", false, "SOLAR", false),
                 List.of(new CadastroEscolaRequestDTO.MatriculaNivelDTO("TOTAL_GERAL", 5, 5, 10)),
                 List.of(new CadastroEscolaRequestDTO.MatriculaSerieDTO("1º ano", "FUNDAMENTAL", 2, 3, 5)),

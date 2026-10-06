@@ -8,6 +8,7 @@ import ac.gov.br.sigei_backend.models.InfraestruturaEscola;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.InfraestruturaEscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
+import ac.gov.br.sigei_backend.utils.OpcoesInfraestrutura;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +39,7 @@ public class InfraestruturaEscolaService {
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
         InfraestruturaEscola infraestrutura = infraestruturaMapper.converter(infraDTO);
+        OpcoesInfraestrutura.validar(infraestrutura);
         infraestrutura.setRegistroAnual(registroAnual);
         InfraestruturaEscola infraestruturaSalva = infraestruturaRepository.save(infraestrutura);
 
@@ -80,6 +82,7 @@ public class InfraestruturaEscolaService {
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
         infraestruturaMapper.atualizar(infraDTO, infraestrutura);
+        OpcoesInfraestrutura.validar(infraestrutura);
 
         infraestrutura.setRegistroAnual(registroAnual);
 

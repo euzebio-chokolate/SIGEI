@@ -6,6 +6,7 @@ import ac.gov.br.sigei_backend.repository.*;
 import ac.gov.br.sigei_backend.utils.CoordenadaUtils;
 import ac.gov.br.sigei_backend.utils.ExcelUtils;
 import ac.gov.br.sigei_backend.utils.ImportacaoContador;
+import ac.gov.br.sigei_backend.utils.OpcoesInfraestrutura;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -593,17 +594,23 @@ public class ImportacaoExcelService {
                 )
         );
 
+        // Valores fora das opções do sistema (ex.: "DESATIVADA" na coluna de
+        // acesso das escolas paralisadas) são gravados como não informados
         infraestrutura.setSituacao(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_SITUACAO
+                OpcoesInfraestrutura.situacaoImportada(
+                        ExcelUtils.lerTexto(
+                                linha,
+                                COL_SITUACAO
+                        )
                 )
         );
 
         infraestrutura.setTipoAcesso(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_ACESSO
+                OpcoesInfraestrutura.tipoAcessoImportado(
+                        ExcelUtils.lerTexto(
+                                linha,
+                                COL_ACESSO
+                        )
                 )
         );
 

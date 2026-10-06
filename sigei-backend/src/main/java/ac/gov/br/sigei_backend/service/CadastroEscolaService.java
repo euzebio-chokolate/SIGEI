@@ -12,6 +12,7 @@ import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import ac.gov.br.sigei_backend.service.armazenamento.CloudinaryService;
+import ac.gov.br.sigei_backend.utils.OpcoesInfraestrutura;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -178,6 +179,7 @@ public class CadastroEscolaService {
         }
 
         cadastroEscolaMapper.atualizar(dto, infraestrutura);
+        OpcoesInfraestrutura.validar(infraestrutura);
 
         if (removerFoto) {
             infraestrutura.setFotoUrl(null);
