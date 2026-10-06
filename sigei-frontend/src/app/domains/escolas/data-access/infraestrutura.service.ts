@@ -15,6 +15,11 @@ export class InfraestruturaService {
     return this.http.get<InfraestruturaResponse[]>(this.apiUrl);
   }
 
+  /** Uma infraestrutura por escola: a do registro anual mais recente. */
+  listarMaisRecentes(): Observable<InfraestruturaResponse[]> {
+    return this.http.get<InfraestruturaResponse[]>(`${this.apiUrl}/maisRecentes`);
+  }
+
   salvar(dados: InfraestruturaRequest): Observable<InfraestruturaResponse> {
     return this.http.post<InfraestruturaResponse>(`${this.apiUrl}/salvar`, dados);
   }
