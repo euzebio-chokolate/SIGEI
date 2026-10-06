@@ -1,6 +1,6 @@
 # Texto do TCC em Markdown
 
-Primeira versão completa do texto do TCC sobre o SIGEI, escrita conforme o sumário aprovado em 05/10/2026 (seção 9 de `../00-analise-do-projeto.md`). Os capítulos descrevem o sistema no estado do commit `e399305` (02/10/2026).
+Primeira versão completa do texto do TCC sobre o SIGEI, escrita conforme o sumário aprovado em 05/10/2026 (seção 9 de `../00-analise-do-projeto.md`). Os capítulos descrevem o sistema no estado do commit `026840e` (06/10/2026), depois das correções do incremento 7.
 
 | Arquivo | Conteúdo |
 | --- | --- |
@@ -35,7 +35,7 @@ Para listar todos os pendentes: `grep -n "\[\(INSERIR\|REFERÊNCIA\|DADO\|CONFIR
 3. Origem das planilhas e autorização de uso dos dados (capítulo 1, seções 2.2 e 3.2.1).
 4. Como a demanda chegou ao autor (seção 3.2.1).
 5. Se houve apresentação ou validação do sistema com a SEE/AC (seções 3.1, 3.4 e 4.3.3; capítulo 5).
-6. Se o sistema foi implantado em algum servidor (seção 4.2.6).
+6. Se o sistema foi implantado em algum servidor (seção 4.2.7).
 7. Setor da SEE/AC que seria o público-alvo (início do capítulo 4).
 
 ## Trechos a revisar depois das correções no sistema
@@ -44,18 +44,38 @@ O autor informou que fará correções no sistema. Os trechos abaixo descrevem o
 
 | Comportamento atual | Onde aparece |
 | --- | --- |
-| `GET /infraestrutura` retorna todos os anos; uma escola pode ter vários marcadores no mapa | 4.1.1; limitações no cap. 5 |
-| A abertura de novo ano não copia `totalAlunos` nem `fotoPublicId` | 4.1.11; cap. 5 |
-| `@Transactional` sem desfazimento para `IOException` no cadastro completo | 4.1.9; cap. 5 |
-| Senha incorreta ou usuário inativo no *login* podem resultar em erro 500 | Caso CT02 (Quadro 9); cap. 5 |
-| A situação no formulário (funcionando, paralisada, desativada) e no filtro do mapa (funcionando, paralisada, extinta) divergem, assim como o tipo de acesso (aéreo existe só no formulário) | 4.1.1 e 4.1.9; cap. 5 |
 | Sete preferências da tela de configurações não têm efeito | 4.1.13; cap. 5 |
-| Vínculo sede/anexo duplicado (`escola.escola_sede_id` e tabela `anexo`) | 4.2.3; cap. 5 |
 | A senha mínima é de 4 caracteres no cadastro de usuário e de 8 na troca de senha | 4.1.2 e 4.1.12 (o texto cita apenas os 8 da troca) |
 | Coleção do Bruno anterior aos *cookies* e ao CSRF | 4.3.1 |
 | *Front-end* sem testes automatizados | 4.3; cap. 5 |
+| A trilha de auditoria não tem tela; é consultada só pela API | 4.1.10 e 4.2.6; cap. 5 |
 
 Se alguma correção mudar contagens (testes, *endpoints*, requisitos), atualize também o resumo, o *abstract*, o Quadro 8 e o capítulo 5.
+
+### Correções já incorporadas ao texto (incremento 7, 06/10/2026)
+
+| Correção | Commit | Onde o texto foi atualizado |
+| --- | --- | --- |
+| Vínculo sede/anexo unificado em `escola.escola_sede_id`; tabela e rota `/anexo` removidas | `f294923` | 3.2.5, 3.2.6, 4.1.9, 4.2.3; cap. 5 |
+| Trilha de auditoria com Hibernate Envers e `GET /escola/{id}/historico` | `588541e` | Resumo, *abstract*, RNF11, 3.3.1, 4.1.10, 4.2.2, Quadro 7, nova seção 4.2.6; cap. 5 |
+| Desfazimento do cadastro completo em `IOException` | `d396a9d` | 4.1.9 |
+| Abertura de novo ano copia `totalAlunos`, `MatriculaSerie.total` e o ano da equipe | `a8ed010` | 4.1.11; CT10 |
+| Um marcador por escola no mapa (`GET /infraestrutura/maisRecentes`) | `b0921dc` | 4.1.1; Quadro 7 |
+| *Login*: mesma resposta 401 para e-mail inexistente e senha incorreta; 403 para usuário desativado | `0c62937` | 4.1.2, 4.2.2; CT02 e novo CT15 |
+| Opções únicas de situação, acesso, água e energia (sem "aéreo" e "extinta") | `8919c6b`, `9594849`, `026840e` | 4.1.1, 4.1.9, 4.1.14; cap. 5 |
+
+Contagens atualizadas: 236 casos em 34 classes de teste (Quadro 8), 16 controladores e 70 operações (4.2.2 e cap. 5), 13 tabelas de domínio e autenticação mais as de auditoria (3.2.6 e 4.2.3). A coleção do Bruno continua com 51 requisições: saíram as duas de `/anexo` e entraram as de `/escola/{id}/historico` e `/infraestrutura/maisRecentes`.
+
+### Diagramas desatualizados
+
+Alguns diagramas de `../diagramas/` ainda mostram a tabela e a classe `Anexo`. Atualize-os antes de exportar as figuras correspondentes:
+
+- `02-casos-de-uso.md` (Figura 1): caso de uso "Manter municípios e vínculos da tabela anexo";
+- `06-classes-territorio.md` (Figura 2): classe `Anexo` e seus relacionamentos;
+- `08-er-territorio.md` (Figura 4): tabela `anexo`;
+- `README.md` da pasta: descrição do `06` e o item 3 das observações, que trata a duplicidade como atual.
+
+As tabelas da trilha de auditoria não precisam entrar nos diagramas, pois o texto as descreve na seção 4.2.6.
 
 ## Próximos passos para fechar o texto
 

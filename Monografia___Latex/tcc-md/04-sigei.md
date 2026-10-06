@@ -6,7 +6,7 @@ O sistema se divide em duas áreas. A **área pública** é um mapa interativo, 
 
 O público-alvo principal são os profissionais da SEE/AC que acompanham as escolas indígenas [CONFIRMAR: setor ou coordenação responsável]. Os usuários com perfil de administrador cadastram e atualizam os dados; os usuários com perfil de consulta apenas os visualizam. O mapa público pode ser consultado por qualquer pessoa.
 
-Este capítulo descreve a versão do sistema registrada no repositório em 2 de outubro de 2026. A seção 4.1 apresenta as funcionalidades, a seção 4.2 descreve a arquitetura e a seção 4.3 apresenta os testes.
+Este capítulo descreve a versão do sistema registrada no repositório em 6 de outubro de 2026. A seção 4.1 apresenta as funcionalidades, a seção 4.2 descreve a arquitetura e a seção 4.3 apresenta os testes.
 
 ## 4.1 Funcionalidades
 
@@ -16,7 +16,7 @@ As funcionalidades são apresentadas na ordem em que o usuário as encontra: pri
 
 O mapa público é a página inicial do SIGEI. Seu objetivo é permitir que qualquer pessoa visualize onde estão as escolas indígenas do Acre e consulte informações básicas de cada uma, sem necessidade de cadastro.
 
-Ao abrir a página, o mapa é centralizado no estado do Acre, e cada escola com coordenadas válidas é representada por um marcador. A cor do marcador indica a situação da escola: verde para as escolas em funcionamento e vermelho para as paralisadas. Uma legenda no canto do mapa explica essas cores (Figura 7).
+Ao abrir a página, o mapa é centralizado no estado do Acre, e cada escola com coordenadas válidas é representada por um marcador. A cor do marcador indica a situação da escola: verde para as escolas em funcionamento e vermelho para as que estão fora de funcionamento, isto é, paralisadas ou desativadas. Uma legenda no canto do mapa explica essas cores (Figura 7).
 
 [INSERIR FIGURA 7 – Mapa público com os marcadores das escolas]
 
@@ -25,7 +25,7 @@ Fonte: Elaborado pelo autor.
 
 O usuário pode alternar entre quatro camadas de fundo: padrão (OpenStreetMap), satélite (Esri World Imagery), terreno (OpenTopoMap) e escuro (CARTO). A camada de satélite ajuda a identificar a localização das aldeias em relação a rios e áreas de floresta, enquanto a camada de terreno mostra o relevo.
 
-A barra de busca localiza escolas pelo nome ou pelo código INEP. A busca desconsidera acentos e diferenças entre maiúsculas e minúsculas, e, ao selecionar um resultado, o mapa se aproxima da escola e abre suas informações. O painel de filtros permite restringir os marcadores por situação (funcionando, paralisada ou extinta), por tipo de acesso (terrestre, fluvial ou misto) e pelas opções "apenas com internet" e "apenas com prédio próprio" (Figura 8).
+A barra de busca localiza escolas pelo nome ou pelo código INEP. A busca desconsidera acentos e diferenças entre maiúsculas e minúsculas, e, ao selecionar um resultado, o mapa se aproxima da escola e abre suas informações. O painel de filtros permite restringir os marcadores por situação (funcionando, paralisada ou desativada), por tipo de acesso (terrestre, fluvial ou misto) e pelas opções "apenas com internet" e "apenas com prédio próprio" (Figura 8). As opções de situação e de acesso são as mesmas do formulário de escolas (seção 4.1.9), pois as duas telas usam uma única definição de opções.
 
 [INSERIR FIGURA 8 – Painel de filtros e barra de busca do mapa público]
 
@@ -39,9 +39,7 @@ Ao clicar em um marcador, abre-se uma janela (*popup*) com a fotografia da escol
 Figura 9 – Informações de uma escola no mapa público
 Fonte: Elaborado pelo autor.
 
-Em relação ao *back-end*, o mapa consome o *endpoint* `GET /infraestrutura`, que é o único recurso de dados liberado sem autenticação. Cada registro de infraestrutura contém as coordenadas, a situação, o tipo de acesso, os indicadores de internet e prédio e a fotografia, além de um resumo da escola. Os filtros e a busca são aplicados no próprio navegador, sobre os dados já carregados, sem novas requisições à API.
-
-[ATENÇÃO — trecho que depende de correção no sistema: na versão atual, `GET /infraestrutura` retorna os registros de todos os anos, de modo que uma escola com mais de um ano cadastrado pode aparecer com mais de um marcador. Se isso for corrigido antes da entrega, ajuste este parágrafo; caso contrário, mencione o comportamento nas limitações.]
+Em relação ao *back-end*, o mapa consome o *endpoint* `GET /infraestrutura/maisRecentes`. As consultas de infraestrutura são o único recurso de dados liberado sem autenticação. Como a infraestrutura é registrada a cada ano, uma escola pode ter vários registros. O *endpoint* devolve apenas um por escola, o do ano mais recente que tenha infraestrutura cadastrada, para que cada escola apareça com um único marcador e com seus dados atuais. Cada registro contém as coordenadas, a situação, o tipo de acesso, os indicadores de internet e prédio e a fotografia, além de um resumo da escola. Os filtros e a busca são aplicados no próprio navegador, sobre os dados já carregados, sem novas requisições à API.
 
 ### 4.1.2 Autenticação e troca obrigatória de senha
 
@@ -52,7 +50,9 @@ A autenticação controla o acesso à área administrativa. O acesso é feito pe
 Figura 10 – Tela de autenticação do SIGEI
 Fonte: Elaborado pelo autor.
 
-Ao enviar os dados, o *front-end* chama `POST /auth/login`. O *back-end* localiza o usuário pelo e-mail, verifica se ele está ativo e compara a senha informada com o *hash* armazenado. Se as credenciais forem válidas, a resposta grava os *cookies* de sessão no navegador e devolve apenas os dados de exibição do usuário: identificador, nome, e-mail, perfil e se ele precisa trocar a senha. O usuário é então direcionado ao painel de indicadores.
+Ao enviar os dados, o *front-end* chama `POST /auth/login`. O *back-end* localiza o usuário pelo e-mail, compara a senha informada com o *hash* armazenado e, por fim, verifica se o usuário está ativo. Se as credenciais forem válidas, a resposta grava os *cookies* de sessão no navegador e devolve apenas os dados de exibição do usuário: identificador, nome, e-mail, perfil e se ele precisa trocar a senha. O usuário é então direcionado ao painel de indicadores.
+
+Quando o e-mail não está cadastrado ou a senha está incorreta, a resposta é a mesma: código 401 e a mensagem "E-mail ou senha inválidos". Assim, uma tentativa de acesso não revela quais e-mails existem no sistema. Pelo mesmo motivo, a comparação da senha é feita mesmo quando o e-mail não existe, de modo que o tempo de resposta também não diferencie os dois casos. A informação de que o usuário está desativado é dada apenas a quem informa a senha correta, com o código 403, e a tela de *login* exibe uma mensagem orientando a procurar o administrador.
 
 Todo usuário novo, inclusive o administrador criado na primeira execução do sistema, é cadastrado com a indicação de troca obrigatória de senha. O mesmo ocorre quando um administrador redefine a senha de outro usuário. Nesse caso, após o *login*, o usuário é levado à tela de alteração de senha, onde informa a senha atual, a nova senha, com no mínimo 8 caracteres, e a confirmação (Figura 11). Enquanto a troca não é feita, o *back-end* não concede ao usuário as permissões do seu perfil, apenas a permissão de trocar a senha.
 
@@ -163,7 +163,7 @@ A listagem utiliza `GET /escola`, que retorna as escolas com os dados da aldeia,
 
 O cadastro de uma escola reúne muitas informações: dados de identificação, dados do ano, equipe, infraestrutura e matrículas. Para não apresentar tudo em uma única tela, o formulário foi dividido em sete etapas, cada uma com sua validação. O usuário só avança quando a etapa atual está correta e pode voltar às anteriores a qualquer momento.
 
-**Etapa 1 – Dados da escola.** O usuário informa o código INEP, o nome, o tipo de unidade (sede ou anexo) e a aldeia (Figura 22). A lista de aldeias mostra apenas as que ainda não têm escola vinculada, pois cada aldeia pode ter no máximo uma escola. Quando o tipo é "anexo", aparece um campo para escolher a escola-sede à qual o anexo está vinculado.
+**Etapa 1 – Dados da escola.** O usuário informa o código INEP, o nome, o tipo de unidade (sede ou anexo) e a aldeia (Figura 22). A lista de aldeias mostra apenas as que ainda não têm escola vinculada, pois cada aldeia pode ter no máximo uma escola. Quando o tipo é "anexo", aparece um campo obrigatório para escolher a escola-sede à qual o anexo está vinculado; a lista mostra apenas escolas do tipo sede.
 
 [INSERIR FIGURA 22 – Etapa 1 do cadastro: dados da escola e vínculo com a escola-sede]
 
@@ -184,7 +184,9 @@ Fonte: Elaborado pelo autor.
 Figura 24 – Cadastro de escola: equipe escolar
 Fonte: Elaborado pelo autor.
 
-**Etapa 4 – Infraestrutura e fotografia.** O usuário informa o ano de construção, o número de salas, a latitude e a longitude, a situação (funcionando, paralisada ou desativada), o tipo de acesso (terrestre, fluvial, aéreo ou misto), a fonte de água, o tipo de energia, se há internet e prédio próprio e se há registro fotográfico (Figura 25). Quando essa última opção é marcada, é obrigatório enviar uma foto, que pode ser substituída ou removida na edição.
+**Etapa 4 – Infraestrutura e fotografia.** O usuário informa o ano de construção, o número de salas, a latitude e a longitude, a situação (funcionando, paralisada ou desativada), o tipo de acesso (terrestre, fluvial ou misto), o abastecimento de água (rede pública, poço, cacimba, rio, igarapé, vertente, rio/vertente, outro ou não possui), a fonte de energia (rede pública, gerador, solar, outra ou não possui), se há internet e prédio próprio e se há registro fotográfico (Figura 25). Quando essa última opção é marcada, é obrigatório enviar uma foto, que pode ser substituída ou removida na edição.
+
+As opções de situação, acesso, água e energia foram definidas a partir dos valores encontrados na planilha de infraestrutura e são as mesmas em todo o sistema: no formulário, no filtro do mapa, na API e na importação. A API recusa, com o código 400, valores que não pertençam a essas opções.
 
 [INSERIR FIGURA 25 – Etapa 4 do cadastro: infraestrutura e envio de fotografia]
 
@@ -210,9 +212,9 @@ Fonte: Elaborado pelo autor.
 Figura 28 – Cadastro de escola: revisão
 Fonte: Elaborado pelo autor.
 
-Em relação ao *back-end*, o formulário envia uma única requisição, do tipo *multipart*, com os dados em JSON e a foto opcional: `POST /escola/salvarCompleto` no cadastro e `PUT /escola/editarCompleto` na edição. O `CadastroEscolaService` grava, em uma única transação, a escola, o registro do ano, a equipe, a infraestrutura e as matrículas. Se o registro daquele ano já existir, ele é atualizado; caso contrário, é criado, e os registros dos outros anos não são alterados. A foto é enviada ao Cloudinary somente depois que os dados foram validados pelo banco; se a transação for desfeita após o envio, a imagem é removida, para não deixar arquivos sem vínculo. Os testes automatizados verificam que uma falha em uma etapa posterior da gravação ou no envio da foto desfaz todo o cadastro, sem deixá-lo pela metade. A Figura 29 apresenta essa sequência.
+Em relação ao *back-end*, o formulário envia uma única requisição, do tipo *multipart*, com os dados em JSON e a foto opcional: `POST /escola/salvarCompleto` no cadastro e `PUT /escola/editarCompleto` na edição. O `CadastroEscolaService` grava, em uma única transação, a escola, o registro do ano, a equipe, a infraestrutura e as matrículas. Se o registro daquele ano já existir, ele é atualizado; caso contrário, é criado, e os registros dos outros anos não são alterados. A foto é enviada ao Cloudinary somente depois que os dados foram validados pelo banco; se a transação for desfeita após o envio, a imagem é removida, para não deixar arquivos sem vínculo.
 
-[ATENÇÃO — trecho que depende de correção no sistema: a anotação `@Transactional` do serviço não declara desfazimento para a exceção verificada `IOException`, que é lançada pelos métodos de gravação. Se essa exceção ocorrer, a transação pode ser confirmada mesmo com erro. Recomenda-se usar `@Transactional(rollbackFor = IOException.class)` ou converter a exceção. Depois da correção, este aviso pode ser removido.]
+Um cuidado foi necessário para garantir esse comportamento. Por padrão, o Spring desfaz uma transação apenas quando ocorre uma exceção não verificada, e o envio da foto pode lançar `IOException`, que é uma exceção verificada. Sem tratamento, uma falha de comunicação com o Cloudinary confirmaria a transação, gravando a escola sem a foto, e uma nova tentativa do usuário criaria uma escola duplicada. Por isso, os métodos de gravação declaram `@Transactional(rollbackFor = IOException.class)`. Os testes automatizados verificam que uma falha em uma etapa posterior da gravação ou no envio da foto, inclusive por `IOException`, desfaz todo o cadastro ou toda a edição, sem deixá-los pela metade. A Figura 29 apresenta essa sequência.
 
 [INSERIR FIGURA 29 – Diagrama de sequência do cadastro completo de escola (exportar de `diagramas/14-sequencia-cadastro-completo.md`)]
 
@@ -246,11 +248,13 @@ Fonte: Elaborado pelo autor.
 
 O modo por ano utiliza `GET /registroAnual/buscarPorAno?ano=`, e o modo por escola, `GET /registroAnual/historico?escolaId=&anoInicial=&anoFinal=`. Os limites do período são opcionais e inclusivos, e anos sem registro não aparecem na resposta.
 
+O histórico escolar mostra o estado dos dados em cada ano. Quem fez cada alteração e quais eram os valores anteriores ficam registrados na trilha de auditoria, descrita na seção 4.2.6, que por enquanto é consultada apenas pela API.
+
 ### 4.1.11 Abertura de novo ano letivo
 
 A abertura de novo ano prepara o sistema para o registro de um novo ano letivo. Sem essa funcionalidade, o administrador teria de cadastrar o novo ano escola por escola, repetindo dados que, em grande parte, não mudam de um ano para o outro.
 
-O botão "Iniciar Novo Ano", na tela de escolas, abre uma janela de confirmação (Figura 33). Ao confirmar, o sistema cria o ano seguinte ao maior ano cadastrado e, para cada escola que tenha algum registro, cria um registro no novo ano copiando do registro mais recente a rede, o local de funcionamento, a equipe, a infraestrutura (inclusive a referência à fotografia) e as matrículas. A partir daí, o administrador edita apenas o que mudou.
+O botão "Iniciar Novo Ano", na tela de escolas, abre uma janela de confirmação (Figura 33). Ao confirmar, o sistema cria o ano seguinte ao maior ano cadastrado e, para cada escola que tenha algum registro, cria um registro no novo ano copiando do registro mais recente a rede, o local de funcionamento, o total de alunos, a equipe, a infraestrutura (inclusive o endereço da fotografia) e as matrículas por nível e por série, com seus totais. A partir daí, o administrador edita apenas o que mudou. Como o painel de indicadores mostra, por padrão, o ano mais recente, a cópia dos totais evita que os indicadores do novo ano apareçam zerados logo após a abertura.
 
 [INSERIR FIGURA 33 – Janela de confirmação da abertura de novo ano letivo]
 
@@ -264,7 +268,7 @@ A operação é executada por `POST /atualizacao-anual/iniciar`, no `Atualizacao
 Figura 34 – Fluxo da abertura de novo ano letivo
 Fonte: Elaborado pelo autor.
 
-[ATENÇÃO — trecho que depende de correção no sistema: na versão atual, a cópia não inclui o total de alunos do registro anual (`totalAlunos`) nem o identificador da foto no Cloudinary (`fotoPublicId`). Se isso for corrigido, ajuste o texto; caso contrário, mencione nas limitações.]
+A fotografia é compartilhada entre os anos: o novo registro recebe o endereço da imagem, mas não o seu identificador no Cloudinary, que permanece apenas no registro que fez o envio. Com isso, a remoção da foto em um ano não apaga a imagem exibida nos outros. Um teste automatizado verifica a cópia de cada campo.
 
 ### 4.1.12 Gerenciamento de usuários
 
@@ -302,6 +306,8 @@ Para que o sistema começasse a ser usado com dados reais, foram implementados a
 Na primeira execução com o banco vazio, o sistema cadastra os municípios do Acre, importa a planilha de infraestrutura e, em seguida, a planilha de matrículas, ambas armazenadas junto à aplicação. Também cria o usuário administrador inicial, com troca de senha obrigatória.
 
 A importação também pode ser feita por um administrador, enviando os arquivos para `POST /importacoes/infraestrutura` e `POST /importacoes/matriculas`. A importação de infraestrutura lê cada linha da planilha e cria, quando ainda não existem, o município, a terra indígena, o povo, a aldeia e a escola, além do registro anual, da infraestrutura e da equipe. A importação de matrículas localiza a escola e o registro anual correspondentes e grava as matrículas por nível e por série. As coordenadas são convertidas para o formato decimal quando necessário.
+
+Os valores de situação, acesso, água e energia são convertidos para as opções do sistema, sem diferenciar acentos e maiúsculas: "POÇO" é gravado como poço, e "REDE ELETRICA", como rede pública. Na energia, as escolas marcadas apenas com "SIM" passam a ter a fonte "outra", pois a planilha indica que há energia, mas não informa a fonte. Valores que não correspondem a nenhuma opção são gravados como não informados. É o caso das sete escolas paralisadas da planilha, que trazem "DESATIVADA" nas colunas de acesso, água e energia; esses campos precisam ser preenchidos na próxima edição de cada escola.
 
 Cada importação devolve um resumo com o número de linhas lidas, os registros criados ou atualizados, as linhas ignoradas e a lista de erros encontrados (Figura 38). Uma resposta de sucesso, portanto, não significa que todas as linhas foram importadas; é preciso conferir os contadores e os erros.
 
@@ -358,7 +364,7 @@ e) **`dto`:** objetos de transferência de dados, separados em requisição e re
 
 f) **`mappers`:** interfaces do MapStruct que convertem entidades em DTOs e vice-versa;
 
-g) **`config`:** configuração de segurança, inicializadores da carga inicial e cliente do Cloudinary;
+g) **`config`:** configuração de segurança, inicializadores da carga inicial, cliente do Cloudinary e registro do autor das alterações na trilha de auditoria;
 
 h) **`exceptions`:** tratamento centralizado de erros, que converte exceções em respostas HTTP.
 
@@ -369,9 +375,9 @@ Fonte: Elaborado pelo autor.
 
 O fluxo de uma requisição é o seguinte: o filtro de segurança identifica o usuário; o controlador valida o DTO de entrada; o serviço busca as entidades relacionadas pelos identificadores recebidos, aplica as regras de negócio e chama o repositório; o repositório executa a operação no banco; por fim, o *mapper* converte a entidade resultante em um DTO de resposta, que é devolvido em JSON. As entidades nunca são expostas diretamente pela API.
 
-Os erros também seguem um padrão. Dados de entrada inválidos resultam em resposta 400, com a lista de campos e mensagens; registros inexistentes, em 404; violações de integridade do banco, como excluir uma terra indígena com aldeias vinculadas, em 409; e a ausência de configuração do serviço de imagens, em 503.
+Os erros também seguem um padrão. Dados de entrada inválidos resultam em resposta 400, com a lista de campos e mensagens, assim como as violações de regras de negócio, como um anexo sem escola-sede ou um valor fora das opções de infraestrutura; registros inexistentes, em 404; violações de integridade do banco, como excluir uma terra indígena com aldeias vinculadas, em 409; e a ausência de configuração do serviço de imagens, em 503. No *login*, credenciais inválidas resultam em 401, e usuário desativado, em 403. As exceções são convertidas nessas respostas por um tratador centralizado.
 
-A API possui 17 controladores, que expõem 72 operações. Todas estão documentadas com anotações OpenAPI, e a documentação interativa pode ser acessada pelo Swagger (Figura 42).
+A API possui 16 controladores, que expõem 70 operações. Todas estão documentadas com anotações OpenAPI, e a documentação interativa pode ser acessada pelo Swagger (Figura 42).
 
 [INSERIR FIGURA 42 – Documentação interativa da API no Swagger]
 
@@ -380,11 +386,13 @@ Fonte: Elaborado pelo autor.
 
 ### 4.2.3 Banco de dados
 
-O banco de dados é o PostgreSQL, com 14 tabelas de domínio e de autenticação, e seu esquema é versionado por migrações do Flyway. As relações apresentadas a seguir foram verificadas nos mapeamentos JPA e nas migrações.
+O banco de dados é o PostgreSQL, com 13 tabelas de domínio e de autenticação, além das tabelas da trilha de auditoria (seção 4.2.6), e seu esquema é versionado por migrações do Flyway. As relações apresentadas a seguir foram verificadas nos mapeamentos JPA e nas migrações.
 
 **Território.** Um município pode ter várias terras indígenas, e cada terra indígena está associada a um município. Uma terra indígena pode ter várias aldeias, e cada aldeia pertence a uma terra indígena e é habitada por um povo; um povo pode estar em várias aldeias.
 
-**Escola.** Cada escola está vinculada a uma aldeia, e cada aldeia pode ter no máximo uma escola, regra garantida por restrição de unicidade no banco. Uma escola pode ser anexo de outra escola, chamada escola-sede, e uma escola-sede pode ter vários anexos. Existe também uma tabela `anexo`, que registra pares de escolas e impede pares repetidos; ela é mantida pela API, mas não é usada pelo formulário de escolas.
+**Escola.** Cada escola está vinculada a uma aldeia, e cada aldeia pode ter no máximo uma escola, regra garantida por restrição de unicidade no banco. Uma escola pode ser anexo de outra escola, chamada escola-sede, e uma escola-sede pode ter vários anexos. Esse vínculo é representado por uma referência da própria tabela de escolas à escola-sede. O *back-end* garante as regras do vínculo: um anexo deve indicar uma escola-sede, que precisa ser do tipo sede e diferente do próprio anexo; uma escola-sede não tem sede; e uma escola com anexos não pode passar a ser anexo. Com isso, o vínculo tem um único nível e não forma ciclos.
+
+Versões anteriores do sistema tinham também uma tabela `anexo`, que registrava o mesmo vínculo em paralelo, sem sincronização com a referência na tabela de escolas e sem uso pelo formulário. Para eliminar essa duplicidade, uma migração copiou para a tabela de escolas os vínculos válidos e removeu a tabela `anexo`.
 
 **Dados anuais.** Uma escola pode ter vários registros anuais, um por ano de referência; a combinação de escola e ano é única. Cada registro anual tem uma equipe escolar e uma infraestrutura, e pode ter várias matrículas por nível e várias matrículas por série. Esses dados pertencem ao registro: quando um registro é excluído, eles também são excluídos, e o mesmo vale para os registros de uma escola excluída.
 
@@ -417,8 +425,9 @@ Os *tokens* são guardados em *cookies* `HttpOnly`, que *scripts* da página nã
 | --- | --- |
 | *Login*, renovação e encerramento de sessão | Público |
 | Verificação de funcionamento (`/actuator/health`) e documentação (Swagger) | Público |
-| Consulta de infraestrutura (`GET /infraestrutura`), usada pelo mapa | Público |
+| Consultas de infraestrutura (`GET /infraestrutura` e derivadas), usadas pelo mapa | Público |
 | Alteração da própria senha | Qualquer usuário autenticado |
+| Trilha de auditoria de uma escola (`GET /escola/{id}/historico`) | Perfil `ADMIN` |
 | Demais consultas (`GET`) | Perfis `ADMIN` e `USUARIO` |
 | Cadastro, edição, exclusão, abertura de ano e importação | Perfil `ADMIN` |
 
@@ -426,7 +435,17 @@ Fonte: Elaborado pelo autor.
 
 Uma requisição sem autenticação a uma rota protegida recebe a resposta 401; uma requisição de usuário autenticado sem permissão recebe 403. Ao receber 401, o *front-end* tenta renovar a sessão uma vez e, se não conseguir, leva o usuário à tela de *login*.
 
-### 4.2.6 Implantação
+### 4.2.6 Trilha de auditoria
+
+O histórico anual descrito na seção 4.1.10 mostra os dados de cada escola em cada ano, mas não indica quem os registrou nem como eram antes de uma correção. Para isso, o SIGEI mantém uma trilha de auditoria, implementada com o Hibernate Envers, módulo do Hibernate que registra as versões das entidades [REFERÊNCIA NECESSÁRIA: pesquisar a documentação oficial do Hibernate Envers].
+
+Cada transação que cria, altera ou exclui dados gera uma revisão, com a data, a hora e o autor da alteração. O autor é obtido do usuário autenticado na requisição. O identificador, o e-mail e o nome do usuário são copiados para a revisão, sem chave estrangeira, para que a trilha se mantenha mesmo que o usuário seja renomeado ou excluído. As alterações feitas sem usuário autenticado, como a carga inicial, são atribuídas ao sistema. Os valores de cada versão ficam em tabelas de auditoria, uma para cada tabela de domínio e para a de usuários. A senha não é registrada. As exclusões guardam os últimos valores do registro, de modo que também é possível saber o que foi removido.
+
+A trilha de uma escola pode ser consultada por `GET /escola/{id}/historico`, restrito a administradores. A resposta reúne as alterações da escola, de seus registros anuais e, em cada registro, da equipe, da infraestrutura e das matrículas, da mais recente para a mais antiga. Cada item informa o autor, a data e a hora, a operação (criação, alteração ou exclusão), o ano a que o dado pertence e somente os campos que mudaram, com o valor anterior e o novo. Uma escola excluída mantém seu histórico.
+
+A migração que criou a trilha registrou, em uma revisão atribuída ao sistema, o estado de todos os dados existentes naquele momento. Assim, a primeira alteração de um dado antigo já mostra o valor anterior, embora a autoria e as datas de antes da migração não sejam conhecidas. As alterações feitas diretamente por SQL não passam pelo Envers; por isso, as migrações que corrigem dados registram seus ajustes na trilha em uma revisão própria.
+
+### 4.2.7 Implantação
 
 O sistema pode ser executado em contêineres Docker. O *back-end* tem um arquivo de composição com dois serviços, a API e o PostgreSQL, com um volume para preservar os dados. O *front-end* tem outro arquivo, com o Nginx servindo a aplicação compilada. O Nginx também define cabeçalhos de segurança, como a política de segurança de conteúdo (*Content Security Policy*). A Figura 44 apresenta essa topologia.
 
@@ -443,28 +462,28 @@ Os testes do SIGEI foram feitos de duas formas: testes automatizados no *back-en
 
 ### 4.3.1 Testes da API
 
-**Testes automatizados.** O *back-end* possui 32 classes de teste, que somam 217 casos de teste, organizados conforme o Quadro 8.
+**Testes automatizados.** O *back-end* possui 34 classes de teste, que somam 236 casos de teste, organizados conforme o Quadro 8.
 
 **Quadro 8 – Testes automatizados do *back-end***
 
 | Tipo | Classes | Casos | O que verificam |
 | --- | --- | --- | --- |
-| Testes unitários de serviço | 11 | 99 | Regras de negócio de cada entidade, com os repositórios simulados pelo Mockito: cadastro, edição, exclusão, busca e rejeição de dados inválidos ou duplicados. |
-| Testes de repositório | 14 | 73 | Consultas ao banco em memória H2, incluindo as agregações do painel de indicadores. |
-| Testes de integração | 4 | 39 | Cadastro completo de escola em transação única, inclusive o desfazimento quando uma etapa ou o envio da foto falha; ciclo de vida das sessões (renovação, rotação, reutilização, expiração e revogação); consulta do histórico com filtros de período; e, por meio de requisições HTTP, a gravação dos *cookies*, a exigência do *token* CSRF e o encerramento da sessão. |
-| Outros | 3 | 6 | Carregamento do contexto da aplicação, cadastro inicial dos municípios e aplicação das migrações em um PostgreSQL real. |
-| **Total** | **32** | **217** | |
+| Testes unitários | 11 | 103 | Regras de negócio de cada entidade, com os repositórios simulados pelo Mockito: cadastro, edição, exclusão, busca e rejeição de dados inválidos ou duplicados, incluindo as regras do vínculo entre escola-sede e anexo. Também a validação e a conversão das opções de situação, acesso, água e energia. |
+| Testes de repositório | 13 | 72 | Consultas ao banco em memória H2, incluindo as agregações do painel de indicadores e a seleção da infraestrutura mais recente de cada escola para o mapa. |
+| Testes de integração | 7 | 52 | Cadastro completo de escola em transação única, inclusive o desfazimento quando uma etapa ou o envio da foto falha; abertura de novo ano, com a cópia de cada campo; trilha de auditoria (autor, data, campos alterados e exclusões); ciclo de vida das sessões (renovação, rotação, reutilização, expiração e revogação); consulta do histórico com filtros de período; e, por meio de requisições HTTP, a gravação dos *cookies*, a exigência do *token* CSRF, as respostas de erro do *login*, o encerramento da sessão e a restrição da trilha de auditoria aos administradores. |
+| Outros | 3 | 9 | Carregamento do contexto da aplicação, cadastro inicial dos municípios e aplicação das migrações em um PostgreSQL real, inclusive a conversão dos dados existentes. |
+| **Total** | **34** | **236** | |
 
 Fonte: Elaborado pelo autor.
 
-A suíte foi executada em 5 de outubro de 2026 com o comando `mvnw clean test`. Foram executados 217 casos, sem falhas e sem erros; 3 casos foram ignorados. Os ignorados são os testes de migração, que dependem do Docker para criar um PostgreSQL temporário e foram pulados porque o Docker não estava disponível no ambiente da execução. A Figura 45 apresenta o resultado.
+A suíte foi executada em 6 de outubro de 2026 com o comando `mvnw clean test`. Foram executados 236 casos, sem falhas, sem erros e sem casos ignorados. Como o Docker estava disponível, os testes de migração foram executados em um PostgreSQL temporário. A Figura 45 apresenta o resultado.
 
 [INSERIR FIGURA 45 – Resultado da execução dos testes automatizados no terminal]
 
 Figura 45 – Execução dos testes automatizados do *back-end*
 Fonte: Elaborado pelo autor.
 
-[ATENÇÃO: antes da entrega, execute novamente a suíte com o JDK 21 do projeto e, se possível, com o Docker ativo, para que os testes de migração também sejam executados. Atualize os números deste parágrafo e a Figura 45 com o resultado dessa nova execução. A execução de 05/10/2026 usou o JDK 24 da máquina.]
+[ATENÇÃO: a execução de 06/10/2026 usou o JDK 24 da máquina, com a opção `-Dmaven.compiler.proc=full` exigida pelo MapStruct nessa versão. Antes da entrega, execute novamente a suíte com o JDK 21 do projeto e com o Docker ativo, e atualize este parágrafo e a Figura 45 se o resultado mudar.]
 
 **Testes manuais.** Durante o desenvolvimento, os *endpoints* foram testados manualmente com o Bruno, um cliente HTTP de código aberto. A coleção do projeto tem 51 requisições, organizadas por recurso, que cobrem o *login*, os cadastros, as consultas por ano e por escola, o envio de foto, a abertura de novo ano e as importações. Para cada requisição, foram observados o código de resposta e o conteúdo retornado. Sugere-se apresentar como evidência as seguintes capturas:
 
@@ -494,7 +513,7 @@ Os testes das funcionalidades verificam, pela interface, se cada requisito funci
 | Caso | Requisitos | Procedimento | Resultado esperado | Resultado obtido |
 | --- | --- | --- | --- | --- |
 | CT01 | RF01, RF03 | Entrar com o administrador inicial | Redirecionamento à troca de senha; após a troca, novo *login* e acesso ao painel | [A PREENCHER] |
-| CT02 | RF01 | Entrar com senha incorreta | Acesso negado, com mensagem de erro | [A PREENCHER] |
+| CT02 | RF01 | Entrar com senha incorreta e, depois, com um e-mail não cadastrado | Acesso negado, com a mesma mensagem "E-mail ou senha inválidos" nos dois casos | [A PREENCHER] |
 | CT03 | RF04 | Cadastrar usuário com perfil `USUARIO` e entrar com ele | Telas de consulta acessíveis; botões de cadastro, edição e exclusão ocultos | [A PREENCHER] |
 | CT04 | RF06 a RF08 | Cadastrar terra indígena, povo e aldeia | Registros exibidos nas listagens | [A PREENCHER] |
 | CT05 | RF09 a RF13 | Cadastrar escola nas sete etapas, com foto | Escola na listagem, marcador no mapa e foto na janela | [A PREENCHER] |
@@ -502,11 +521,12 @@ Os testes das funcionalidades verificam, pela interface, se cada requisito funci
 | CT07 | RF14 | Cadastrar um ano anterior para uma escola | Novo ano no histórico da escola | [A PREENCHER] |
 | CT08 | RF15 | Excluir uma escola | Escola removida da listagem e do mapa | [A PREENCHER] |
 | CT09 | RF16 | Consultar o histórico por ano e por escola com período | Somente registros do ano ou do período | [A PREENCHER] |
-| CT10 | RF17 | Abrir novo ano letivo | Novo ano criado com registros copiados | [A PREENCHER] |
+| CT10 | RF17 | Abrir novo ano letivo | Novo ano criado com registros copiados; painel do novo ano com os mesmos totais do ano anterior | [A PREENCHER] |
 | CT11 | RF18, RF19 | Buscar escola pelo código INEP e aplicar filtros no mapa | Mapa centralizado na escola; marcadores filtrados | [A PREENCHER] |
 | CT12 | RF20 | Alterar o ano no painel | Indicadores atualizados para o ano escolhido | [A PREENCHER] |
 | CT13 | RF23 | Alterar a camada inicial nas configurações | Mapa abre com a camada escolhida | [A PREENCHER] |
 | CT14 | RF02 | Manter a sessão aberta por mais de 15 minutos e continuar usando | Sessão renovada sem novo *login* | [A PREENCHER] |
+| CT15 | RF01, RF04 | Desativar um usuário e entrar com ele usando a senha correta | Acesso negado, com a mensagem de usuário desativado | [A PREENCHER] |
 
 Fonte: Elaborado pelo autor.
 

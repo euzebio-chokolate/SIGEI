@@ -8,7 +8,7 @@ Em relação aos objetivos específicos:
 
 a) a modelagem das informações, feita a partir das planilhas disponíveis, separou os dados estáveis da escola dos dados que variam a cada ano, organizando estes últimos em registros anuais vinculados à escola e ao ano de referência;
 
-b) a API REST disponibiliza 72 operações para cadastro, consulta, consolidação e importação, com documentação interativa e esquema de banco versionado;
+b) a API REST disponibiliza 70 operações para cadastro, consulta, consolidação e importação, com documentação interativa, esquema de banco versionado e trilha de auditoria que registra o autor, a data e os valores de cada alteração;
 
 c) a interface web permite manter os cadastros territoriais e as escolas, com um formulário em sete etapas que é gravado em uma única transação, além da consulta ao histórico por ano e por escola, do cadastro de anos anteriores e da abertura de um novo ano letivo;
 
@@ -18,9 +18,9 @@ e) o painel apresenta indicadores consolidados por ano, como totais, evolução 
 
 f) a autenticação e o controle de acesso foram implementados com dois perfis, troca obrigatória de senha, sessão em *cookies* protegidos e renovação automática;
 
-g) o funcionamento do *back-end* foi verificado por 217 casos de teste automatizados e por testes manuais da API.
+g) o funcionamento do *back-end* foi verificado por 236 casos de teste automatizados e por testes manuais da API.
 
-[AJUSTAR o item g) após a nova execução dos testes e o preenchimento do roteiro de testes das funcionalidades (Quadro 9).]
+[AJUSTAR o item g) após a execução dos testes com o JDK 21 e o preenchimento do roteiro de testes das funcionalidades (Quadro 9).]
 
 A principal contribuição do SIGEI é reunir em um único sistema informações antes distribuídas em arquivos isolados, vinculando cada escola ao seu território e mantendo seus dados organizados por ano. Com isso, consultas que antes exigiam cruzar planilhas manualmente, como a evolução das matrículas de uma escola ou as escolas sem internet de um município, passam a ser feitas no próprio sistema. O mapa público também amplia o acesso à informação sobre a localização das escolas indígenas no estado.
 
@@ -34,7 +34,7 @@ a) o sistema não gera relatórios exportáveis, em formatos como PDF ou planilh
 
 b) a importação de planilhas funciona apenas pela API, sem tela, e está presa ao formato das duas planilhas disponíveis e ao ano de 2025;
 
-c) o histórico guarda um registro por escola e por ano, mas não registra quem alterou cada dado nem quando, ou seja, não há trilha de auditoria;
+c) a trilha de auditoria registra quem alterou cada dado e quando, mas pode ser consultada apenas pela API, sem tela na interface; além disso, não há autoria nem datas para as alterações anteriores à sua criação;
 
 d) o *front-end* ainda não tem testes automatizados;
 
@@ -42,11 +42,9 @@ e) o sistema não passou por validação formal com os usuários da SEE/AC [AJUS
 
 f) parte das preferências da tela de configurações é salva, mas ainda não produz efeito;
 
-g) o vínculo entre escola-sede e anexo tem duas representações no banco de dados, que não são sincronizadas;
+g) o esquema permite no máximo uma escola por aldeia, regra que precisa ser confirmada com a secretaria;
 
-h) o esquema permite no máximo uma escola por aldeia, regra que precisa ser confirmada com a secretaria.
-
-[ATUALIZAR esta lista após as correções que o autor fará no sistema. Itens que podem deixar de ser limitações após as correções: marcadores repetidos no mapa para escolas com mais de um ano registrado; cópia incompleta de campos na abertura de novo ano; desfazimento da transação em caso de `IOException`; respostas de erro do *login* (senha incorreta ou usuário inativo podem resultar em erro 500); divergência entre as opções de situação e de acesso do formulário de escolas e as do filtro do mapa.]
+h) as sete escolas paralisadas importadas da planilha ficaram sem tipo de acesso, abastecimento de água e fonte de energia, pois a planilha não informa esses dados para elas.
 
 ## Trabalhos futuros
 
@@ -58,7 +56,7 @@ b) **relatórios exportáveis:** gerar relatórios em PDF e em planilha a partir
 
 c) **importação genérica:** permitir importar planilhas de qualquer ano por uma tela, com pré-visualização dos dados, indicação de erros por linha e confirmação antes da gravação;
 
-d) **auditoria:** registrar o autor e a data de cada alteração, permitindo saber quem modificou um dado e qual era o valor anterior;
+d) **consulta da auditoria na interface:** criar uma tela para a trilha de auditoria, que hoje é consultada apenas pela API, com filtros por escola, usuário e período;
 
 e) **integração com dados oficiais:** relacionar os cadastros a bases públicas, como os microdados do Censo Escolar, pelo código INEP;
 
