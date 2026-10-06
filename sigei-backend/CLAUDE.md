@@ -112,7 +112,7 @@ Esses matchers não criam endpoints. A exceção pública de infraestrutura não
 
 Fluxo de autenticação:
 
-1. `POST /auth/login` recebe `email` e `senha`; o service consulta o usuário, verifica se está ativo e compara a senha com BCrypt.
+1. `POST /auth/login` recebe `email` e `senha`. O service consulta o usuário e compara a senha com BCrypt; sem usuário, compara com um hash fictício, para que o tempo de resposta não revele quais e-mails existem. E-mail inexistente e senha incorreta resultam no mesmo `401` (`CredenciaisInvalidasException`). Só quem acerta a senha de um usuário inativo recebe `403` (`UsuarioDesativadoException`), e o frontend mostra essa mensagem específica.
 2. A resposta grava os cookies de sessão e devolve no corpo apenas `id`, `nome`, `email`, `perfil` e `alterarSenha`.
 3. O navegador envia `sigei_acesso` automaticamente. O filtro aceita também `Authorization: Bearer <token>` (com precedência) para clientes de API, mas a API não expõe mais o token. O subject é o e-mail; há claims de ID, nome e perfil. Expiração padrão do token de acesso: `900000` milissegundos (15 minutos).
 4. O filtro valida o JWT e consulta novamente o usuário no banco. A autorização usa o perfil e o estado atuais do cadastro.
@@ -256,8 +256,10 @@ Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organiz
 | `DataIntegrityViolationException` | `409`, mensagem textual. |
 | `ArmazenamentoImagemNaoConfiguradoException` | `503`, mensagem textual. |
 | `TokenInvalidoException` | `401`, mensagem textual; em `/auth/refresh` é tratada no próprio controller, que também remove os cookies. |
+| `CredenciaisInvalidasException` | `401`, "E-mail ou senha inválidos" (login). |
+| `UsuarioDesativadoException` | `403`, "Usuário desativado" (login com a senha correta). |
 
-Não existe um formato universal de erro. O login lança `NoSuchElementException` para e-mail não encontrado e `RuntimeException` para senha incorreta/usuário inativo; estes últimos não têm tratamento específico nesse advice e podem resultar em `500`. Não documente todos os erros de login como `401` sem implementar essa mudança.
+Não existe um formato universal de erro. Exceções sem tratamento no advice não chegam ao cliente como `500`. O encaminhamento interno para `/error` passa pelo Spring Security; para um cliente anônimo, essa rota exige autenticação, e o cliente recebe `401` sem corpo. Trate os erros esperados com exceções próprias e `@ExceptionHandler`, e não com `RuntimeException`.
 
 Ao trabalhar no projeto:
 

@@ -1,7 +1,9 @@
 package ac.gov.br.sigei_backend.exceptions.handler;
 
 import ac.gov.br.sigei_backend.exceptions.ArmazenamentoImagemNaoConfiguradoException;
+import ac.gov.br.sigei_backend.exceptions.CredenciaisInvalidasException;
 import ac.gov.br.sigei_backend.exceptions.TokenInvalidoException;
+import ac.gov.br.sigei_backend.exceptions.UsuarioDesativadoException;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -55,5 +57,15 @@ public class ManipuladorGlobalException {
     @ExceptionHandler(TokenInvalidoException.class)
     public ResponseEntity<String> tratarTokenInvalidoException(TokenInvalidoException erro) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erro.getMessage());
+    }
+
+    @ExceptionHandler(CredenciaisInvalidasException.class)
+    public ResponseEntity<String> tratarCredenciaisInvalidasException(CredenciaisInvalidasException erro) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erro.getMessage());
+    }
+
+    @ExceptionHandler(UsuarioDesativadoException.class)
+    public ResponseEntity<String> tratarUsuarioDesativadoException(UsuarioDesativadoException erro) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(erro.getMessage());
     }
 }
