@@ -49,7 +49,7 @@ class FlywayMigracoesTest {
         List<String> versoes = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertEquals(List.of("1", "2", "3", "4", "5"), versoes);
+        assertEquals(List.of("1", "2", "3", "4", "5", "6"), versoes);
     }
 
     @Test
@@ -59,8 +59,8 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(4, resultado.migrationsExecuted);
-        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5"), historico(schema));
+        assertEquals(5, resultado.migrationsExecuted);
+        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6"), historico(schema));
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -83,7 +83,7 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(4, resultado.migrationsExecuted);
+        assertEquals(5, resultado.migrationsExecuted);
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -143,6 +143,31 @@ class FlywayMigracoesTest {
                         + ".infraestrutura_escola_aud order by id, rev", String.class));
         assertEquals(2, jdbc.queryForObject(
                 "select count(*) from " + schema + ".revisao where usuario_id is null", Integer.class));
+    }
+
+    @Test
+    void aguaEEnergiaDevemSerConvertidasParaAsOpcoesDoSistema() throws Exception {
+        String schema = "legado_com_agua_energia";
+        criarSchema(schema, script("V1__esquema_inicial.sql") + """
+                insert into infraestrutura_escola (id, tipo_agua, tipo_energia) values
+                    (1, 'POÇO', 'REDE ELETRICA'),
+                    (2, 'RIO/VERTENTE', 'NÃO'),
+                    (3, 'IGARAPÉ', 'SIM'),
+                    (4, 'CACIMBA', 'SOLAR'),
+                    (5, 'DESATIVADA', 'DESATIVADA'),
+                    (6, 'VERTENTE', null);
+                """);
+
+        flyway(schema).migrate();
+
+        assertEquals(List.of("1:POCO:REDE_PUBLICA", "2:RIO_VERTENTE:NAO", "3:IGARAPE:OUTRO",
+                        "4:CACIMBA:SOLAR", "5:-:-", "6:VERTENTE:-"),
+                jdbc.queryForList("select id || ':' || coalesce(tipo_agua, '-') || ':' || coalesce(tipo_energia, '-') from "
+                        + schema + ".infraestrutura_escola order by id", String.class));
+
+        // Linhas já válidas (4 e 6) não entram na revisão do ajuste
+        assertEquals(List.of(1L, 2L, 3L, 5L), jdbc.queryForList(
+                "select id from " + schema + ".infraestrutura_escola_aud where revtype = 1 order by id", Long.class));
     }
 
     private Flyway flyway(String schema) {

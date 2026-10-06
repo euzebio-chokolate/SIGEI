@@ -13,7 +13,12 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { environment } from '@environments/environment';
-import { SITUACOES_ESCOLA, TIPOS_ACESSO } from '@domains/escolas/models/infraestrutura-opcoes';
+import {
+  SITUACOES_ESCOLA,
+  TIPOS_ACESSO,
+  TIPOS_AGUA,
+  TIPOS_ENERGIA
+} from '@domains/escolas/models/infraestrutura-opcoes';
 
 export interface InfraestruturaFormControls {
   anoConstrucao: FormControl<number | null>;
@@ -58,6 +63,8 @@ export class InfraestruturaEtapaComponent {
 
   readonly situacoes = SITUACOES_ESCOLA;
   readonly tiposAcesso = TIPOS_ACESSO;
+  readonly tiposAgua = TIPOS_AGUA;
+  readonly tiposEnergia = TIPOS_ENERGIA;
 
   fotoSelecionada: File | null = null;
   fotoPreview: string | null = null;

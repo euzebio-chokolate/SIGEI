@@ -629,16 +629,20 @@ public class ImportacaoExcelService {
         );
 
         infraestrutura.setTipoAgua(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_AGUA
+                OpcoesInfraestrutura.tipoAguaImportado(
+                        ExcelUtils.lerTexto(
+                                linha,
+                                COL_AGUA
+                        )
                 )
         );
 
         infraestrutura.setTipoEnergia(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_ENERGIA
+                OpcoesInfraestrutura.tipoEnergiaImportado(
+                        ExcelUtils.lerTexto(
+                                linha,
+                                COL_ENERGIA
+                        )
                 )
         );
 

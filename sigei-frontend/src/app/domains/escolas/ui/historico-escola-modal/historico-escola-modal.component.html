@@ -114,22 +114,22 @@
 
               <div>
                 <p class="text-xs text-slate-400">Situação</p>
-                <p class="font-semibold mt-1">{{ registro.infraestrutura.situacao ?? '-' }}</p>
+                <p class="font-semibold mt-1">{{ rotulo(situacoes, registro.infraestrutura.situacao) }}</p>
               </div>
 
               <div>
                 <p class="text-xs text-slate-400">Acesso</p>
-                <p class="font-semibold mt-1">{{ registro.infraestrutura.tipoAcesso ?? '-' }}</p>
+                <p class="font-semibold mt-1">{{ rotulo(tiposAcesso, registro.infraestrutura.tipoAcesso) }}</p>
               </div>
 
               <div>
                 <p class="text-xs text-slate-400">Água</p>
-                <p class="font-semibold mt-1">{{ registro.infraestrutura.tipoAgua ?? '-' }}</p>
+                <p class="font-semibold mt-1">{{ rotulo(tiposAgua, registro.infraestrutura.tipoAgua) }}</p>
               </div>
 
               <div>
                 <p class="text-xs text-slate-400">Energia</p>
-                <p class="font-semibold mt-1">{{ registro.infraestrutura.tipoEnergia ?? '-' }}</p>
+                <p class="font-semibold mt-1">{{ rotulo(tiposEnergia, registro.infraestrutura.tipoEnergia) }}</p>
               </div>
 
               <div>

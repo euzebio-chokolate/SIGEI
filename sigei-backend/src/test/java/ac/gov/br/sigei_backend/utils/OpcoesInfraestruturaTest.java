@@ -46,6 +46,48 @@ class OpcoesInfraestruturaTest {
         assertNull(OpcoesInfraestrutura.situacaoImportada("SITUAÇÃO"));
     }
 
+    @Test
+    void aguaEEnergiaDevemAceitarGrafiasComAcentoEBarra() {
+        InfraestruturaEscola infraestrutura = infraestrutura("FUNCIONANDO", "FLUVIAL");
+        infraestrutura.setTipoAgua("Rio/Vertente");
+        infraestrutura.setTipoEnergia("NÃO");
+
+        OpcoesInfraestrutura.validar(infraestrutura);
+
+        assertEquals("RIO_VERTENTE", infraestrutura.getTipoAgua());
+        assertEquals("NAO", infraestrutura.getTipoEnergia());
+    }
+
+    @Test
+    void deveRecusarAguaEEnergiaForaDasOpcoes() {
+        InfraestruturaEscola agua = infraestrutura("FUNCIONANDO", "FLUVIAL");
+        agua.setTipoAgua("CHUVA");
+        IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,
+                () -> OpcoesInfraestrutura.validar(agua));
+        assertTrue(erro.getMessage().startsWith("Abastecimento de água inválido"));
+
+        // Os sinônimos da planilha valem só na importação
+        InfraestruturaEscola energia = infraestrutura("FUNCIONANDO", "FLUVIAL");
+        energia.setTipoEnergia("SIM");
+        assertThrows(IllegalArgumentException.class, () -> OpcoesInfraestrutura.validar(energia));
+    }
+
+    @Test
+    void importacaoDeveConverterOsValoresDaPlanilhaDeAguaEEnergia() {
+        assertEquals("POCO", OpcoesInfraestrutura.tipoAguaImportado("POÇO"));
+        assertEquals("IGARAPE", OpcoesInfraestrutura.tipoAguaImportado("IGARAPÉ"));
+        assertEquals("RIO_VERTENTE", OpcoesInfraestrutura.tipoAguaImportado("RIO/VERTENTE"));
+        assertEquals("CACIMBA", OpcoesInfraestrutura.tipoAguaImportado("CACIMBA"));
+        assertNull(OpcoesInfraestrutura.tipoAguaImportado("DESATIVADA"));
+
+        assertEquals("REDE_PUBLICA", OpcoesInfraestrutura.tipoEnergiaImportado("REDE ELETRICA"));
+        assertEquals("OUTRO", OpcoesInfraestrutura.tipoEnergiaImportado("SIM"));
+        assertEquals("NAO", OpcoesInfraestrutura.tipoEnergiaImportado("NÃO"));
+        assertEquals("SOLAR", OpcoesInfraestrutura.tipoEnergiaImportado("SOLAR"));
+        assertNull(OpcoesInfraestrutura.tipoEnergiaImportado("DESATIVADA"));
+        assertNull(OpcoesInfraestrutura.tipoEnergiaImportado(null));
+    }
+
     private static InfraestruturaEscola infraestrutura(String situacao, String tipoAcesso) {
         InfraestruturaEscola infraestrutura = new InfraestruturaEscola();
         infraestrutura.setSituacao(situacao);
