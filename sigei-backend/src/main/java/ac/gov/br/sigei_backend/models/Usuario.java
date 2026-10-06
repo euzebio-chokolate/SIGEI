@@ -2,9 +2,12 @@ package ac.gov.br.sigei_backend.models;
 
 import ac.gov.br.sigei_backend.models.enums.PerfilUsuario;
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
+@Audited
 @Table(name = "usuario")
 public class Usuario {
 
@@ -18,6 +21,8 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
+    // O hash da senha não entra na trilha de auditoria
+    @NotAudited
     @Column(nullable = false)
     private String senha;
 

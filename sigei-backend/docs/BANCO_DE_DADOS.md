@@ -274,6 +274,38 @@ Entidade [RefreshToken.java](../src/main/java/ac/gov/br/sigei_backend/models/Ref
 
 Tokens revogados são mantidos para detectar reutilização; os expirados de um usuário são apagados quando ele recebe um novo token.
 
+## Trilha de auditoria
+
+Criada pela migração `V4__trilha_auditoria.sql` e mantida pelo Hibernate Envers. Todas as entidades acima, exceto `refresh_token`, têm `@Audited`. Cada transação que cria, altera ou exclui uma entidade auditada gera uma linha em `revisao`. Os valores da versão vão para a tabela `<entidade>_aud` correspondente. Essas tabelas não aparecem no diagrama.
+
+### `revisao`
+
+Entidade [Revisao.java](../src/main/java/ac/gov/br/sigei_backend/models/Revisao.java); o autor é preenchido por [RevisaoListener.java](../src/main/java/ac/gov/br/sigei_backend/config/auditoria/RevisaoListener.java).
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `id` | `bigint` identity | Não | PK; número da revisão, crescente. |
+| `data_hora` | `timestamp with time zone` | Não | Momento da transação. |
+| `usuario_id` | `bigint` | Sim | ID do usuário autenticado, sem FK, para que a trilha resista à exclusão do usuário. Nulo indica o sistema (inicializadores, carga de planilhas na subida, migração). |
+| `usuario_email`, `usuario_nome` | `varchar(255)` | Sim | Cópia do e-mail e do nome no momento da alteração. |
+
+### Tabelas `<entidade>_aud`
+
+`municipio_aud`, `terra_indigena_aud`, `povo_aud`, `aldeia_aud`, `escola_aud`, `ano_referencia_aud`, `registro_anual_aud`, `equipe_escola_aud`, `infraestrutura_escola_aud`, `matricula_nivel_aud`, `matricula_serie_aud` e `usuario_aud`. Cada uma repete as colunas da tabela de origem, sem constraints, e acrescenta:
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `rev` | `bigint` | Não | FK → `revisao.id`; PK composta `(id, rev)`. |
+| `revtype` | `smallint` | Sim | `0` criação, `1` alteração, `2` exclusão. |
+
+- `usuario_aud` não guarda `senha` (`@NotAudited`).
+- Exclusões guardam os últimos valores (`store_data_at_delete`). Assim, o histórico mostra o que foi removido, inclusive por cascata.
+- Mudanças em coleções não geram revisão do lado pai (`revision_on_collection_change=false`); cada filho registra a sua própria.
+- A V4 criou uma revisão inicial atribuída ao sistema, com o estado de todos os dados existentes. Autoria e datas anteriores à migração não são conhecidas.
+- Os índices em `registro_anual_aud.escola_id`, `equipe_escola_aud.registro_anual_id`, `infraestrutura_escola_aud.registro_anual_id`, `matricula_nivel_aud.registro_id` e `matricula_serie_aud.registro_id` atendem ao histórico por escola.
+
+As tabelas de auditoria só crescem: nenhuma rotina as limpa. Alterações feitas por SQL direto, fora do Hibernate, não são registradas.
+
 ## Cascatas e exclusões
 
 | Associação no Java | Configuração | Efeito no ciclo de vida JPA |
@@ -290,7 +322,7 @@ Essas cascatas são do ORM: não equivalem a `ON DELETE CASCADE` no PostgreSQL. 
 
 ## Como manter esta documentação
 
-Ao alterar uma entidade, revise sua tabela, campos, nulabilidade, FK, UK, cardinalidade e cascatas neste documento. A inclusão de um campo em um DTO não implica automaticamente uma nova coluna.
+Ao alterar uma entidade, revise sua tabela, campos, nulabilidade, FK, UK, cardinalidade e cascatas neste documento. Em entidades auditadas, a migração também precisa alterar a tabela `<entidade>_aud`. A inclusão de um campo em um DTO não implica automaticamente uma nova coluna.
 
 Para conferir uma instância real, use o catálogo do banco ou a ferramenta de banco da IDE. Exemplo de consultas somente de leitura no PostgreSQL, substituindo `public` caso outro schema seja usado:
 

@@ -1,8 +1,10 @@
 package ac.gov.br.sigei_backend.models;
 
 import jakarta.persistence.*;
+import org.hibernate.envers.Audited;
 
 @Entity
+@Audited
 public class MatriculaNivel {
 
     @Id
