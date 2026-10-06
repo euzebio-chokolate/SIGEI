@@ -1,8 +1,10 @@
 # Diagramas do SIGEI para o TCC
 
-Conjunto de **20 diagramas em PlantUML**, elaborado a partir do backend, frontend, migrações SQL e arquivos de implantação disponíveis em 02/10/2026. Cada arquivo contém objetivo, código independente, referências à implementação e, quando necessário, observações de leitura.
+Conjunto de **23 diagramas em PlantUML**. O levantamento geral foi elaborado em 02/10/2026; os **seis diagramas ER (08, 09, 10, 21, 22 e 23)** foram refeitos em **06/10/2026**, conforme as migrações V1–V6 e as entidades atuais. Cada arquivo contém objetivo, código independente, referências à implementação e, quando necessário, observações de leitura.
 
 Os diagramas documentam o código encontrado no repositório. Não representam uma infraestrutura em produção verificada, nem funcionalidades futuras. A análise foi estática; a aplicação e o banco não foram alterados.
+
+Esta revisão atualiza o modelo ER e suas notas. Os demais diagramas continuam referentes ao levantamento de 02/10/2026 e podem não refletir as mudanças posteriores, especialmente a remoção de `Anexo` e a nova auditoria.
 
 ## Índice e uso na monografia
 
@@ -28,10 +30,13 @@ Os diagramas documentam o código encontrado no repositório. Não representam u
 | [18-sequencia-dashboard.md](18-sequencia-dashboard.md) | Agregações e séries históricas | Painel de indicadores / apêndice |
 | [19-atividade-importacao.md](19-atividade-importacao.md) | Carga automática e importação manual | Carga inicial e importação |
 | [20-implantacao-docker.md](20-implantacao-docker.md) | Topologia dos Compose e portas | Implantação |
+| [21-er-auditoria-territorio.md](21-er-auditoria-territorio.md) | Revisões de municípios, terras, povos, aldeias e escolas | Modelo de dados / auditoria |
+| [22-er-auditoria-dados-anuais.md](22-er-auditoria-dados-anuais.md) | Revisões dos dados escolares anuais | Modelo de dados / auditoria |
+| [23-er-auditoria-usuarios.md](23-er-auditoria-usuarios.md) | Versões de usuários e autoria das revisões | Modelo de dados / segurança |
 
 Uma seleção para o texto principal é **02, 03, 05, 08, 09, 10, 11, 14, 16 e 20**. As outras figuras podem detalhar a explicação ou integrar apêndices. Classes e modelo relacional têm propósitos diferentes: as classes descrevem objetos e associações; o modelo relacional explicita tabelas, tipos, nulabilidade e restrições. Não é necessário repetir todas as figuras em um mesmo capítulo.
 
-O modelo relacional foi dividido em três figuras para preservar a leitura. Juntas, elas abrangem as 14 tabelas de negócio/autenticação das migrações V1 e V2. `flyway_schema_history` é uma tabela técnica do Flyway e não integra esse domínio.
+O modelo ER atual foi dividido em **seis figuras**, cobrindo **26 tabelas persistentes**: 13 tabelas de negócio/autenticação (08–10), `revisao` e 12 tabelas `_aud` (21–23). A tabela `anexo` foi removida pela V3. `flyway_schema_history` e as tabelas temporárias de normalização não integram essas 26 tabelas. Tabelas repetidas entre figuras são a mesma tabela física.
 
 ## Convenções
 
@@ -39,7 +44,8 @@ O modelo relacional foi dividido em três figuras para preservar a leitura. Junt
 - Os diagramas usam fundo branco e traços monocromáticos para impressão.
 - Os endpoints `/api/...` correspondem ao acesso do frontend. O Nginx remove `/api` antes de encaminhar ao backend.
 - `ADMIN` e `USUARIO` são os perfis persistidos. `ROLE_TROCAR_SENHA` é uma autoridade temporária atribuída pelo filtro, não um terceiro valor do enum de perfil.
-- As cardinalidades dos modelos acompanham o esquema efetivo; regras de formulário mais restritas estão descritas em notas.
+- Nos ER atualizados, `*` marca NOT NULL (incluindo PK), `PK` marca chave primária e `FK` marca apenas chave estrangeira física. As cardinalidades acompanham nulabilidade e unicidade das migrações. Identificadores copiados para auditoria não são FKs, exceto `rev`.
+- Os domínios de situação, acesso, água e energia são opções da aplicação sobre colunas `varchar(255)`, sem tabelas próprias ou CHECK de valores nas migrações.
 - Os exemplos não usam conteúdo do `.env` real. A configuração foi examinada a partir de `.env.example`, propriedades e Compose.
 
 ## Relação com os requisitos existentes
@@ -64,11 +70,13 @@ Diagramas não demonstram, por si, conformidade com metas de desempenho ou usabi
 
 ## Pontos da implementação que afetam a leitura
 
+Os itens sobre sede/anexo e auditoria foram atualizados em 06/10/2026. Os demais registram o levantamento original e não constituem uma revisão dos fluxos nesta atualização do ER.
+
 1. **Mapa:** `GET /infraestrutura` retorna todos os registros, sem filtrar o ano. Uma escola pode ter vários marcadores quando houver vários anos.
 2. **Relação escola–aldeia:** `escola.aldeia_id` é único e anulável. O banco não modela várias escolas para a mesma aldeia.
-3. **Sede/anexo:** coexistem `escola.escola_sede_id` e a tabela `anexo`. O cadastro completo usa a primeira relação, sem sincronizar automaticamente a segunda.
+3. **Sede/anexo (atualizado):** a V3 removeu `anexo`; o vínculo agora usa somente `escola.escola_sede_id`. O ER 08 reflete esse estado.
 4. **Abertura de ano:** copia o registro mais recente de cada escola, preservando quantitativos de matrícula. Não copia `totalAlunos`, `fotoPublicId` nem atribui o ano da equipe. A figura 16 registra exatamente esse comportamento.
-5. **Histórico:** são registros por ano; não há trilha de auditoria que preserve cada edição de um registro.
+5. **Histórico (atualizado):** os registros por ano coexistem com uma trilha de auditoria Envers, introduzida pela V4. As tabelas `_aud` guardam versões identificadas por `(id, rev)`. A autoria é copiada para `revisao`, sem FK para o usuário atual. Senhas e refresh tokens não são auditados.
 6. **Fotos e transação:** há compensação de upload quando a transação é desfeita. A anotação transacional não declara rollback para `IOException`; a figura 14 não promete atomicidade para qualquer erro possível.
 7. **Segurança:** consultas de infraestrutura são públicas; demais consultas de negócio exigem perfil. Alterações exigem `ADMIN`, com exceção da troca da própria senha por usuário autenticado e das operações de sessão.
 8. **Importação:** os layouts e o ano 2025 são fixos. A carga inicial executa infraestrutura antes de matrículas, sem transação única envolvendo ambas.
@@ -120,6 +128,10 @@ Exemplo de inclusão, após copiar a imagem para `Monografia___Latex/imagens`:
 Adapte a apresentação da fonte ao padrão da classe da monografia. Os arquivos `.tex` e as imagens já existentes não foram substituídos.
 
 ## Validação realizada
+
+**Revisão ER de 06/10/2026:** seis fontes renderizadas localmente para SVG com PlantUML 1.2026.2, sem erros de sintaxe. Cobertura conferida das 26 tabelas, das colunas e das FKs das migrações V1–V6. Referências locais dos seis documentos verificadas.
+
+**Levantamento original de 02/10/2026:**
 
 - Extração e verificação de um bloco PlantUML completo por arquivo.
 - Conferência de existência das referências locais citadas.
