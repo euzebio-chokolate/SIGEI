@@ -131,9 +131,16 @@ CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origen
 
 ### Abertura de ano
 
-`AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia rede, local de funcionamento, equipe, infraestrutura (inclusive URL da foto) e matrículas para novas entidades. Escolas sem registro anterior são ignoradas.
+`AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia para novas entidades:
 
-A implementação atual não copia explicitamente `RegistroAnual.totalAlunos` nem `MatriculaSerie.total`. Não suponha que todos os totais sejam recalculados ou zerados; confira esse fluxo antes de alterar indicadores ou a virada anual.
+- do registro: rede, local de funcionamento e `totalAlunos`;
+- a equipe, com `anoReferencia` apontando para o novo ano;
+- a infraestrutura;
+- as matrículas por nível e por série, inclusive os totais.
+
+Escolas sem registro anterior são ignoradas. O dashboard abre no maior ano, então o novo ano já mostra os totais copiados até que sejam editados.
+
+Da foto, só a URL é copiada. O `fotoPublicId` fica apenas no registro que fez o upload, porque a imagem é compartilhada entre os anos e uma remoção no Cloudinary não deve apagar a foto de outro ano. `AtualizacaoAnualServiceTest` cobre a cópia campo a campo; ao acrescentar um campo a essas entidades, inclua-o na cópia e no teste.
 
 ### Cadastro completo de escola
 
