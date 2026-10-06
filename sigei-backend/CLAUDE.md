@@ -143,6 +143,7 @@ A implementação atual não copia explicitamente `RegistroAnual.totalAlunos` ne
 - O registro é localizado por escola + ano: se existir, é atualizado; senão, é criado. Registros de outros anos não são alterados.
 - Matrículas são casadas por `nivel` e por `denominacao` + `etapaEnsino`; itens ausentes na requisição são preservados e chaves repetidas geram `400`.
 - `removerFoto=true` limpa a referência da foto. O upload ao Cloudinary ocorre após o flush do banco; se a transação for desfeita depois do upload, a imagem é removida por compensação.
+- `salvar` e `editar` usam `@Transactional(rollbackFor = IOException.class)`. Uma falha de E/S no upload também desfaz tudo; sem isso, o Spring confirmaria a transação, porque `IOException` é verificada. Mantenha o `rollbackFor` em métodos transacionais que declarem exceções verificadas.
 
 ### Trilha de auditoria
 

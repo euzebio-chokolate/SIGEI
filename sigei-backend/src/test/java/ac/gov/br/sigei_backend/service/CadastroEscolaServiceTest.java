@@ -22,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -124,6 +125,30 @@ class CadastroEscolaServiceTest {
         assertEquals(0, escolas.count());
         assertEquals(0, registros.count());
         assertEquals(0, matriculasNivel.count());
+    }
+
+    @Test
+    void deveDesfazerTudoQuandoUploadDaFotoLancarIOException() throws Exception {
+        when(cloudinaryService.uploadImagem(any())).thenThrow(new IOException("rede indisponível"));
+        MockMultipartFile foto = new MockMultipartFile("foto", "foto.jpg", "image/jpeg", new byte[]{1, 2, 3});
+
+        assertThrows(IOException.class, () -> service.salvar(cadastro(null, ano2025, 10), foto));
+
+        assertEquals(0, escolas.count());
+        assertEquals(0, registros.count());
+        assertEquals(0, infraestruturas.count());
+    }
+
+    @Test
+    void deveDesfazerEdicaoQuandoUploadDaFotoLancarIOException() throws Exception {
+        Long escolaId = service.salvar(cadastro(null, ano2025, 10), null).escola().id();
+        when(cloudinaryService.uploadImagem(any())).thenThrow(new IOException("rede indisponível"));
+        MockMultipartFile foto = new MockMultipartFile("foto", "foto.jpg", "image/jpeg", new byte[]{1, 2, 3});
+
+        assertThrows(IOException.class, () -> service.editar(cadastro(escolaId, ano2025, 99), foto));
+
+        Escola escola = escolas.findById(escolaId).orElseThrow();
+        assertEquals(10, registros.findByEscolaAndAnoReferencia_Ano(escola, 2025).orElseThrow().getTotalAlunos());
     }
 
     @Test

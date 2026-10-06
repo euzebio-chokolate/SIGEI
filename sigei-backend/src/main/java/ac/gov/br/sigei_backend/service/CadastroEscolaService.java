@@ -65,7 +65,8 @@ public class CadastroEscolaService {
     @Autowired
     CadastroEscolaMapper cadastroEscolaMapper;
 
-    @Transactional
+    // IOException é verificada: sem rollbackFor, uma falha no upload gravaria o cadastro sem a foto
+    @Transactional(rollbackFor = IOException.class)
     public CadastroEscolaResponseDTO salvar(CadastroEscolaRequestDTO dto, MultipartFile foto) throws IOException {
         if (dto.escola().id() != null) {
             throw new IllegalArgumentException("Uma nova escola não deve informar ID; use a edição do cadastro.");
@@ -78,7 +79,7 @@ public class CadastroEscolaService {
         return gravarRegistroAnual(escolaSalva, dto, foto);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     public CadastroEscolaResponseDTO editar(CadastroEscolaRequestDTO dto, MultipartFile foto) throws IOException {
         if (dto.escola().id() == null) {
             throw new IllegalArgumentException("O ID da escola é obrigatório na edição.");
