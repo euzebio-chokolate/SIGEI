@@ -44,8 +44,8 @@ Consulte [docs/BANCO_DE_DADOS.md](docs/BANCO_DE_DADOS.md) para o diagrama e o di
 
 - `Municipio` contém o cadastro territorial; `TerraIndigena` referencia um município.
 - `Aldeia` referencia uma terra indígena e um `Povo`; `Escola` referencia uma aldeia.
-- `Escola` possui código, nome, tipo de unidade e referência opcional `escolaSede`. Embora exista o enum `TipoUnidade` (`SEDE`, `ANEXO`), o campo da entidade é `String`.
-- `Anexo` representa um vínculo entre escolas (`escola` e `escolaAnexo`), com unicidade do par. Não é um arquivo anexado. Existe em paralelo a `Escola.escolaSede`; confira ambos ao mudar esse domínio.
+- `Escola` possui código, nome, tipo de unidade e referência opcional `escolaSede`. O campo da entidade é `String`, mas `VinculoSedeService` aceita apenas os valores do enum `TipoUnidade` (`SEDE`, `ANEXO`), sem diferenciar maiúsculas, e grava em maiúsculas.
+- `Escola.escolaSede` é a única representação do vínculo entre anexo e escola-sede. A antiga entidade `Anexo` e a rota `/anexo` foram removidas, e a tabela foi apagada pela migração V3. `VinculoSedeService`, usado por `EscolaService` e `CadastroEscolaService`, aplica as regras com `400`: um `ANEXO` exige uma sede do tipo `SEDE`, diferente de si mesmo; uma `SEDE` não tem sede; e uma escola com anexos não pode passar a `ANEXO`. A importação de Excel grava o vínculo diretamente.
 - `AnoReferencia` representa o ano civil. Não confunda seu ID com o valor do ano, como `2025`.
 - `RegistroAnual` vincula escola e ano, com restrição de unicidade `(escola_id, ano_referencia_id)`. Contém rede, local de funcionamento e total de alunos.
 - Cada registro anual possui uma `EquipeEscola`, uma `InfraestruturaEscola` e coleções de `MatriculaNivel` e `MatriculaSerie`.
@@ -68,7 +68,6 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/municipio` | CRUD base e `GET /estatisticas`. |
 | `/terra` | CRUD base, `GET /{id}` e `GET /estatisticas`. |
 | `/escola` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `POST /salvarCompleto` e `PUT /editarCompleto` (multipart: parte `dados` em JSON e parte opcional `foto`). |
-| `/anexo` | CRUD base. |
 | `/anos` | CRUD base. |
 | `/registroAnual` | CRUD base, `GET /buscarPorAno?ano=2025` e `GET /buscarPorEscolaEAno?escolaId=1&ano=2025`. |
 | `/infraestrutura` | CRUD base, `GET /buscarPorAno?ano=2025` e `POST /{id}/foto` (multipart, campo `foto`). |
@@ -181,6 +180,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 
 - `V1__esquema_inicial.sql` reproduz exatamente o DDL que o Hibernate gerava antes do Flyway, inclusive os nomes das constraints.
 - `V2__refresh_token.sql` cria `refresh_token` de forma idempotente, pois a tabela pode já existir em bancos de desenvolvimento.
+- `V3__unifica_vinculo_sede_anexo.sql` copia para `escola.escola_sede_id` os vínculos válidos e não ambíguos da tabela `anexo` e depois a remove.
 - Bancos criados antes do Flyway, sem `flyway_schema_history`, recebem baseline na versão 1 (`spring.flyway.baseline-on-migrate`) e executam só as migrações seguintes.
 
 Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL PostgreSQL correspondente e nunca edite uma migração já aplicada. Para obter o DDL que o Hibernate espera, gere o script com `jakarta.persistence.schema-generation.scripts.action=create` e o dialeto PostgreSQL. `FlywayMigracoesTest` aplica as migrações em um PostgreSQL real (Testcontainers) e sobe o contexto com `validate`. Ele exige Docker e é ignorado quando o Docker não está disponível.
