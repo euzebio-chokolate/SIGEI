@@ -208,9 +208,9 @@ Entidade [InfraestruturaEscola.java](../src/main/java/ac/gov/br/sigei_backend/mo
 | `situacao` | `varchar(255)` | Sim | `FUNCIONANDO`, `PARALISADA` ou `DESATIVADA` (enum `SituacaoEscola`); nulo = não informada. A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tipo_acesso` | `varchar(255)` | Sim | `TERRESTRE`, `FLUVIAL` ou `MISTO` (enum `TipoAcesso`); nulo = não informado. A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tem_predio` | `boolean` | Sim | Existência de prédio. |
-| `tipo_agua` | `varchar(255)` | Sim | Forma de abastecimento de água. |
+| `tipo_agua` | `varchar(255)` | Sim | `REDE_PUBLICA`, `POCO`, `CACIMBA`, `RIO`, `IGARAPE`, `VERTENTE`, `RIO_VERTENTE`, `OUTRO` ou `NAO` (enum `TipoAgua`); nulo = não informado. A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tem_internet` | `boolean` | Sim | Disponibilidade de internet. |
-| `tipo_energia` | `varchar(255)` | Sim | Fonte/tipo de energia. |
+| `tipo_energia` | `varchar(255)` | Sim | `REDE_PUBLICA`, `GERADOR`, `SOLAR`, `OUTRO` ou `NAO` (enum `TipoEnergia`); nulo = não informado. `OUTRO` também recebe as escolas que a planilha marcava só como "SIM" (com energia, fonte não informada). A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tem_registro_fotografico` | `boolean` | Sim | Existência de registro fotográfico. |
 | `foto_url` | `varchar(255)` | Sim | URL da imagem armazenada externamente. |
 | `foto_public_id` | `varchar(255)` | Sim | Identificador da imagem no Cloudinary. |

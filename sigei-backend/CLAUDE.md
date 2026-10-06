@@ -52,10 +52,10 @@ Consulte [docs/BANCO_DE_DADOS.md](docs/BANCO_DE_DADOS.md) para o diagrama e o di
 - `RegistroAnual` vincula escola e ano, com restrição de unicidade `(escola_id, ano_referencia_id)`. Contém rede, local de funcionamento e total de alunos.
 - Cada registro anual possui uma `EquipeEscola`, uma `InfraestruturaEscola` e coleções de `MatriculaNivel` e `MatriculaSerie`.
 - Infraestrutura reúne construção, salas, coordenadas, situação, acesso, água, energia, internet e fotografia. Equipe registra disponibilidade de profissionais e necessidade de transporte.
-- `situacao` e `tipoAcesso` são `String`, mas só aceitam os valores dos enums `SituacaoEscola` (`FUNCIONANDO`, `PARALISADA`, `DESATIVADA`) e `TipoAcesso` (`TERRESTRE`, `FLUVIAL`, `MISTO`).
-  - `utils/OpcoesInfraestrutura` valida e grava em maiúsculas nas gravações pela API (`400` fora das opções); vazio vira nulo.
-  - Na importação, valores fora das opções viram nulo.
-  - No frontend, `domains/escolas/models/infraestrutura-opcoes.ts` é a fonte única das opções do formulário e do filtro do mapa. Ao mudar uma opção, altere os dois lados.
+- `situacao`, `tipoAcesso`, `tipoAgua` e `tipoEnergia` são `String`, mas só aceitam os valores dos enums `SituacaoEscola`, `TipoAcesso`, `TipoAgua` e `TipoEnergia`.
+  - `utils/OpcoesInfraestrutura` valida nas gravações pela API (`400` fora das opções) e grava o nome da opção. A comparação ignora acentos, maiúsculas e separadores (`Rio/Vertente` → `RIO_VERTENTE`); vazio vira nulo.
+  - Na importação, valores fora das opções viram nulo. Na energia, `REDE ELETRICA` vira `REDE_PUBLICA` e `SIM` vira `OUTRO`; esses sinônimos valem só na importação.
+  - No frontend, `domains/escolas/models/infraestrutura-opcoes.ts` é a fonte única das opções e dos rótulos (`rotuloOpcao`) do formulário, do filtro do mapa, da revisão do cadastro e do modal de histórico. Ao mudar uma opção, altere os dois lados.
 - Matrículas armazenam quantidades por sexo e totais, agrupadas por nível ou série/etapa.
 - `Usuario` possui nome, e-mail único, senha codificada, perfil (`ADMIN` ou `USUARIO`), estado ativo e indicador `alterarSenha`.
 
@@ -208,6 +208,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 - `V3__unifica_vinculo_sede_anexo.sql` copia para `escola.escola_sede_id` os vínculos válidos e não ambíguos da tabela `anexo` e depois a remove.
 - `V4__trilha_auditoria.sql` cria `revisao` e as tabelas `<entidade>_aud` do Envers, com índices para o histórico por escola. Também grava uma revisão inicial do sistema com o estado dos dados existentes.
 - `V5__padroniza_situacao_e_acesso.sql` padroniza `situacao` e `tipo_acesso` com as opções do sistema; valores fora delas viram nulo. Os ajustes ficam registrados numa revisão do sistema. Migrações que alterem dados devem fazer o mesmo, porque SQL direto não passa pelo Envers.
+- `V6__padroniza_agua_e_energia.sql` faz o mesmo com `tipo_agua` e `tipo_energia`, convertendo também as grafias da planilha (`POÇO`, `RIO/VERTENTE`, `NÃO`, `REDE ELETRICA`, `SIM`).
 - Bancos criados antes do Flyway, sem `flyway_schema_history`, recebem baseline na versão 1 (`spring.flyway.baseline-on-migrate`) e executam só as migrações seguintes.
 
 Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL PostgreSQL correspondente e nunca edite uma migração já aplicada. Para obter o DDL que o Hibernate espera, gere o script com `jakarta.persistence.schema-generation.scripts.action=create` e o dialeto PostgreSQL. `FlywayMigracoesTest` aplica as migrações em um PostgreSQL real (Testcontainers) e sobe o contexto com `validate`. Ele exige Docker e é ignorado quando o Docker não está disponível.

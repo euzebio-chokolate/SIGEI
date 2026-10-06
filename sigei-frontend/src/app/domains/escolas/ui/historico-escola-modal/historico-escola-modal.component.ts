@@ -8,6 +8,13 @@ import {
 import {
   RegistroAnualResponse
 } from '@domains/escolas/data-access/registro-anual.service';
+import {
+  rotuloOpcao,
+  SITUACOES_ESCOLA,
+  TIPOS_ACESSO,
+  TIPOS_AGUA,
+  TIPOS_ENERGIA
+} from '@domains/escolas/models/infraestrutura-opcoes';
 
 @Component({
   selector: 'app-historico-escola-modal',
@@ -15,6 +22,12 @@ import {
   templateUrl: './historico-escola-modal.component.html'
 })
 export class HistoricoEscolaModalComponent {
+
+  readonly situacoes = SITUACOES_ESCOLA;
+  readonly tiposAcesso = TIPOS_ACESSO;
+  readonly tiposAgua = TIPOS_AGUA;
+  readonly tiposEnergia = TIPOS_ENERGIA;
+  readonly rotulo = rotuloOpcao;
 
   @Input()
   aberto = false;
