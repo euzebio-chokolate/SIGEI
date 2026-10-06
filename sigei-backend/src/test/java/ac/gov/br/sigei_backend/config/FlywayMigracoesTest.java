@@ -49,7 +49,7 @@ class FlywayMigracoesTest {
         List<String> versoes = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertEquals(List.of("1", "2"), versoes);
+        assertEquals(List.of("1", "2", "3"), versoes);
     }
 
     @Test
@@ -59,8 +59,8 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(1, resultado.migrationsExecuted);
-        assertEquals(List.of("BASELINE:1", "SQL:2"), historico(schema));
+        assertEquals(2, resultado.migrationsExecuted);
+        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3"), historico(schema));
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -83,9 +83,34 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(1, resultado.migrationsExecuted);
+        assertEquals(2, resultado.migrationsExecuted);
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
+    }
+
+    @Test
+    void vinculosDaTabelaAnexoDevemSerCopiadosParaEscolaSedeQuandoValidos() throws Exception {
+        String schema = "legado_com_anexo";
+        criarSchema(schema, script("V1__esquema_inicial.sql") + """
+                insert into escola (id, nome, tipo_unidade, escola_sede_id) values
+                    (1, 'Sede 1', 'SEDE', null),
+                    (2, 'Anexo com um vinculo', 'ANEXO', null),
+                    (3, 'Anexo com dois vinculos', 'ANEXO', null),
+                    (4, 'Sede 4', 'SEDE', null),
+                    (5, 'Anexo que ja tinha sede', 'anexo', 4),
+                    (6, 'Sede apontada como anexo', 'SEDE', null),
+                    (7, 'Anexo de um anexo', 'ANEXO', null);
+                insert into anexo (escola_id, escola_anexo_id) values
+                    (1, 2), (1, 3), (4, 3), (1, 5), (1, 6), (5, 7);
+                """);
+
+        flyway(schema).migrate();
+
+        assertEquals(List.of("1:null", "2:1", "3:null", "4:null", "5:4", "6:null", "7:null"),
+                jdbc.queryForList("select id || ':' || coalesce(escola_sede_id::text, 'null') from "
+                        + schema + ".escola order by id", String.class));
+        assertFalse(colunaExiste(schema, "anexo", "id"));
+
     }
 
     private Flyway flyway(String schema) {

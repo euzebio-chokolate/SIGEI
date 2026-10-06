@@ -7,6 +7,8 @@ import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.mappers.EscolaMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,12 +38,24 @@ public class EscolaServiceTest {
     @InjectMocks
     EscolaService escolaService;
 
+    @BeforeEach
+    void configurarVinculoSede() {
+        escolaService.vinculoSedeService = new VinculoSedeService(escolaRepository);
+    }
+
+    private static Escola escolaSede() {
+        Escola sede = new Escola();
+        sede.setId(2L);
+        sede.setTipoUnidade("SEDE");
+        return sede;
+    }
+
     @Test
     public void deveSalvarEscolaComSedeComSucesso() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", 2L, 1L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "ANEXO", 2L, 1L);
 
         Aldeia aldeia = new Aldeia();
-        Escola escolaSede = new Escola();
+        Escola escolaSede = escolaSede();
         Escola escolaConvertida = new Escola();
         Escola escolaSalva = new Escola();
         EscolaResponseDTO responseMock = mock(EscolaResponseDTO.class);
@@ -55,12 +69,14 @@ public class EscolaServiceTest {
         EscolaResponseDTO resultado = escolaService.salvar(requestDTO);
 
         assertNotNull(resultado);
+        assertSame(escolaSede, escolaConvertida.getEscolaSede());
+        assertEquals("ANEXO", escolaConvertida.getTipoUnidade());
         verify(escolaRepository, times(1)).save(escolaConvertida);
     }
 
     @Test
     public void deveSalvarEscolaSemSedeComSucesso() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", null, 1L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", " sede ", null, 1L);
 
         Aldeia aldeia = new Aldeia();
         Escola escolaConvertida = new Escola();
@@ -70,15 +86,17 @@ public class EscolaServiceTest {
         when(escolaMapper.converter(requestDTO)).thenReturn(escolaConvertida);
         when(escolaRepository.save(any(Escola.class))).thenReturn(escolaSalva);
 
-        EscolaResponseDTO resultado = escolaService.salvar(requestDTO);
+        escolaService.salvar(requestDTO);
 
+        assertEquals("SEDE", escolaConvertida.getTipoUnidade());
+        assertNull(escolaConvertida.getEscolaSede());
         verify(escolaRepository, never()).findById(anyLong());
         verify(escolaRepository, times(1)).save(escolaConvertida);
     }
 
     @Test
     public void deveLancarExcecaoAoSalvarComAldeiaInvalida() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", null, 99L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "SEDE", null, 99L);
         when(aldeiaRepository.findById(99L)).thenReturn(Optional.empty());
 
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.salvar(requestDTO));
@@ -88,8 +106,9 @@ public class EscolaServiceTest {
 
     @Test
     public void deveLancarExcecaoAoSalvarComEscolaSedeInvalida() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "Polo", 99L, 1L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(null, "123", "Escola Nova", "ANEXO", 99L, 1L);
         when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(new Aldeia()));
+        when(escolaMapper.converter(requestDTO)).thenReturn(new Escola());
         when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
 
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.salvar(requestDTO));
@@ -118,17 +137,19 @@ public class EscolaServiceTest {
 
     @Test
     public void deveEditarEscolaComSedeComSucesso() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 2L, 1L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "ANEXO", 2L, 1L);
 
         Escola escolaExistente = new Escola();
+        escolaExistente.setId(1L);
         Aldeia aldeia = new Aldeia();
-        Escola escolaSede = new Escola();
+        Escola escolaSede = escolaSede();
         Escola escolaSalva = new Escola();
         EscolaResponseDTO responseMock = mock(EscolaResponseDTO.class);
 
         when(escolaRepository.findById(1L)).thenReturn(Optional.of(escolaExistente));
         when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeia));
         when(escolaRepository.findById(2L)).thenReturn(Optional.of(escolaSede));
+        when(escolaRepository.existsByEscolaSede_Id(1L)).thenReturn(false);
         doNothing().when(escolaMapper).atualizar(requestDTO, escolaExistente);
         when(escolaRepository.save(any(Escola.class))).thenReturn(escolaSalva);
         lenient().when(escolaMapper.converter(escolaSalva)).thenReturn(responseMock);
@@ -136,12 +157,13 @@ public class EscolaServiceTest {
         EscolaResponseDTO resultado = escolaService.editar(requestDTO);
 
         assertNotNull(resultado);
+        assertSame(escolaSede, escolaExistente.getEscolaSede());
         verify(escolaRepository, times(1)).save(escolaExistente);
     }
 
     @Test
     public void deveEditarEscolaSemSedeComSucesso() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", null, 1L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "SEDE", null, 1L);
 
         Escola escolaExistente = new Escola();
         when(escolaRepository.findById(1L)).thenReturn(Optional.of(escolaExistente));
@@ -157,7 +179,7 @@ public class EscolaServiceTest {
 
     @Test
     public void deveLancarExcecaoAoEditarEscolaInexistente() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(99L, "123", "Escola Editada", "Polo", 2L, 1L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(99L, "123", "Escola Editada", "ANEXO", 2L, 1L);
         when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
 
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
@@ -167,7 +189,7 @@ public class EscolaServiceTest {
 
     @Test
     public void deveLancarExcecaoAoEditarComAldeiaInexistente() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 2L, 99L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "ANEXO", 2L, 99L);
         when(escolaRepository.findById(1L)).thenReturn(Optional.of(new Escola()));
         when(aldeiaRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -178,7 +200,7 @@ public class EscolaServiceTest {
 
     @Test
     public void deveLancarExcecaoAoEditarComEscolaSedeInexistente() {
-        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "Polo", 99L, 1L);
+        EscolaRequestDTO requestDTO = new EscolaRequestDTO(1L, "123", "Escola Editada", "ANEXO", 99L, 1L);
         when(escolaRepository.findById(1L)).thenReturn(Optional.of(new Escola()));
         when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(new Aldeia()));
         when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
@@ -209,5 +231,91 @@ public class EscolaServiceTest {
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.excluir(99L));
         assertEquals("Id de escola inválido ou não encontrado", erro.getMessage());
         verify(escolaRepository, never()).deleteById(anyLong());
+    }
+
+    @Nested
+    class VinculoComEscolaSede {
+
+        private void prepararAldeia() {
+            when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(new Aldeia()));
+        }
+
+        private void assertRecusado(String mensagem, Runnable acao) {
+            IllegalArgumentException erro = assertThrows(IllegalArgumentException.class, acao::run);
+            assertEquals(mensagem, erro.getMessage());
+            verify(escolaRepository, never()).save(any(Escola.class));
+        }
+
+        @Test
+        void deveRecusarAnexoSemSede() {
+            EscolaRequestDTO dto = new EscolaRequestDTO(null, "123", "Anexo", "ANEXO", null, 1L);
+            prepararAldeia();
+            when(escolaMapper.converter(dto)).thenReturn(new Escola());
+
+            assertRecusado("Uma escola do tipo ANEXO deve informar a escola sede.",
+                    () -> escolaService.salvar(dto));
+        }
+
+        @Test
+        void deveRecusarSedeComEscolaSede() {
+            EscolaRequestDTO dto = new EscolaRequestDTO(null, "123", "Sede", "SEDE", 2L, 1L);
+            prepararAldeia();
+            when(escolaMapper.converter(dto)).thenReturn(new Escola());
+
+            assertRecusado("Uma escola do tipo SEDE não pode ter escola sede.",
+                    () -> escolaService.salvar(dto));
+            verify(escolaRepository, never()).findById(anyLong());
+        }
+
+        @Test
+        void deveRecusarTipoDeUnidadeDesconhecido() {
+            EscolaRequestDTO dto = new EscolaRequestDTO(null, "123", "Escola", "Polo", null, 1L);
+            prepararAldeia();
+            when(escolaMapper.converter(dto)).thenReturn(new Escola());
+
+            assertRecusado("Tipo de unidade inválido: use SEDE ou ANEXO.",
+                    () -> escolaService.salvar(dto));
+        }
+
+        @Test
+        void deveRecusarSedeQueNaoSejaDoTipoSede() {
+            EscolaRequestDTO dto = new EscolaRequestDTO(null, "123", "Anexo", "ANEXO", 2L, 1L);
+            Escola outroAnexo = new Escola();
+            outroAnexo.setId(2L);
+            outroAnexo.setTipoUnidade("ANEXO");
+            prepararAldeia();
+            when(escolaMapper.converter(dto)).thenReturn(new Escola());
+            when(escolaRepository.findById(2L)).thenReturn(Optional.of(outroAnexo));
+
+            assertRecusado("A escola sede informada não é do tipo SEDE.",
+                    () -> escolaService.salvar(dto));
+        }
+
+        @Test
+        void deveRecusarEscolaComoSedeDeSiMesma() {
+            EscolaRequestDTO dto = new EscolaRequestDTO(1L, "123", "Anexo", "ANEXO", 1L, 1L);
+            Escola escola = new Escola();
+            escola.setId(1L);
+            when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
+            prepararAldeia();
+
+            assertRecusado("A escola não pode ser sede de si mesma.",
+                    () -> escolaService.editar(dto));
+        }
+
+        @Test
+        void deveRecusarTransformarSedeComAnexosEmAnexo() {
+            EscolaRequestDTO dto = new EscolaRequestDTO(1L, "123", "Sede", "ANEXO", 2L, 1L);
+            Escola escola = new Escola();
+            escola.setId(1L);
+            escola.setTipoUnidade("SEDE");
+            when(escolaRepository.findById(1L)).thenReturn(Optional.of(escola));
+            prepararAldeia();
+            when(escolaRepository.findById(2L)).thenReturn(Optional.of(escolaSede()));
+            when(escolaRepository.existsByEscolaSede_Id(1L)).thenReturn(true);
+
+            assertRecusado("A escola possui anexos vinculados e não pode passar a ser do tipo ANEXO.",
+                    () -> escolaService.editar(dto));
+        }
     }
 }

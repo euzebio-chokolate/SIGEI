@@ -54,6 +54,9 @@ public class CadastroEscolaService {
     CloudinaryService cloudinaryService;
 
     @Autowired
+    VinculoSedeService vinculoSedeService;
+
+    @Autowired
     EscolaMapper escolaMapper;
 
     @Autowired
@@ -95,13 +98,8 @@ public class CadastroEscolaService {
         Aldeia aldeia = aldeiaRepository.findById(dto.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
-        Escola escolaSede = dto.escolaSedeId() == null
-                ? null
-                : escolaRepository.findById(dto.escolaSedeId())
-                .orElseThrow(() -> new NoSuchElementException("Escola sede não encontrada"));
-
         escola.setAldeia(aldeia);
-        escola.setEscolaSede(escolaSede);
+        vinculoSedeService.vincular(escola, dto.tipoUnidade(), dto.escolaSedeId());
     }
 
     /** Cria o registro do ano informado ou atualiza o existente, sem tocar nos demais anos. */
