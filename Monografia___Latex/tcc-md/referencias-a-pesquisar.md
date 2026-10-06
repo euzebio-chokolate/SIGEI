@@ -40,6 +40,7 @@ As sugestões de onde procurar indicam tipos de fonte, não obras específicas. 
 | 20 | Tailwind CSS | Seção 3.3.4 | Documentação oficial (https://tailwindcss.com/docs). |
 | 21 | Serviços de mapas de fundo (OpenStreetMap, Esri, OpenTopoMap, CARTO) | Seção 3.3.5 | Páginas oficiais e termos de uso de cada serviço. A atribuição dos mapas também deve aparecer nas legendas das figuras do mapa. |
 | 22 | Cloudinary, Docker, Swagger/OpenAPI, JUnit, Mockito, Bruno, Maven | Seção 3.3.6 | Documentação oficial de cada ferramenta. |
+| 23 | Hibernate Envers | Seções 3.3.1 e 4.2.6 | Documentação oficial do Hibernate ORM, capítulo *Envers* (https://hibernate.org/orm/documentation/). |
 
 ## Referências do `refs.bib` que precisam de conferência
 

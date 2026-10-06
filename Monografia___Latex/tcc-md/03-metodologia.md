@@ -20,10 +20,11 @@ O código do SIGEI foi versionado com Git e mantido em um repositório no GitHub
 | 4 | ago. 2026 | Integração do *front-end* com a API, documentação com Swagger, formulário de escolas com envio de fotografias, histórico anual e abertura de novo ano na interface. |
 | 5 | ago. a set. 2026 | Autenticação com JWT, gerenciamento de usuários, perfis de acesso e troca obrigatória de senha. Mapa público, configurações, painel de indicadores, carga inicial automática e preparação para hospedagem. |
 | 6 | set. a out. 2026 | Revisão dos testes, documentação dos *endpoints*, inclusão dos ciclos da EJA, consulta do histórico por escola, gravação do cadastro de escola em transação única, sessão em *cookies* com renovação e proteção CSRF, versionamento do banco com Flyway, documentação técnica e diagramas. |
+| 7 | out. 2026 | Correção das limitações identificadas na análise do sistema: unificação do vínculo entre escola-sede e anexo, trilha de auditoria das alterações, desfazimento do cadastro em falha de envio da foto, cópia completa dos dados na abertura de novo ano, um marcador por escola no mapa, padronização das respostas de erro do *login* e das opções de situação, acesso, água e energia. |
 
 Fonte: Elaborado pelo autor.
 
-A ordem dos incrementos reflete uma decisão de desenvolvimento: primeiro foi construída a base de dados e as regras do *back-end*, com testes automatizados; depois, a interface; por último, a segurança, os indicadores e os ajustes de robustez. A construção da API antes da interface permitiu testá-la de forma isolada com a ferramenta Bruno, antes de existir qualquer tela.
+A ordem dos incrementos reflete uma decisão de desenvolvimento: primeiro foi construída a base de dados e as regras do *back-end*, com testes automatizados; depois, a interface; por último, a segurança, os indicadores e os ajustes de robustez. O último incremento resultou de uma revisão do próprio sistema, feita durante a escrita deste trabalho, que identificou comportamentos a corrigir antes da entrega. A construção da API antes da interface permitiu testá-la de forma isolada com a ferramenta Bruno, antes de existir qualquer tela.
 
 [CONFIRMAR: se houve apresentação de incrementos à SEE/AC ou ao orientador com coleta de sugestões. Em caso afirmativo, descrever quando e quais ajustes resultaram disso. Em caso negativo, manter o texto como está.]
 
@@ -95,6 +96,7 @@ O Quadro 4 apresenta os requisitos não funcionais. Foram incluídos apenas aque
 | RNF08 | O esquema do banco de dados deve ser versionado por migrações. |
 | RNF09 | A API deve ter documentação interativa dos seus *endpoints*. |
 | RNF10 | O sistema deve poder ser executado em contêineres. |
+| RNF11 | As alterações dos dados devem ser registradas em uma trilha de auditoria, com o autor, a data e os valores de cada versão. |
 
 Fonte: Elaborado pelo autor.
 
@@ -121,7 +123,7 @@ Fonte: Elaborado pelo autor.
 
 ### 3.2.5 Diagrama de classes
 
-As classes do domínio foram divididas em dois grupos. O primeiro reúne o território e a escola: município, terra indígena, povo, aldeia, escola e anexo (Figura 2). O segundo reúne os dados anuais: ano de referência, registro anual, equipe, infraestrutura e matrículas (Figura 3). A divisão foi feita para manter os diagramas legíveis.
+As classes do domínio foram divididas em dois grupos. O primeiro reúne o território e a escola: município, terra indígena, povo, aldeia e escola, que se relaciona consigo mesma no vínculo entre escola-sede e anexo (Figura 2). O segundo reúne os dados anuais: ano de referência, registro anual, equipe, infraestrutura e matrículas (Figura 3). A divisão foi feita para manter os diagramas legíveis.
 
 [INSERIR FIGURA 2 – Diagrama de classes do território e da escola (exportar de `diagramas/06-classes-territorio.md`)]
 
@@ -137,7 +139,7 @@ A classe central do primeiro grupo é `Escola`, ligada a uma `Aldeia`, que perte
 
 ### 3.2.6 Modelo do banco de dados
 
-O modelo relacional foi derivado das classes de domínio e é criado por migrações versionadas. Ele contém 14 tabelas, apresentadas em três figuras: as tabelas territoriais e de escola (Figura 4), as tabelas de dados anuais (Figura 5) e as tabelas de usuários e sessões (Figura 6).
+O modelo relacional foi derivado das classes de domínio e é criado por migrações versionadas. Ele contém 13 tabelas, apresentadas em três figuras: as tabelas territoriais e de escola (Figura 4), as tabelas de dados anuais (Figura 5) e as tabelas de usuários e sessões (Figura 6). As tabelas da trilha de auditoria, que repetem a estrutura das tabelas de domínio, não aparecem nas figuras e são descritas na seção 4.2.6.
 
 [INSERIR FIGURA 4 – Modelo entidade-relacionamento: território e escola (exportar de `diagramas/08-er-territorio.md`)]
 
@@ -166,7 +168,7 @@ O *back-end* foi desenvolvido na linguagem Java, versão 21. O Java é uma lingu
 
 Sobre o Java foi utilizado o Spring Boot, versão 4.0.5. O Spring Boot simplifica a criação de aplicações com o *framework* Spring, oferecendo configuração automática e um servidor web embutido (WALLS, 2019). No SIGEI, o módulo Spring MVC recebe as requisições HTTP e as encaminha aos controladores, que estão anotados com `@RestController`. O Bean Validation verifica os dados de entrada com anotações como `@NotBlank` e `@NotNull`, e o Spring Boot Actuator fornece um *endpoint* de verificação de funcionamento (`/actuator/health`).
 
-O acesso ao banco de dados utiliza o Spring Data JPA, que gera a implementação dos repositórios a partir de interfaces, e o Hibernate, que realiza o mapeamento objeto-relacional entre as classes Java e as tabelas do banco (BAUER; KING; GREGORY, 2015). As entidades do SIGEI são classes anotadas com `@Entity`, e os relacionamentos são declarados com anotações como `@ManyToOne` e `@OneToMany`. No SIGEI, o Hibernate não cria o esquema do banco; ele apenas verifica, na inicialização, se as tabelas correspondem às entidades.
+O acesso ao banco de dados utiliza o Spring Data JPA, que gera a implementação dos repositórios a partir de interfaces, e o Hibernate, que realiza o mapeamento objeto-relacional entre as classes Java e as tabelas do banco (BAUER; KING; GREGORY, 2015). As entidades do SIGEI são classes anotadas com `@Entity`, e os relacionamentos são declarados com anotações como `@ManyToOne` e `@OneToMany`. No SIGEI, o Hibernate não cria o esquema do banco; ele apenas verifica, na inicialização, se as tabelas correspondem às entidades. O módulo Hibernate Envers registra as versões das entidades marcadas com `@Audited`, formando a trilha de auditoria descrita na seção 4.2.6 [REFERÊNCIA NECESSÁRIA: pesquisar a documentação oficial do Hibernate Envers].
 
 Para converter entidades em objetos de transferência de dados, foi utilizado o MapStruct, versão 1.6.3, que gera o código de conversão durante a compilação. Assim, a API nunca expõe diretamente as entidades JPA. A leitura das planilhas Excel é feita com a biblioteca Apache POI, versão 5.4.1.
 
@@ -224,7 +226,7 @@ A validação do SIGEI foi planejada em quatro procedimentos, apresentados no Qu
 
 | Procedimento | Descrição | Situação |
 | --- | --- | --- |
-| Testes automatizados do *back-end* | Testes de serviços com objetos simulados (Mockito), testes de repositórios com banco em memória (H2), testes das rotas HTTP de autenticação e de histórico e teste das migrações em PostgreSQL. | Realizado; resultados na seção 4.3.1. |
+| Testes automatizados do *back-end* | Testes de serviços com objetos simulados (Mockito), testes de repositórios com banco em memória (H2), testes das rotas HTTP de autenticação, de histórico e da trilha de auditoria e teste das migrações em PostgreSQL. | Realizado; resultados na seção 4.3.1. |
 | Testes manuais da API | Envio de requisições aos *endpoints* com a ferramenta Bruno e pela interface do Swagger, verificando códigos de resposta e conteúdo retornado. | Realizado durante o desenvolvimento; evidências na seção 4.3.1. |
 | Testes das funcionalidades | Execução, na interface, de roteiros que cobrem os requisitos funcionais: *login*, cadastros, edição, exclusão, filtros, histórico, abertura de ano e controle de perfis. | [A REALIZAR ou CONFIRMAR: registrar a execução e o resultado de cada roteiro na seção 4.3.2]. |
 | Conferência dos dados importados | Comparação entre os contadores retornados pela importação, os registros gravados e as planilhas de origem. | [A REALIZAR ou CONFIRMAR]. |

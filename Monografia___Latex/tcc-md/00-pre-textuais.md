@@ -52,9 +52,9 @@ Rio Branco – AC
 
 ## Resumo
 
-As informações sobre as escolas indígenas do Acre, como localização, território, infraestrutura, equipe e matrículas, estavam organizadas em planilhas eletrônicas separadas, sem vínculo entre si e sem histórico estruturado por ano. Essa dispersão dificulta a consulta, a atualização e a comparação dos dados ao longo do tempo. Este trabalho apresenta o SIGEI – Sistema de Gerenciamento Escolar Indígena, uma aplicação web desenvolvida para centralizar essas informações e apoiar seu acompanhamento pela Secretaria de Estado de Educação do Acre. O sistema foi construído de forma incremental, com uma API REST em Java e Spring Boot, uma interface em Angular e um banco de dados PostgreSQL. O SIGEI oferece um mapa público com a localização georreferenciada das escolas, busca e filtros; uma área administrativa com controle de acesso por perfil; cadastros de municípios, terras indígenas, povos, aldeias e escolas; registro anual de equipe, infraestrutura e matrículas; consulta ao histórico de cada escola; abertura de novo ano letivo; e um painel de indicadores consolidados. O funcionamento do *back-end* foi verificado por 217 casos de teste automatizados e por testes manuais da API. Como resultado, o sistema reúne em uma única base dados antes dispersos, organizando-os por escola e por ano. Como trabalhos futuros, destacam-se a validação com os usuários da secretaria e a geração de relatórios exportáveis.
+As informações sobre as escolas indígenas do Acre, como localização, território, infraestrutura, equipe e matrículas, estavam organizadas em planilhas eletrônicas separadas, sem vínculo entre si e sem histórico estruturado por ano. Essa dispersão dificulta a consulta, a atualização e a comparação dos dados ao longo do tempo. Este trabalho apresenta o SIGEI – Sistema de Gerenciamento Escolar Indígena, uma aplicação web desenvolvida para centralizar essas informações e apoiar seu acompanhamento pela Secretaria de Estado de Educação do Acre. O sistema foi construído de forma incremental, com uma API REST em Java e Spring Boot, uma interface em Angular e um banco de dados PostgreSQL. O SIGEI oferece um mapa público com a localização georreferenciada das escolas, busca e filtros; uma área administrativa com controle de acesso por perfil; cadastros de municípios, terras indígenas, povos, aldeias e escolas; registro anual de equipe, infraestrutura e matrículas; consulta ao histórico de cada escola; abertura de novo ano letivo; um painel de indicadores consolidados; e uma trilha de auditoria que registra o autor e a data de cada alteração. O funcionamento do *back-end* foi verificado por 236 casos de teste automatizados e por testes manuais da API. Como resultado, o sistema reúne em uma única base dados antes dispersos, organizando-os por escola e por ano. Como trabalhos futuros, destacam-se a validação com os usuários da secretaria e a geração de relatórios exportáveis.
 
-[AJUSTAR o número de testes após a nova execução e a frase sobre validação conforme a seção 4.3.3.]
+[AJUSTAR o número de testes se a execução com o JDK 21 mudar o resultado e a frase sobre validação conforme a seção 4.3.3.]
 
 **Palavras-chave:** Educação escolar indígena. Sistemas de informação. Georreferenciamento. Aplicação web. API REST.
 
@@ -62,9 +62,9 @@ As informações sobre as escolas indígenas do Acre, como localização, territ
 
 ## Abstract
 
-Information about indigenous schools in the state of Acre, Brazil, such as location, territory, infrastructure, staff and enrollment, was kept in separate spreadsheets, with no links between them and no structured yearly history. This dispersion makes it harder to query, update and compare data over time. This work presents SIGEI (Indigenous School Management System), a web application developed to centralize this information and support its monitoring by the Acre State Department of Education. The system was built incrementally, with a REST API in Java and Spring Boot, an Angular user interface and a PostgreSQL database. SIGEI provides a public map with the georeferenced location of schools, search and filters; an administrative area with role-based access control; registration of municipalities, indigenous lands, peoples, villages and schools; yearly records of staff, infrastructure and enrollment; consultation of each school's history; opening of a new school year; and a dashboard with consolidated indicators. The back-end was verified by 217 automated test cases and by manual API tests. As a result, the system brings previously scattered data into a single database, organized by school and by year. Future work includes validation with the department's users and exportable reports.
+Information about indigenous schools in the state of Acre, Brazil, such as location, territory, infrastructure, staff and enrollment, was kept in separate spreadsheets, with no links between them and no structured yearly history. This dispersion makes it harder to query, update and compare data over time. This work presents SIGEI (Indigenous School Management System), a web application developed to centralize this information and support its monitoring by the Acre State Department of Education. The system was built incrementally, with a REST API in Java and Spring Boot, an Angular user interface and a PostgreSQL database. SIGEI provides a public map with the georeferenced location of schools, search and filters; an administrative area with role-based access control; registration of municipalities, indigenous lands, peoples, villages and schools; yearly records of staff, infrastructure and enrollment; consultation of each school's history; opening of a new school year; a dashboard with consolidated indicators; and an audit trail that records the author and date of each change. The back-end was verified by 236 automated test cases and by manual API tests. As a result, the system brings previously scattered data into a single database, organized by school and by year. Future work includes validation with the department's users and exportable reports.
 
-[ADJUST the number of tests after the new run and the sentence on validation according to section 4.3.3.]
+[ADJUST the number of tests if the run with JDK 21 changes the result, and the sentence on validation according to section 4.3.3.]
 
 **Keywords:** Indigenous school education. Information systems. Georeferencing. Web application. REST API.
 
@@ -225,7 +225,8 @@ Quadro 9 – Roteiro de testes das funcionalidades
 4.2.3 Banco de dados
 4.2.4 Comunicação entre *front-end* e *back-end*
 4.2.5 Segurança e controle de acesso
-4.2.6 Implantação
+4.2.6 Trilha de auditoria
+4.2.7 Implantação
 4.3 Testes
 4.3.1 Testes da API
 4.3.2 Testes das funcionalidades
