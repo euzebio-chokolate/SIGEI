@@ -72,7 +72,7 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/escola` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `GET /{id}/historico` (trilha de auditoria, só `ADMIN`), `POST /salvarCompleto` e `PUT /editarCompleto` (multipart: parte `dados` em JSON e parte opcional `foto`). |
 | `/anos` | CRUD base. |
 | `/registroAnual` | CRUD base, `GET /buscarPorAno?ano=2025` e `GET /buscarPorEscolaEAno?escolaId=1&ano=2025`. |
-| `/infraestrutura` | CRUD base, `GET /buscarPorAno?ano=2025` e `POST /{id}/foto` (multipart, campo `foto`). |
+| `/infraestrutura` | CRUD base, `GET /buscarPorAno?ano=2025`, `GET /maisRecentes` (uma por escola, do registro mais recente que tenha infraestrutura; usada pelo mapa público) e `POST /{id}/foto` (multipart, campo `foto`). |
 | `/equipe` | Apenas `POST /salvar` e `PUT /editar`. |
 | `/matriculaNivel` | CRUD base. |
 | `/matriculaSerie` | CRUD base. |

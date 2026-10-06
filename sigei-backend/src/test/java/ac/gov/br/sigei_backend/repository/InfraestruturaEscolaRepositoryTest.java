@@ -167,4 +167,39 @@ public class InfraestruturaEscolaRepositoryTest {
   assertEquals(1, infras.size());
   assertEquals(infra2026.getId(), infras.get(0).getId());
  }
+
+ @Test
+ public void deveBuscarUmaInfraestruturaPorEscolaDoAnoMaisRecente() {
+  // Outra escola: infraestrutura só em 2025 e um registro de 2027 ainda sem infraestrutura
+  Escola outraEscola = new Escola();
+  outraEscola.setCodigo("88888");
+  outraEscola.setNome("Outra escola");
+  escolaRepository.save(outraEscola);
+
+  RegistroAnual outro2025 = new RegistroAnual();
+  outro2025.setEscola(outraEscola);
+  outro2025.setAnoReferencia(registroAnual2025.getAnoReferencia());
+  registroAnualRepository.save(outro2025);
+
+  InfraestruturaEscola outraInfra2025 = new InfraestruturaEscola();
+  outraInfra2025.setRegistroAnual(outro2025);
+  infraestruturaEscolaRepository.save(outraInfra2025);
+
+  AnoReferencia ano2027 = new AnoReferencia();
+  ano2027.setAno(2027);
+  anoReferenciaRepository.save(ano2027);
+
+  RegistroAnual outro2027 = new RegistroAnual();
+  outro2027.setEscola(outraEscola);
+  outro2027.setAnoReferencia(ano2027);
+  registroAnualRepository.save(outro2027);
+
+  List<Long> ids = infraestruturaEscolaRepository.buscarMaisRecentesPorEscola()
+          .stream()
+          .map(InfraestruturaEscola::getId)
+          .sorted()
+          .toList();
+
+  assertEquals(List.of(infra2026.getId(), outraInfra2025.getId()).stream().sorted().toList(), ids);
+ }
 }

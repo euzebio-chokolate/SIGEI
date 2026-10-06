@@ -63,6 +63,14 @@ public class InfraestruturaEscolaService {
                 .toList();
     }
 
+    public List<InfraestruturaEscolaResponseDTO> buscarMaisRecentes() {
+
+        return infraestruturaRepository.buscarMaisRecentesPorEscola()
+                .stream()
+                .map(infraestruturaMapper::converter)
+                .toList();
+    }
+
     public InfraestruturaEscolaResponseDTO editar(InfraestruturaEscolaRequestDTO infraDTO) {
 
         InfraestruturaEscola infraestrutura = infraestruturaRepository.findById(infraDTO.id())
