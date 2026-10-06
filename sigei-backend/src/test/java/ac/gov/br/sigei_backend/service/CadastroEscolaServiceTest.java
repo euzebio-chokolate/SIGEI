@@ -22,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ import static org.mockito.Mockito.*;
 @DataJpaTest(showSql = false)
 @ActiveProfiles("test")
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-@Import({CadastroEscolaService.class, CadastroEscolaServiceTest.MappersConfig.class})
+@Import({CadastroEscolaService.class, VinculoSedeService.class, CadastroEscolaServiceTest.MappersConfig.class})
 class CadastroEscolaServiceTest {
     @TestConfiguration
     @ComponentScan(basePackageClasses = EscolaMapper.class)
@@ -85,6 +86,7 @@ class CadastroEscolaServiceTest {
     @AfterEach
     void limpar() {
         registros.deleteAll();
+        escolas.deleteAll(escolas.findAll().stream().filter(escola -> escola.getEscolaSede() != null).toList());
         escolas.deleteAll();
         aldeias.deleteAll();
         povos.deleteAll();
@@ -123,6 +125,30 @@ class CadastroEscolaServiceTest {
         assertEquals(0, escolas.count());
         assertEquals(0, registros.count());
         assertEquals(0, matriculasNivel.count());
+    }
+
+    @Test
+    void deveDesfazerTudoQuandoUploadDaFotoLancarIOException() throws Exception {
+        when(cloudinaryService.uploadImagem(any())).thenThrow(new IOException("rede indisponível"));
+        MockMultipartFile foto = new MockMultipartFile("foto", "foto.jpg", "image/jpeg", new byte[]{1, 2, 3});
+
+        assertThrows(IOException.class, () -> service.salvar(cadastro(null, ano2025, 10), foto));
+
+        assertEquals(0, escolas.count());
+        assertEquals(0, registros.count());
+        assertEquals(0, infraestruturas.count());
+    }
+
+    @Test
+    void deveDesfazerEdicaoQuandoUploadDaFotoLancarIOException() throws Exception {
+        Long escolaId = service.salvar(cadastro(null, ano2025, 10), null).escola().id();
+        when(cloudinaryService.uploadImagem(any())).thenThrow(new IOException("rede indisponível"));
+        MockMultipartFile foto = new MockMultipartFile("foto", "foto.jpg", "image/jpeg", new byte[]{1, 2, 3});
+
+        assertThrows(IOException.class, () -> service.editar(cadastro(escolaId, ano2025, 99), foto));
+
+        Escola escola = escolas.findById(escolaId).orElseThrow();
+        assertEquals(10, registros.findByEscolaAndAnoReferencia_Ano(escola, 2025).orElseThrow().getTotalAlunos());
     }
 
     @Test
@@ -174,6 +200,44 @@ class CadastroEscolaServiceTest {
         assertEquals(0, escolas.count());
     }
 
+    @Test
+    void deveCadastrarAnexoVinculadoAEscolaSede() throws Exception {
+        Long sedeId = service.salvar(cadastro(null, ano2025, 10), null).escola().id();
+        Aldeia aldeiaAnexo = novaAldeia("Aldeia anexo");
+
+        CadastroEscolaResponseDTO resposta = service.salvar(cadastroDaEscola(
+                new EscolaRequestDTO(null, "COD-2", "Anexo cadastro", "anexo", sedeId, aldeiaAnexo.getId()),
+                ano2025, 5, List.of()), null);
+
+        assertEquals("ANEXO", resposta.escola().tipoUnidade());
+        assertEquals(sedeId, resposta.escola().escolaSede().id());
+        assertTrue(escolas.existsByEscolaSede_Id(sedeId));
+    }
+
+    @Test
+    void deveDesfazerCadastroDeAnexoComSedeInvalida() throws Exception {
+        Long sedeId = service.salvar(cadastro(null, ano2025, 10), null).escola().id();
+        Long anexoId = service.salvar(cadastroDaEscola(
+                new EscolaRequestDTO(null, "COD-2", "Anexo", "ANEXO", sedeId, novaAldeia("Aldeia 2").getId()),
+                ano2025, 5, List.of()), null).escola().id();
+
+        CadastroEscolaRequestDTO anexoDeAnexo = cadastroDaEscola(
+                new EscolaRequestDTO(null, "COD-3", "Anexo do anexo", "ANEXO", anexoId, novaAldeia("Aldeia 3").getId()),
+                ano2025, 5, List.of());
+
+        assertThrows(IllegalArgumentException.class, () -> service.salvar(anexoDeAnexo, null));
+        assertEquals(2, escolas.count());
+        assertEquals(2, registros.count());
+    }
+
+    private Aldeia novaAldeia(String nome) {
+        Aldeia nova = new Aldeia();
+        nova.setNome(nome);
+        nova.setTerraIndigena(aldeia.getTerraIndigena());
+        nova.setPovo(aldeia.getPovo());
+        return aldeias.save(nova);
+    }
+
     private AnoReferencia criarAno(int valor) {
         AnoReferencia ano = new AnoReferencia();
         ano.setAno(valor);
@@ -189,14 +253,20 @@ class CadastroEscolaServiceTest {
 
     private CadastroEscolaRequestDTO cadastro(Long escolaId, AnoReferencia ano, int totalAlunos,
                                               List<CadastroEscolaRequestDTO.MatriculaNivelDTO> niveis) {
+        return cadastroDaEscola(new EscolaRequestDTO(escolaId, "COD-1", "Escola cadastro", "SEDE", null, aldeia.getId()),
+                ano, totalAlunos, niveis);
+    }
+
+    private CadastroEscolaRequestDTO cadastroDaEscola(EscolaRequestDTO escola, AnoReferencia ano, int totalAlunos,
+                                              List<CadastroEscolaRequestDTO.MatriculaNivelDTO> niveis) {
         return new CadastroEscolaRequestDTO(
-                new EscolaRequestDTO(escolaId, "COD-1", "Escola cadastro", "SEDE", null, aldeia.getId()),
+                escola,
                 ano.getId(),
                 "Estadual",
                 "Prédio próprio",
                 totalAlunos,
                 new CadastroEscolaRequestDTO.EquipeDTO(true, false, true, false, false, true),
-                new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, 3, -8.1, -70.5, "ATIVA", "FLUVIAL",
+                new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, 3, -8.1, -70.5, "FUNCIONANDO", "FLUVIAL",
                         true, "POCO", false, "SOLAR", false),
                 niveis,
                 List.of(new CadastroEscolaRequestDTO.MatriculaSerieDTO("1º ano", "FUNDAMENTAL", 2, 3, 5)),

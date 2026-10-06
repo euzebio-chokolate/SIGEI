@@ -67,6 +67,17 @@ public class InfraestruturaEscolaController {
         return new ResponseEntity<>(infraestruturas, HttpStatus.OK);
     }
 
+    @GetMapping("/maisRecentes")
+    @Operation(summary = "Buscar a infraestrutura mais recente de cada escola",
+            description = "Retorna uma infraestrutura por escola, a do registro anual mais recente que a possua. Usado pelo mapa público, "
+                    + "que não deve repetir marcadores de escolas com mais de um ano registrado. Retorna uma lista vazia quando não há cadastros.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso")
+    })
+    public ResponseEntity<List<InfraestruturaEscolaResponseDTO>> buscarMaisRecentes() {
+        return ResponseEntity.ok(infraestruturaService.buscarMaisRecentes());
+    }
+
     @PutMapping("/editar")
     @Operation(summary = "Editar infraestrutura escolar",
             description = "Atualiza os dados de infraestrutura escolar identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")

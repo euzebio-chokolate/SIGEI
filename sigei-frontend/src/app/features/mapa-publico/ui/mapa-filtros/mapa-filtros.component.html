@@ -45,9 +45,9 @@
           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
         >
           <option value="">Todas as situações</option>
-          <option value="FUNCIONANDO">Funcionando</option>
-          <option value="PARALISADA">Paralisada</option>
-          <option value="EXTINTA">Extinta</option>
+          @for (opcao of situacoes; track opcao.valor) {
+            <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+          }
         </select>
       </div>
 
@@ -62,9 +62,9 @@
           class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
         >
           <option value="">Todos os acessos</option>
-          <option value="TERRESTRE">Terrestre</option>
-          <option value="FLUVIAL">Fluvial</option>
-          <option value="MISTO">Misto</option>
+          @for (opcao of tiposAcesso; track opcao.valor) {
+            <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+          }
         </select>
       </div>
 

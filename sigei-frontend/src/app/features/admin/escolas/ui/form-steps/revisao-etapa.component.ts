@@ -5,6 +5,14 @@ import {
   Output
 } from '@angular/core';
 
+import {
+  rotuloOpcao,
+  SITUACOES_ESCOLA,
+  TIPOS_ACESSO,
+  TIPOS_AGUA,
+  TIPOS_ENERGIA
+} from '@domains/escolas/models/infraestrutura-opcoes';
+
 @Component({
   selector: 'app-revisao-etapa',
   standalone: true,
@@ -96,5 +104,11 @@ export class RevisaoEtapaComponent {
   simNao(valor: boolean): string {
     return valor ? 'Sim' : 'Não';
   }
+
+  readonly situacoes = SITUACOES_ESCOLA;
+  readonly tiposAcesso = TIPOS_ACESSO;
+  readonly tiposAgua = TIPOS_AGUA;
+  readonly tiposEnergia = TIPOS_ENERGIA;
+  readonly rotulo = rotuloOpcao;
 
 }

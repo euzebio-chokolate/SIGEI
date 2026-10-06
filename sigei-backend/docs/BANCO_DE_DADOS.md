@@ -26,8 +26,6 @@ erDiagram
     povo ||..o{ aldeia : povo_id
     aldeia o|..o| escola : aldeia_id
     escola o|..o{ escola : escola_sede_id
-    escola o|..o{ anexo : escola_id
-    escola o|..o{ anexo : escola_anexo_id
     escola o|..o{ registro_anual : escola_id
     ano_referencia o|..o{ registro_anual : ano_referencia_id
     registro_anual o|..o| equipe_escola : registro_anual_id
@@ -55,11 +53,6 @@ erDiagram
         bigint id PK
         bigint aldeia_id FK,UK
         bigint escola_sede_id FK
-    }
-    anexo {
-        bigint id PK
-        bigint escola_id FK
-        bigint escola_anexo_id FK
     }
     ano_referencia {
         bigint id PK
@@ -99,7 +92,7 @@ erDiagram
     usuario ||--o{ refresh_token : "possui"
 ```
 
-As UKs de `aldeia_id` e `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. As unicidades compostas de `anexo` e `registro_anual` estão detalhadas adiante. `usuario` não possui FK para as tabelas do domínio; apenas `refresh_token` referencia `usuario`.
+As UKs de `aldeia_id` e `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. A unicidade composta de `registro_anual` está detalhada adiante. `usuario` não possui FK para as tabelas do domínio; apenas `refresh_token` referencia `usuario`.
 
 ## Dicionário de dados
 
@@ -150,22 +143,15 @@ Entidade [Escola.java](../src/main/java/ac/gov/br/sigei_backend/models/Escola.ja
 | --- | --- | --- | --- |
 | `codigo` | `varchar(255)` | Sim | Código da escola; sem UK declarada na entidade. |
 | `nome` | `varchar(255)` | Sim | Nome da escola. |
-| `tipo_unidade` | `varchar(255)` | Sim | Tipo da unidade, como `SEDE` ou `ANEXO`; o campo é `String`, não enum persistido. |
-| `escola_sede_id` | `bigint` | Sim | FK → `escola.id`; autorrelacionamento muitos-para-um. |
+| `tipo_unidade` | `varchar(255)` | Sim | `SEDE` ou `ANEXO`; o campo é `String`, não enum persistido. Os cadastros pela API validam e gravam o valor em maiúsculas. |
+| `escola_sede_id` | `bigint` | Sim | FK → `escola.id`; autorrelacionamento muitos-para-um. É a única representação do vínculo entre anexo e escola-sede. |
 | `aldeia_id` | `bigint` | Sim | FK → `aldeia.id`; associação `@OneToOne`, com unicidade esperada. |
 
 O modelo atual permite no máximo uma escola por aldeia por causa de `@OneToOne`; não documentar esse vínculo como muitos-para-um sem alterar o mapeamento. `Escola.registros` é a coleção inversa de `registro_anual.escola_id`.
 
-### `anexo`
+As regras do vínculo com a sede ficam em [VinculoSedeService.java](../src/main/java/ac/gov/br/sigei_backend/service/VinculoSedeService.java) e valem para os cadastros simples e completo: um `ANEXO` exige uma sede do tipo `SEDE`, diferente de si mesmo; uma `SEDE` não tem sede; e uma escola com anexos vinculados não pode passar a `ANEXO`. Com isso, o vínculo tem um único nível e não forma ciclos. Essas regras não são constraints do banco. A importação de Excel grava o vínculo diretamente: o anexo recebe a escola `SEDE` de mesmo código.
 
-Entidade [Anexo.java](../src/main/java/ac/gov/br/sigei_backend/models/Anexo.java). Vínculo entre uma escola e uma escola anexo; não armazena arquivos.
-
-| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
-| --- | --- | --- | --- |
-| `escola_id` | `bigint` | Sim | FK → `escola.id`, escola de referência do vínculo. |
-| `escola_anexo_id` | `bigint` | Sim | FK → `escola.id`, escola anexo. |
-
-UK composta: `(escola_id, escola_anexo_id)`. Cada coluna isoladamente aceita repetição; o mapeamento não restringe uma escola anexo a uma única escola de referência. Esse vínculo existe em paralelo a `escola.escola_sede_id`; não há restrição declarada que sincronize as duas representações ou impeça autorreferências/ciclos.
+Até a migração `V3__unifica_vinculo_sede_anexo.sql`, havia também a tabela `anexo` (`escola_id`, `escola_anexo_id`), uma segunda representação do mesmo vínculo, sem sincronização com `escola_sede_id`. A V3 copiou para `escola_sede_id` os vínculos válidos e não ambíguos dessa tabela, descartou os demais e removeu a tabela.
 
 ### `ano_referencia`
 
@@ -219,12 +205,12 @@ Entidade [InfraestruturaEscola.java](../src/main/java/ac/gov/br/sigei_backend/mo
 | `num_salas` | `integer` | Sim | Número de salas. |
 | `latitude` | `double precision` | Sim | Latitude. |
 | `longitude` | `double precision` | Sim | Longitude. |
-| `situacao` | `varchar(255)` | Sim | Situação da escola. |
-| `tipo_acesso` | `varchar(255)` | Sim | Tipo de acesso à unidade. |
+| `situacao` | `varchar(255)` | Sim | `FUNCIONANDO`, `PARALISADA` ou `DESATIVADA` (enum `SituacaoEscola`); nulo = não informada. A restrição é aplicada pela aplicação, não por constraint do banco. |
+| `tipo_acesso` | `varchar(255)` | Sim | `TERRESTRE`, `FLUVIAL` ou `MISTO` (enum `TipoAcesso`); nulo = não informado. A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tem_predio` | `boolean` | Sim | Existência de prédio. |
-| `tipo_agua` | `varchar(255)` | Sim | Forma de abastecimento de água. |
+| `tipo_agua` | `varchar(255)` | Sim | `REDE_PUBLICA`, `POCO`, `CACIMBA`, `RIO`, `IGARAPE`, `VERTENTE`, `RIO_VERTENTE`, `OUTRO` ou `NAO` (enum `TipoAgua`); nulo = não informado. A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tem_internet` | `boolean` | Sim | Disponibilidade de internet. |
-| `tipo_energia` | `varchar(255)` | Sim | Fonte/tipo de energia. |
+| `tipo_energia` | `varchar(255)` | Sim | `REDE_PUBLICA`, `GERADOR`, `SOLAR`, `OUTRO` ou `NAO` (enum `TipoEnergia`); nulo = não informado. `OUTRO` também recebe as escolas que a planilha marcava só como "SIM" (com energia, fonte não informada). A restrição é aplicada pela aplicação, não por constraint do banco. |
 | `tem_registro_fotografico` | `boolean` | Sim | Existência de registro fotográfico. |
 | `foto_url` | `varchar(255)` | Sim | URL da imagem armazenada externamente. |
 | `foto_public_id` | `varchar(255)` | Sim | Identificador da imagem no Cloudinary. |
@@ -288,6 +274,38 @@ Entidade [RefreshToken.java](../src/main/java/ac/gov/br/sigei_backend/models/Ref
 
 Tokens revogados são mantidos para detectar reutilização; os expirados de um usuário são apagados quando ele recebe um novo token.
 
+## Trilha de auditoria
+
+Criada pela migração `V4__trilha_auditoria.sql` e mantida pelo Hibernate Envers. Todas as entidades acima, exceto `refresh_token`, têm `@Audited`. Cada transação que cria, altera ou exclui uma entidade auditada gera uma linha em `revisao`. Os valores da versão vão para a tabela `<entidade>_aud` correspondente. Essas tabelas não aparecem no diagrama.
+
+### `revisao`
+
+Entidade [Revisao.java](../src/main/java/ac/gov/br/sigei_backend/models/Revisao.java); o autor é preenchido por [RevisaoListener.java](../src/main/java/ac/gov/br/sigei_backend/config/auditoria/RevisaoListener.java).
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `id` | `bigint` identity | Não | PK; número da revisão, crescente. |
+| `data_hora` | `timestamp with time zone` | Não | Momento da transação. |
+| `usuario_id` | `bigint` | Sim | ID do usuário autenticado, sem FK, para que a trilha resista à exclusão do usuário. Nulo indica o sistema (inicializadores, carga de planilhas na subida, migração). |
+| `usuario_email`, `usuario_nome` | `varchar(255)` | Sim | Cópia do e-mail e do nome no momento da alteração. |
+
+### Tabelas `<entidade>_aud`
+
+`municipio_aud`, `terra_indigena_aud`, `povo_aud`, `aldeia_aud`, `escola_aud`, `ano_referencia_aud`, `registro_anual_aud`, `equipe_escola_aud`, `infraestrutura_escola_aud`, `matricula_nivel_aud`, `matricula_serie_aud` e `usuario_aud`. Cada uma repete as colunas da tabela de origem, sem constraints, e acrescenta:
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `rev` | `bigint` | Não | FK → `revisao.id`; PK composta `(id, rev)`. |
+| `revtype` | `smallint` | Sim | `0` criação, `1` alteração, `2` exclusão. |
+
+- `usuario_aud` não guarda `senha` (`@NotAudited`).
+- Exclusões guardam os últimos valores (`store_data_at_delete`). Assim, o histórico mostra o que foi removido, inclusive por cascata.
+- Mudanças em coleções não geram revisão do lado pai (`revision_on_collection_change=false`); cada filho registra a sua própria.
+- A V4 criou uma revisão inicial atribuída ao sistema, com o estado de todos os dados existentes. Autoria e datas anteriores à migração não são conhecidas.
+- Os índices em `registro_anual_aud.escola_id`, `equipe_escola_aud.registro_anual_id`, `infraestrutura_escola_aud.registro_anual_id`, `matricula_nivel_aud.registro_id` e `matricula_serie_aud.registro_id` atendem ao histórico por escola.
+
+As tabelas de auditoria só crescem: nenhuma rotina as limpa. Alterações feitas por SQL direto, fora do Hibernate, não são registradas.
+
 ## Cascatas e exclusões
 
 | Associação no Java | Configuração | Efeito no ciclo de vida JPA |
@@ -304,7 +322,7 @@ Essas cascatas são do ORM: não equivalem a `ON DELETE CASCADE` no PostgreSQL. 
 
 ## Como manter esta documentação
 
-Ao alterar uma entidade, revise sua tabela, campos, nulabilidade, FK, UK, cardinalidade e cascatas neste documento. A inclusão de um campo em um DTO não implica automaticamente uma nova coluna.
+Ao alterar uma entidade, revise sua tabela, campos, nulabilidade, FK, UK, cardinalidade e cascatas neste documento. Em entidades auditadas, a migração também precisa alterar a tabela `<entidade>_aud`. A inclusão de um campo em um DTO não implica automaticamente uma nova coluna.
 
 Para conferir uma instância real, use o catálogo do banco ou a ferramenta de banco da IDE. Exemplo de consultas somente de leitura no PostgreSQL, substituindo `public` caso outro schema seja usado:
 

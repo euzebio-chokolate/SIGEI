@@ -95,9 +95,9 @@
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
             <option value="">Selecione...</option>
-            <option value="FUNCIONANDO">Funcionando</option>
-            <option value="PARALISADA">Paralisada</option>
-            <option value="DESATIVADA">Desativada</option>
+            @for (opcao of situacoes; track opcao.valor) {
+              <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+            }
           </select>
         </div>
 
@@ -112,10 +112,9 @@
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
             <option value="">Selecione...</option>
-            <option value="TERRESTRE">Terrestre</option>
-            <option value="FLUVIAL">Fluvial</option>
-            <option value="AEREO">Aéreo</option>
-            <option value="MISTO">Misto</option>
+            @for (opcao of tiposAcesso; track opcao.valor) {
+              <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+            }
           </select>
         </div>
 
@@ -130,11 +129,9 @@
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
             <option value="">Selecione...</option>
-            <option value="REDE_PUBLICA">Rede Pública</option>
-            <option value="POCO">Poço</option>
-            <option value="RIO/VERTENTE">Rio / Vertente</option>
-            <option value="OUTRO">Outro</option>
-            <option value="NÃO">Não possui</option>
+            @for (opcao of tiposAgua; track opcao.valor) {
+              <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+            }
           </select>
         </div>
 
@@ -149,11 +146,9 @@
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
             <option value="">Selecione...</option>
-            <option value="REDE_PUBLICA">Rede Pública</option>
-            <option value="GERADOR">Gerador</option>
-            <option value="SOLAR">Solar</option>
-            <option value="OUTRO">Outro</option>
-            <option value="NÃO">Não possui</option>
+            @for (opcao of tiposEnergia; track opcao.valor) {
+              <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+            }
           </select>
         </div>
       </div>
