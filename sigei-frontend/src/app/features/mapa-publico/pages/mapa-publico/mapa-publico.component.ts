@@ -264,9 +264,10 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     return [latitude, longitude];
   }
 
+  /** Escola fora de funcionamento (paralisada ou desativada): marcador vermelho. */
   private isParalisada(valor?: string | null): boolean {
     const situacao = this.normalizar(valor).toUpperCase();
-    return situacao === 'PARALISADA' || situacao === 'PARALIZADA';
+    return situacao === 'PARALISADA' || situacao === 'PARALIZADA' || situacao === 'DESATIVADA';
   }
 
   private normalizar(valor: unknown): string {

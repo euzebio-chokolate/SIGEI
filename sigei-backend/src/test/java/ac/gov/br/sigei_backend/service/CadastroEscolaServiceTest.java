@@ -266,7 +266,7 @@ class CadastroEscolaServiceTest {
                 "Prédio próprio",
                 totalAlunos,
                 new CadastroEscolaRequestDTO.EquipeDTO(true, false, true, false, false, true),
-                new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, 3, -8.1, -70.5, "ATIVA", "FLUVIAL",
+                new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, 3, -8.1, -70.5, "FUNCIONANDO", "FLUVIAL",
                         true, "POCO", false, "SOLAR", false),
                 niveis,
                 List.of(new CadastroEscolaRequestDTO.MatriculaSerieDTO("1º ano", "FUNDAMENTAL", 2, 3, 5)),

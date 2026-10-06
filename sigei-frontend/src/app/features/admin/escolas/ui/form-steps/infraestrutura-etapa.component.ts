@@ -13,6 +13,7 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { environment } from '@environments/environment';
+import { SITUACOES_ESCOLA, TIPOS_ACESSO } from '@domains/escolas/models/infraestrutura-opcoes';
 
 export interface InfraestruturaFormControls {
   anoConstrucao: FormControl<number | null>;
@@ -54,6 +55,9 @@ export class InfraestruturaEtapaComponent {
 
   @Output()
   fotoAlterada = new EventEmitter<File | null>();
+
+  readonly situacoes = SITUACOES_ESCOLA;
+  readonly tiposAcesso = TIPOS_ACESSO;
 
   fotoSelecionada: File | null = null;
   fotoPreview: string | null = null;

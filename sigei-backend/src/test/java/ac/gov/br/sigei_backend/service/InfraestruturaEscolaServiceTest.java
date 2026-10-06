@@ -66,6 +66,25 @@ public class InfraestruturaEscolaServiceTest {
  }
 
  @Test
+ public void deveRecusarTipoDeAcessoForaDasOpcoes() {
+  InfraestruturaEscolaRequestDTO requestDTO = new InfraestruturaEscolaRequestDTO(
+          null, 1L, 2020, 5, -8.5, -72.0, "FUNCIONANDO", "AEREO",
+          true, "CACIMBA", true, "SOLAR", true
+  );
+  InfraestruturaEscola infraConvertida = new InfraestruturaEscola();
+  infraConvertida.setSituacao("FUNCIONANDO");
+  infraConvertida.setTipoAcesso("AEREO");
+
+  when(registroAnualRepository.findById(1L)).thenReturn(Optional.of(new RegistroAnual()));
+  when(infraestruturaMapper.converter(requestDTO)).thenReturn(infraConvertida);
+
+  IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,
+          () -> infraestruturaEscolaService.salvar(requestDTO));
+  assertEquals("Tipo de acesso inválido: use TERRESTRE, FLUVIAL, MISTO.", erro.getMessage());
+  verify(infraestruturaRepository, never()).save(any(InfraestruturaEscola.class));
+ }
+
+ @Test
  public void deveLancarExcecaoAoSalvarComRegistroAnualInvalido() {
   InfraestruturaEscolaRequestDTO requestDTO = new InfraestruturaEscolaRequestDTO(
           null, 99L, 2020, 5, -8.5, -72.0, "FUNCIONANDO", "FLUVIAL",
