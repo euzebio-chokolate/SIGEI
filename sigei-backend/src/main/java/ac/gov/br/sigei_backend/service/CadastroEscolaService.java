@@ -12,6 +12,7 @@ import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import ac.gov.br.sigei_backend.service.armazenamento.CloudinaryService;
+import ac.gov.br.sigei_backend.utils.OpcoesInfraestrutura;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +55,9 @@ public class CadastroEscolaService {
     CloudinaryService cloudinaryService;
 
     @Autowired
+    VinculoSedeService vinculoSedeService;
+
+    @Autowired
     EscolaMapper escolaMapper;
 
     @Autowired
@@ -62,7 +66,8 @@ public class CadastroEscolaService {
     @Autowired
     CadastroEscolaMapper cadastroEscolaMapper;
 
-    @Transactional
+    // IOException é verificada: sem rollbackFor, uma falha no upload gravaria o cadastro sem a foto
+    @Transactional(rollbackFor = IOException.class)
     public CadastroEscolaResponseDTO salvar(CadastroEscolaRequestDTO dto, MultipartFile foto) throws IOException {
         if (dto.escola().id() != null) {
             throw new IllegalArgumentException("Uma nova escola não deve informar ID; use a edição do cadastro.");
@@ -75,7 +80,7 @@ public class CadastroEscolaService {
         return gravarRegistroAnual(escolaSalva, dto, foto);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = IOException.class)
     public CadastroEscolaResponseDTO editar(CadastroEscolaRequestDTO dto, MultipartFile foto) throws IOException {
         if (dto.escola().id() == null) {
             throw new IllegalArgumentException("O ID da escola é obrigatório na edição.");
@@ -95,13 +100,8 @@ public class CadastroEscolaService {
         Aldeia aldeia = aldeiaRepository.findById(dto.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
-        Escola escolaSede = dto.escolaSedeId() == null
-                ? null
-                : escolaRepository.findById(dto.escolaSedeId())
-                .orElseThrow(() -> new NoSuchElementException("Escola sede não encontrada"));
-
         escola.setAldeia(aldeia);
-        escola.setEscolaSede(escolaSede);
+        vinculoSedeService.vincular(escola, dto.tipoUnidade(), dto.escolaSedeId());
     }
 
     /** Cria o registro do ano informado ou atualiza o existente, sem tocar nos demais anos. */
@@ -179,6 +179,7 @@ public class CadastroEscolaService {
         }
 
         cadastroEscolaMapper.atualizar(dto, infraestrutura);
+        OpcoesInfraestrutura.validar(infraestrutura);
 
         if (removerFoto) {
             infraestrutura.setFotoUrl(null);

@@ -54,8 +54,11 @@ export class LoginComponent {
         console.error('Erro no login:', erro);
         this.carregando = false;
 
-        if (erro?.status === 401 || erro?.status === 403) {
+        if (erro?.status === 401) {
           this.erroMensagem = 'E-mail ou senha inválidos.';
+        } else if (erro?.status === 403) {
+          // A API só informa a desativação a quem acertou a senha
+          this.erroMensagem = 'Usuário desativado. Procure o administrador do sistema.';
         } else if (erro?.status === 0) {
           this.erroMensagem = 'Não foi possível conectar ao servidor.';
         } else {

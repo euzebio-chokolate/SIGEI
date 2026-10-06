@@ -41,8 +41,8 @@ public class AuthController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso; cookies de sessão gravados"),
             @ApiResponse(responseCode = "400", description = "Dados de autenticação inválidos", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "E-mail não cadastrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "Senha incorreta ou usuário desativado, conforme o tratamento atual da aplicação", content = @Content(schema = @Schema()))
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos (mesma resposta para e-mail inexistente e senha incorreta)", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "403", description = "Senha correta, mas usuário desativado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
     })
     public ResponseEntity<LoginResponseDTO> login(
             @Valid @RequestBody LoginRequestDTO dto,

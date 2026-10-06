@@ -123,7 +123,8 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     this.carregando = true;
     this.erroMensagem = '';
 
-    this.infraestruturaService.listarTodas().subscribe({
+    // Um marcador por escola, com os dados do ano mais recente
+    this.infraestruturaService.listarMaisRecentes().subscribe({
       next: (dadosRecebidos: EscolaMapaItem[]) => {
         this.dadosEscolasOriginal = dadosRecebidos ?? [];
         this.processarFiltros();
@@ -263,9 +264,10 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
     return [latitude, longitude];
   }
 
+  /** Escola fora de funcionamento (paralisada ou desativada): marcador vermelho. */
   private isParalisada(valor?: string | null): boolean {
     const situacao = this.normalizar(valor).toUpperCase();
-    return situacao === 'PARALISADA' || situacao === 'PARALIZADA';
+    return situacao === 'PARALISADA' || situacao === 'PARALIZADA' || situacao === 'DESATIVADA';
   }
 
   private normalizar(valor: unknown): string {

@@ -34,6 +34,9 @@ public class EscolaService {
     RegistroAnualRepository registroRepository;
 
     @Autowired
+    VinculoSedeService vinculoSedeService;
+
+    @Autowired
     EscolaMapper escolaMapper;
 
     @Autowired
@@ -59,15 +62,10 @@ public class EscolaService {
         Aldeia aldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
-        Escola escolaSede = escolaRequestDTO.escolaSedeId() == null
-                ? null
-                : escolaRepository.findById(escolaRequestDTO.escolaSedeId())
-                .orElseThrow(() -> new NoSuchElementException("Escola sede não encontrada"));
-
         Escola escola = escolaMapper.converter(escolaRequestDTO);
 
         escola.setAldeia(aldeia);
-        escola.setEscolaSede(escolaSede);
+        vinculoSedeService.vincular(escola, escolaRequestDTO.tipoUnidade(), escolaRequestDTO.escolaSedeId());
 
         Escola escolaSalva = escolaRepository.save(escola);
         return escolaMapper.converter(escolaSalva);
@@ -129,15 +127,10 @@ public class EscolaService {
         Aldeia aldeia = aldeiaRepository.findById(escolaDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
-        Escola escolaSede = escolaDTO.escolaSedeId() == null
-                ? null
-                : escolaRepository.findById(escolaDTO.escolaSedeId())
-                .orElseThrow(() -> new NoSuchElementException("Escola sede não encontrada"));
-
         escolaMapper.atualizar(escolaDTO, escola);
 
         escola.setAldeia(aldeia);
-        escola.setEscolaSede(escolaSede);
+        vinculoSedeService.vincular(escola, escolaDTO.tipoUnidade(), escolaDTO.escolaSedeId());
 
         Escola escolaSalva = escolaRepository.save(escola);
 

@@ -13,6 +13,7 @@ API de gestão da educação escolar indígena do Acre: municípios, terras ind�
 - JWT com JJWT 0.12.6; senhas com BCrypt.
 - Cloudinary 2.0.0 para imagens; Springdoc 2.8.13 declarado no `pom.xml` para OpenAPI/Swagger.
 - Flyway 11 (gerenciado pelo Spring Boot) para versionar o esquema; Testcontainers 2 nos testes de migração.
+- Hibernate Envers (versão do Hibernate gerenciada pelo Spring Boot) para a trilha de auditoria.
 - JUnit Jupiter e Mockito nos testes.
 
 As versões acima são as declaradas no repositório, não uma afirmação de compatibilidade validada entre todas as dependências.
@@ -28,11 +29,12 @@ Pacote principal: `src/main/java/ac/gov/br/sigei_backend`. Entrada: `SigeiBacken
 | `repository` | Persistência JPA, consultas e agregações; projeções em `projection`. |
 | `models` | Entidades JPA; enumerações em `enums`. |
 | `dto/request` | Contratos de entrada, incluindo IDs dos relacionamentos. |
-| `dto/response` | Contratos de saída; especializações em `resumo`, `detalhe` e `dashboard`. |
+| `dto/response` | Contratos de saída; especializações em `resumo`, `detalhe`, `dashboard` e `historico`. |
 | `mappers` | Interfaces MapStruct, com componentes Spring e atualizações via `@MappingTarget`. |
 | `config/security` | Autorização HTTP, filtro JWT e codificação de senhas. |
 | `config/initializer` | Administrador, municípios e carga inicial de planilhas. |
 | `config/cloudinary` | Cliente de armazenamento de imagens. |
+| `config/auditoria` | `RevisaoListener`, que grava o autor das revisões do Envers. |
 | `exceptions/handler` | Tratamento global de erros HTTP. |
 | `utils` | Leitura/normalização de Excel, coordenadas e contadores de importação. |
 
@@ -44,12 +46,16 @@ Consulte [docs/BANCO_DE_DADOS.md](docs/BANCO_DE_DADOS.md) para o diagrama e o di
 
 - `Municipio` contém o cadastro territorial; `TerraIndigena` referencia um município.
 - `Aldeia` referencia uma terra indígena e um `Povo`; `Escola` referencia uma aldeia.
-- `Escola` possui código, nome, tipo de unidade e referência opcional `escolaSede`. Embora exista o enum `TipoUnidade` (`SEDE`, `ANEXO`), o campo da entidade é `String`.
-- `Anexo` representa um vínculo entre escolas (`escola` e `escolaAnexo`), com unicidade do par. Não é um arquivo anexado. Existe em paralelo a `Escola.escolaSede`; confira ambos ao mudar esse domínio.
+- `Escola` possui código, nome, tipo de unidade e referência opcional `escolaSede`. O campo da entidade é `String`, mas `VinculoSedeService` aceita apenas os valores do enum `TipoUnidade` (`SEDE`, `ANEXO`), sem diferenciar maiúsculas, e grava em maiúsculas.
+- `Escola.escolaSede` é a única representação do vínculo entre anexo e escola-sede. A antiga entidade `Anexo` e a rota `/anexo` foram removidas, e a tabela foi apagada pela migração V3. `VinculoSedeService`, usado por `EscolaService` e `CadastroEscolaService`, aplica as regras com `400`: um `ANEXO` exige uma sede do tipo `SEDE`, diferente de si mesmo; uma `SEDE` não tem sede; e uma escola com anexos não pode passar a `ANEXO`. A importação de Excel grava o vínculo diretamente.
 - `AnoReferencia` representa o ano civil. Não confunda seu ID com o valor do ano, como `2025`.
 - `RegistroAnual` vincula escola e ano, com restrição de unicidade `(escola_id, ano_referencia_id)`. Contém rede, local de funcionamento e total de alunos.
 - Cada registro anual possui uma `EquipeEscola`, uma `InfraestruturaEscola` e coleções de `MatriculaNivel` e `MatriculaSerie`.
 - Infraestrutura reúne construção, salas, coordenadas, situação, acesso, água, energia, internet e fotografia. Equipe registra disponibilidade de profissionais e necessidade de transporte.
+- `situacao`, `tipoAcesso`, `tipoAgua` e `tipoEnergia` são `String`, mas só aceitam os valores dos enums `SituacaoEscola`, `TipoAcesso`, `TipoAgua` e `TipoEnergia`.
+  - `utils/OpcoesInfraestrutura` valida nas gravações pela API (`400` fora das opções) e grava o nome da opção. A comparação ignora acentos, maiúsculas e separadores (`Rio/Vertente` → `RIO_VERTENTE`); vazio vira nulo.
+  - Na importação, valores fora das opções viram nulo. Na energia, `REDE ELETRICA` vira `REDE_PUBLICA` e `SIM` vira `OUTRO`; esses sinônimos valem só na importação.
+  - No frontend, `domains/escolas/models/infraestrutura-opcoes.ts` é a fonte única das opções e dos rótulos (`rotuloOpcao`) do formulário, do filtro do mapa, da revisão do cadastro e do modal de histórico. Ao mudar uma opção, altere os dois lados.
 - Matrículas armazenam quantidades por sexo e totais, agrupadas por nível ou série/etapa.
 - `Usuario` possui nome, e-mail único, senha codificada, perfil (`ADMIN` ou `USUARIO`), estado ativo e indicador `alterarSenha`.
 
@@ -67,11 +73,10 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/povo` | CRUD base e `GET /{id}`. |
 | `/municipio` | CRUD base e `GET /estatisticas`. |
 | `/terra` | CRUD base, `GET /{id}` e `GET /estatisticas`. |
-| `/escola` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `POST /salvarCompleto` e `PUT /editarCompleto` (multipart: parte `dados` em JSON e parte opcional `foto`). |
-| `/anexo` | CRUD base. |
+| `/escola` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `GET /{id}/historico` (trilha de auditoria, só `ADMIN`), `POST /salvarCompleto` e `PUT /editarCompleto` (multipart: parte `dados` em JSON e parte opcional `foto`). |
 | `/anos` | CRUD base. |
 | `/registroAnual` | CRUD base, `GET /buscarPorAno?ano=2025` e `GET /buscarPorEscolaEAno?escolaId=1&ano=2025`. |
-| `/infraestrutura` | CRUD base, `GET /buscarPorAno?ano=2025` e `POST /{id}/foto` (multipart, campo `foto`). |
+| `/infraestrutura` | CRUD base, `GET /buscarPorAno?ano=2025`, `GET /maisRecentes` (uma por escola, do registro mais recente que tenha infraestrutura; usada pelo mapa público) e `POST /{id}/foto` (multipart, campo `foto`). |
 | `/equipe` | Apenas `POST /salvar` e `PUT /editar`. |
 | `/matriculaNivel` | CRUD base. |
 | `/matriculaSerie` | CRUD base. |
@@ -103,6 +108,7 @@ As regras são avaliadas nesta ordem:
 | Rotas Swagger/OpenAPI configuradas | Público. |
 | `/auth/alterar-senha` | Qualquer usuário autenticado. |
 | `GET /infraestrutura` e descendentes | Público. |
+| `GET /escola/*/historico` | `ADMIN`. |
 | Demais `GET /**` | `ADMIN` ou `USUARIO`. |
 | Demais requisições | `ADMIN`. |
 
@@ -110,7 +116,7 @@ Esses matchers não criam endpoints. A exceção pública de infraestrutura não
 
 Fluxo de autenticação:
 
-1. `POST /auth/login` recebe `email` e `senha`; o service consulta o usuário, verifica se está ativo e compara a senha com BCrypt.
+1. `POST /auth/login` recebe `email` e `senha`. O service consulta o usuário e compara a senha com BCrypt; sem usuário, compara com um hash fictício, para que o tempo de resposta não revele quais e-mails existem. E-mail inexistente e senha incorreta resultam no mesmo `401` (`CredenciaisInvalidasException`). Só quem acerta a senha de um usuário inativo recebe `403` (`UsuarioDesativadoException`), e o frontend mostra essa mensagem específica.
 2. A resposta grava os cookies de sessão e devolve no corpo apenas `id`, `nome`, `email`, `perfil` e `alterarSenha`.
 3. O navegador envia `sigei_acesso` automaticamente. O filtro aceita também `Authorization: Bearer <token>` (com precedência) para clientes de API, mas a API não expõe mais o token. O subject é o e-mail; há claims de ID, nome e perfil. Expiração padrão do token de acesso: `900000` milissegundos (15 minutos).
 4. O filtro valida o JWT e consulta novamente o usuário no banco. A autorização usa o perfil e o estado atuais do cadastro.
@@ -129,9 +135,16 @@ CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origen
 
 ### Abertura de ano
 
-`AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia rede, local de funcionamento, equipe, infraestrutura (inclusive URL da foto) e matrículas para novas entidades. Escolas sem registro anterior são ignoradas.
+`AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia para novas entidades:
 
-A implementação atual não copia explicitamente `RegistroAnual.totalAlunos` nem `MatriculaSerie.total`. Não suponha que todos os totais sejam recalculados ou zerados; confira esse fluxo antes de alterar indicadores ou a virada anual.
+- do registro: rede, local de funcionamento e `totalAlunos`;
+- a equipe, com `anoReferencia` apontando para o novo ano;
+- a infraestrutura;
+- as matrículas por nível e por série, inclusive os totais.
+
+Escolas sem registro anterior são ignoradas. O dashboard abre no maior ano, então o novo ano já mostra os totais copiados até que sejam editados.
+
+Da foto, só a URL é copiada. O `fotoPublicId` fica apenas no registro que fez o upload, porque a imagem é compartilhada entre os anos e uma remoção no Cloudinary não deve apagar a foto de outro ano. `AtualizacaoAnualServiceTest` cobre a cópia campo a campo; ao acrescentar um campo a essas entidades, inclua-o na cópia e no teste.
 
 ### Cadastro completo de escola
 
@@ -141,6 +154,17 @@ A implementação atual não copia explicitamente `RegistroAnual.totalAlunos` ne
 - O registro é localizado por escola + ano: se existir, é atualizado; senão, é criado. Registros de outros anos não são alterados.
 - Matrículas são casadas por `nivel` e por `denominacao` + `etapaEnsino`; itens ausentes na requisição são preservados e chaves repetidas geram `400`.
 - `removerFoto=true` limpa a referência da foto. O upload ao Cloudinary ocorre após o flush do banco; se a transação for desfeita depois do upload, a imagem é removida por compensação.
+- `salvar` e `editar` usam `@Transactional(rollbackFor = IOException.class)`. Uma falha de E/S no upload também desfaz tudo; sem isso, o Spring confirmaria a transação, porque `IOException` é verificada. Mantenha o `rollbackFor` em métodos transacionais que declarem exceções verificadas.
+
+### Trilha de auditoria
+
+O Hibernate Envers registra cada criação, alteração e exclusão das entidades com `@Audited`: todas as de domínio e `Usuario`, sem a `senha` (`@NotAudited`). `RefreshToken` não é auditado. Cada transação gera uma `Revisao` com data e hora, e o `RevisaoListener` copia para ela ID, e-mail e nome do `Usuario` autenticado. Sem autenticação (inicializadores, carga de planilhas), o autor fica nulo e a revisão é atribuída ao sistema. Os valores de cada versão ficam nas tabelas `<entidade>_aud`. A configuração está em `application.properties` (`org.hibernate.envers.*`): exclusões guardam os últimos valores, e mudanças em coleções não geram revisão do pai.
+
+`HistoricoEscolaService` monta `GET /escola/{id}/historico`, com as alterações da escola, de seus registros anuais e, em cada registro, de equipe, infraestrutura e matrículas. Compara cada versão com a anterior da mesma entidade e devolve apenas os campos alterados. Relacionamentos aparecem como `<campo>Id`. A ordem vai da revisão mais recente à mais antiga, e cada item traz o `ano` do registro. Uma escola excluída mantém o histórico; uma escola sem revisões resulta em `404`.
+
+- As revisões só são gravadas no commit. Testes que verificam auditoria precisam de transações reais, como em `HistoricoEscolaServiceTest`, com `Propagation.NOT_SUPPORTED`.
+- Alterações por SQL direto não são registradas.
+- Ao adicionar ou mudar um campo de entidade auditada, a migração deve alterar também a tabela `_aud`.
 
 ### Importação de Excel
 
@@ -181,6 +205,10 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 
 - `V1__esquema_inicial.sql` reproduz exatamente o DDL que o Hibernate gerava antes do Flyway, inclusive os nomes das constraints.
 - `V2__refresh_token.sql` cria `refresh_token` de forma idempotente, pois a tabela pode já existir em bancos de desenvolvimento.
+- `V3__unifica_vinculo_sede_anexo.sql` copia para `escola.escola_sede_id` os vínculos válidos e não ambíguos da tabela `anexo` e depois a remove.
+- `V4__trilha_auditoria.sql` cria `revisao` e as tabelas `<entidade>_aud` do Envers, com índices para o histórico por escola. Também grava uma revisão inicial do sistema com o estado dos dados existentes.
+- `V5__padroniza_situacao_e_acesso.sql` padroniza `situacao` e `tipo_acesso` com as opções do sistema; valores fora delas viram nulo. Os ajustes ficam registrados numa revisão do sistema. Migrações que alterem dados devem fazer o mesmo, porque SQL direto não passa pelo Envers.
+- `V6__padroniza_agua_e_energia.sql` faz o mesmo com `tipo_agua` e `tipo_energia`, convertendo também as grafias da planilha (`POÇO`, `RIO/VERTENTE`, `NÃO`, `REDE ELETRICA`, `SIM`).
 - Bancos criados antes do Flyway, sem `flyway_schema_history`, recebem baseline na versão 1 (`spring.flyway.baseline-on-migrate`) e executam só as migrações seguintes.
 
 Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL PostgreSQL correspondente e nunca edite uma migração já aplicada. Para obter o DDL que o Hibernate espera, gere o script com `jakarta.persistence.schema-generation.scripts.action=create` e o dialeto PostgreSQL. `FlywayMigracoesTest` aplica as migrações em um PostgreSQL real (Testcontainers) e sobe o contexto com `validate`. Ele exige Docker e é ignorado quando o Docker não está disponível.
@@ -234,8 +262,10 @@ Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organiz
 | `DataIntegrityViolationException` | `409`, mensagem textual. |
 | `ArmazenamentoImagemNaoConfiguradoException` | `503`, mensagem textual. |
 | `TokenInvalidoException` | `401`, mensagem textual; em `/auth/refresh` é tratada no próprio controller, que também remove os cookies. |
+| `CredenciaisInvalidasException` | `401`, "E-mail ou senha inválidos" (login). |
+| `UsuarioDesativadoException` | `403`, "Usuário desativado" (login com a senha correta). |
 
-Não existe um formato universal de erro. O login lança `NoSuchElementException` para e-mail não encontrado e `RuntimeException` para senha incorreta/usuário inativo; estes últimos não têm tratamento específico nesse advice e podem resultar em `500`. Não documente todos os erros de login como `401` sem implementar essa mudança.
+Não existe um formato universal de erro. Exceções sem tratamento no advice não chegam ao cliente como `500`. O encaminhamento interno para `/error` passa pelo Spring Security; para um cliente anônimo, essa rota exige autenticação, e o cliente recebe `401` sem corpo. Trate os erros esperados com exceções próprias e `@ExceptionHandler`, e não com `RuntimeException`.
 
 Ao trabalhar no projeto:
 
@@ -244,6 +274,6 @@ Ao trabalhar no projeto:
 - Use imports `jakarta.*` para JPA/validação. Não introduza Lombok ou outra estrutura sem necessidade: as entidades atuais têm métodos explícitos.
 - Não edite implementações MapStruct geradas em `target/`; altere as interfaces em `mappers`.
 - Ao mudar segurança, confira a ordem dos matchers e os casos público, sem token, `USUARIO`, `ADMIN` e troca obrigatória de senha, além de cookies e CSRF (`AuthSessaoHttpTest`).
-- Ao mudar persistência, revise unicidade, cascatas, transações, carregamento de relações e reflexos nos indicadores e importações, e crie a migração Flyway correspondente.
+- Ao mudar persistência, revise unicidade, cascatas, transações, carregamento de relações e reflexos nos indicadores, nas importações e na trilha de auditoria, e crie a migração Flyway correspondente, incluindo as tabelas `_aud`.
 - Verifique alterações de lógica com os testes relevantes e informe o que foi efetivamente executado. Não trate o build Docker como execução da suíte.
 - Atualize este arquivo quando houver mudanças de arquitetura, configuração, endpoints ou regras centrais.

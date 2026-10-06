@@ -14,11 +14,6 @@ erDiagram
         bigint terra_indigena_id FK "NOT NULL"
         bigint povo_id FK "NOT NULL"
     }
-    anexo {
-        bigint id PK "NOT NULL"
-        bigint escola_id FK
-        bigint escola_anexo_id FK
-    }
     ano_referencia {
         bigint id PK "NOT NULL"
         integer ano UK "NOT NULL"
@@ -108,8 +103,6 @@ erDiagram
     }
     terra_indigena ||..o{ aldeia : terra_indigena_id
     povo ||..o{ aldeia : povo_id
-    escola o|..o{ anexo : escola_id
-    escola o|..o{ anexo : escola_anexo_id
     registro_anual o|..o| equipe_escola : registro_anual_id
     ano_referencia o|..o{ equipe_escola : ano_referencia_id
     escola o|..o{ escola : escola_sede_id
@@ -124,7 +117,6 @@ erDiagram
 
 ## Unicidades compostas
 
-- `anexo`: UNIQUE (escola_id, escola_anexo_id).
 - `registro_anual`: UNIQUE (escola_id, ano_referencia_id).
 
 Descricoes e regras de exclusao: [dicionario do banco](BANCO_DE_DADOS.md).

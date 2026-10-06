@@ -3,6 +3,7 @@ package ac.gov.br.sigei_backend.repository;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.models.InfraestruturaEscola;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,4 +17,15 @@ public interface InfraestruturaEscolaRepository extends JpaRepository<Infraestru
     boolean existsByRegistroAnual_Id(Long registroAnualId);
     Optional<InfraestruturaEscola> findTopByRegistroAnual_EscolaOrderByRegistroAnual_AnoReferencia_AnoDesc(Escola escola);
     List<InfraestruturaEscola> findByRegistroAnual_AnoReferencia_Ano(Integer ano);
+
+    /** Infraestrutura do registro anual mais recente de cada escola (uma por escola). */
+    @Query("""
+            select i from InfraestruturaEscola i
+            join i.registroAnual r
+            where r.anoReferencia.ano = (
+                select max(r2.anoReferencia.ano) from RegistroAnual r2
+                where r2.escola = r.escola and r2.infraestrutura is not null
+            )
+            """)
+    List<InfraestruturaEscola> buscarMaisRecentesPorEscola();
 }
