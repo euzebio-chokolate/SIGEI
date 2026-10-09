@@ -180,6 +180,9 @@
       </div>
     </div>
 
+    @if (carregandoEdicao) {
+      <app-skeleton-formulario [campos]="6" rotulo="Carregando escola..." />
+    } @else {
     <!-- ETAPA 1 -->
     @if (etapaAtual === 1) {
       <app-escola-etapa
@@ -281,6 +284,7 @@
         (voltar)="voltarEtapa()"
         (salvar)="salvarCadastro()"
       />
+    }
     }
 
     <app-sucesso-modal

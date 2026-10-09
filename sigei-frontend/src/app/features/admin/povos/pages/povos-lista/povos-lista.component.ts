@@ -3,13 +3,19 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { PovoResponse, PovoService } from '@domains/territorios/data-access/povo.service';
+import { SeAdminDirective } from '@core/auth/se-admin.directive';
+import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
+import { ToastService } from '@core/notificacao/toast.service';
 import { ListModalComponent, ListModalItem } from '@shared/ui/list-modal/list-modal.component';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-povos-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ListModalComponent, ConfirmModalComponent],
+  imports: [RouterLink, FormsModule, ListModalComponent, ConfirmModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent, BuscaDebounceDirective],
   template: `
     <div class="space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -29,7 +35,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
           </p>
         </div>
 
-        <a routerLink="/admin/povos/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
+        <a *seAdmin routerLink="/admin/povos/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
           <i class="fa-solid fa-plus text-xs"></i>
           Novo Povo
         </a>
@@ -72,7 +78,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
             <input
               type="text"
               [(ngModel)]="filtroTexto"
-              (ngModelChange)="filtrarPovos()"
+              (buscaDebounce)="filtrarPovos()"
               placeholder="Buscar povo por nome..."
               class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm"
             />
@@ -86,7 +92,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                 <th class="px-6 py-3.5">Povo</th>
                 <th class="px-6 py-3.5 text-center">Aldeias vinculadas</th>
                 <th class="px-6 py-3.5">Aldeias</th>
-                <th class="px-6 py-3.5 text-right">Ações</th>
+                <th *seAdmin class="px-6 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
 
@@ -136,7 +142,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                     }
                   </td>
 
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-1">
                       <a
                         [routerLink]="['/admin/povos/editar', povo.id]"
@@ -163,22 +169,21 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">
-                    @if (carregando) {
-                      <div class="flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                        <span> Carregando povos... </span>
-                      </div>
-                    } @else if (erroMensagem) {
-                      <span class="text-rose-500 font-semibold">
-                        {{ erroMensagem }}
-                      </span>
-                    } @else {
-                      Nenhum povo encontrado.
-                    }
-                  </td>
-                </tr>
+                @if (carregando) {
+                  @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                    <tr appSkeletonLinha [colunas]="3"></tr>
+                  }
+                } @else {
+                  <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">
+                      @if (erroMensagem) {
+                        <app-estado-erro [mensagem]="erroMensagem" (tentarNovamente)="carregarPovos()" />
+                      } @else {
+                        Nenhum povo encontrado.
+                      }
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -242,6 +247,7 @@ export class PovosListaComponent implements OnInit {
   // --- Injeções de Dependência ---
   private readonly povoService = inject(PovoService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   // --- Propriedades de Estado da Listagem ---
   povosLista: PovoResponse[] = [];
@@ -293,7 +299,7 @@ export class PovosListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar povos:', erro);
-        this.erroMensagem = 'Não foi possível carregar os povos.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os povos.');
         this.carregando = false;
         this.cdr.markForCheck();
       },
@@ -383,13 +389,15 @@ export class PovosListaComponent implements OnInit {
           this.paginaAtual--;
         }
 
+        this.toast.sucesso(`O povo ${povo.nome} foi excluído.`, 'Povo excluído');
         this.excluindoId = null;
         this.povoParaExcluir = null;
         this.cdr.markForCheck();
       },
       error: (erro) => {
         console.error('Erro ao excluir povo:', erro);
-        this.erroMensagem = 'Não foi possível excluir o povo. Verifique se existem aldeias vinculadas.';
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir o povo.', 'Não é possível excluir o povo: existem aldeias vinculadas a ele.');
+        if (mensagem) this.toast.erro(mensagem);
         this.excluindoId = null;
         this.povoParaExcluir = null;
         this.cdr.markForCheck();

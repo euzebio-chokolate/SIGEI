@@ -55,6 +55,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/alterar-senha").authenticated()
                         .requestMatchers(HttpMethod.GET, "/infraestrutura", "/infraestrutura/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/escola/*/historico").hasRole("ADMIN")
+                        // Antes da regra geral de leitura: a auditoria mostra autores e e-mails de todo o sistema
+                        .requestMatchers(HttpMethod.GET, "/auditoria", "/auditoria/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ADMIN", "USUARIO")
                         .anyRequest().hasRole("ADMIN")
                 )

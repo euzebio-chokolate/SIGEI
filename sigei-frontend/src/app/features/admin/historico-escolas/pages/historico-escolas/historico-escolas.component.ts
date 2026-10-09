@@ -6,11 +6,15 @@ import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-acces
 import { EscolaResponse, EscolaService } from '@domains/escolas/data-access/escola.service';
 import { RegistroAnualResponse, RegistroAnualService } from '@domains/escolas/data-access/registro-anual.service';
 import { HistoricoEscolaModalComponent } from '@domains/escolas/ui/historico-escola-modal/historico-escola-modal.component';
+import { TrilhaAuditoriaComponent } from '@domains/escolas/ui/trilha-auditoria/trilha-auditoria.component';
+import { SeAdminDirective } from '@core/auth/se-admin.directive';
+import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-historico-escolas',
   standalone: true,
-  imports: [FormsModule, RouterLink, HistoricoEscolaModalComponent],
+  imports: [FormsModule, RouterLink, HistoricoEscolaModalComponent, SeAdminDirective, BuscaDebounceDirective, TrilhaAuditoriaComponent],
   templateUrl: './historico-escolas.component.html'
 })
 export class HistoricoEscolasComponent implements OnInit {
@@ -80,7 +84,7 @@ export class HistoricoEscolasComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar escolas:', erro);
-        this.erroHistorico = 'Não foi possível carregar a lista de escolas.';
+        this.erroHistorico = mensagemErroCarregamento(erro, 'Não foi possível carregar a lista de escolas.');
         this.cdr.markForCheck();
       }
     });
@@ -121,9 +125,7 @@ export class HistoricoEscolasComponent implements OnInit {
           console.error('Erro ao carregar histórico da escola:', erro);
           this.historico = [];
           this.historicoConsultado = false;
-          this.erroHistorico = erro?.status === 404
-            ? 'Escola não encontrada.'
-            : 'Não foi possível carregar o histórico desta escola.';
+          this.erroHistorico = mensagemErroCarregamento(erro, 'Não foi possível carregar o histórico desta escola.', 'Escola não encontrada.');
           this.carregandoHistorico = false;
           this.cdr.markForCheck();
         }
@@ -180,7 +182,7 @@ export class HistoricoEscolasComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar anos:', erro);
-        this.erroMensagem = 'Não foi possível carregar os anos de referência.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os anos de referência.');
         this.carregandoAnos = false;
         this.cdr.markForCheck();
       }
@@ -222,7 +224,7 @@ export class HistoricoEscolasComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar histórico:', erro);
-        this.erroMensagem = 'Não foi possível carregar os dados deste ano.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados deste ano.');
         this.carregandoRegistros = false;
         this.cdr.markForCheck();
       }

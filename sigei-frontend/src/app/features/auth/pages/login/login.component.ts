@@ -22,7 +22,8 @@ export class LoginComponent {
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.required, Validators.minLength(4)]]
+    // O tamanho mínimo vale só ao definir a senha; aqui basta não estar vazia, como no LoginRequestDTO
+    senha: ['', Validators.required]
   });
 
   login(): void {
@@ -61,6 +62,8 @@ export class LoginComponent {
           this.erroMensagem = 'Usuário desativado. Procure o administrador do sistema.';
         } else if (erro?.status === 0) {
           this.erroMensagem = 'Não foi possível conectar ao servidor.';
+        } else if (erro?.status >= 500) {
+          this.erroMensagem = 'O servidor está com problemas. Tente novamente em instantes.';
         } else {
           this.erroMensagem = 'Não foi possível realizar o login.';
         }

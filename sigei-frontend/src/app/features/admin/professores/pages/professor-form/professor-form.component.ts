@@ -1,8 +1,11 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
+import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
+import { ToastService } from '@core/notificacao/toast.service';
 import { ProfessorRequest, ProfessorService } from '@domains/professores/data-access/professor.service';
 import {
   LotacaoProfessorResponse,
@@ -17,6 +20,8 @@ import {
   rotuloTipoContrato,
   somenteDigitos
 } from '@domains/professores/models/professor.models';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 
 function validarCpf(controle: AbstractControl): ValidationErrors | null {
@@ -27,7 +32,7 @@ function validarCpf(controle: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-professor-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent],
+  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent, SkeletonFormularioComponent],
   templateUrl: './professor-form.component.html'
 })
 export class ProfessorFormComponent implements OnInit {
@@ -37,6 +42,7 @@ export class ProfessorFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   readonly opcoesSexo = OPCOES_SEXO;
   readonly rotuloTipoContrato = rotuloTipoContrato;
@@ -54,10 +60,10 @@ export class ProfessorFormComponent implements OnInit {
   mensagemSucesso = '';
 
   form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.maxLength(255)]],
-    etnia: ['', [Validators.maxLength(255)]],
+    nome: ['', [textoObrigatorio, Validators.maxLength(TAMANHO_TEXTO)]],
+    etnia: ['', [Validators.maxLength(TAMANHO_TEXTO)]],
     sexo: ['' as Sexo | ''],
-    formacao: ['', [Validators.maxLength(255)]],
+    formacao: ['', [Validators.maxLength(TAMANHO_TEXTO)]],
     cpf: ['', [validarCpf]],
     matricula: ['', [Validators.maxLength(30)]]
   });
@@ -90,7 +96,7 @@ export class ProfessorFormComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar professor:', erro);
-        this.erroMensagem = 'Não foi possível carregar o professor.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar o professor.', 'Professor não encontrado.');
         this.carregando = false;
         this.cdr.markForCheck();
       }
@@ -101,7 +107,11 @@ export class ProfessorFormComponent implements OnInit {
         this.lotacoes = lotacoes ?? [];
         this.cdr.markForCheck();
       },
-      error: erro => console.error('Erro ao carregar lotações do professor:', erro)
+      error: erro => {
+        console.error('Erro ao carregar lotações do professor:', erro);
+        const falha = interpretarErro(erro);
+        if (!falha.global) this.toast.aviso('Não foi possível carregar as lotações deste professor.');
+      }
     });
   }
 
@@ -155,11 +165,11 @@ export class ProfessorFormComponent implements OnInit {
         this.modalSucessoAberto = true;
         this.cdr.markForCheck();
       },
-      error: (erro: HttpErrorResponse) => {
+      error: erro => {
         console.error('Erro ao salvar professor:', erro);
-        this.erroMensagem = typeof erro.error === 'string' && erro.error
-          ? erro.error
-          : 'Não foi possível salvar o professor.';
+        this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível salvar o professor.', [
+          { campo: 'cpf', padrao: /CPF/ }
+        ]);
         this.salvando = false;
         this.cdr.markForCheck();
       }

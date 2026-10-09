@@ -19,6 +19,7 @@ import {
   TIPOS_AGUA,
   TIPOS_ENERGIA
 } from '@domains/escolas/models/infraestrutura-opcoes';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 
 export interface InfraestruturaFormControls {
   anoConstrucao: FormControl<number | null>;
@@ -38,7 +39,8 @@ export interface InfraestruturaFormControls {
   selector: 'app-infraestrutura-etapa',
   standalone: true,
   imports: [
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    ErroCampoComponent
   ],
   templateUrl: './infraestrutura-etapa.component.html'
 })
