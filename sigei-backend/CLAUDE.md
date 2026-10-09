@@ -4,7 +4,7 @@ Este arquivo orienta o trabalho nesta API. Descreve a implementação existente;
 
 ## Objetivo e tecnologias
 
-API de gestão da educação escolar indígena do Acre: municípios, terras indígenas, povos, aldeias, escolas, registros anuais, infraestrutura, equipes, matrículas, indicadores e usuários.
+API de gestão da educação escolar indígena do Acre: municípios, terras indígenas, povos, aldeias, escolas, registros anuais, infraestrutura, equipes, matrículas, professores e suas lotações, indicadores e usuários.
 
 - Java 21 e Maven Wrapper (`mvnw` / `mvnw.cmd`).
 - Spring Boot 4.0.5, Spring MVC, Spring Data JPA, Bean Validation, Spring Security e Actuator.
@@ -35,6 +35,7 @@ Pacote principal: `src/main/java/ac/gov/br/sigei_backend`. Entrada: `SigeiBacken
 | `config/initializer` | Administrador, municípios e carga inicial de planilhas. |
 | `config/cloudinary` | Cliente de armazenamento de imagens. |
 | `config/auditoria` | `RevisaoListener`, que grava o autor das revisões do Envers. |
+| `config/criptografia` | Cifra dos dados sensíveis dos professores (`CriptografiaDadosSensiveis`, `DadoSensivelConverter`). |
 | `exceptions/handler` | Tratamento global de erros HTTP. |
 | `utils` | Leitura/normalização de Excel, coordenadas e contadores de importação. |
 
@@ -57,6 +58,10 @@ Consulte [docs/BANCO_DE_DADOS.md](docs/BANCO_DE_DADOS.md) para o diagrama e o di
   - Na importação, valores fora das opções viram nulo. Na energia, `REDE ELETRICA` vira `REDE_PUBLICA` e `SIM` vira `OUTRO`; esses sinônimos valem só na importação.
   - No frontend, `domains/escolas/models/infraestrutura-opcoes.ts` é a fonte única das opções e dos rótulos (`rotuloOpcao`) do formulário, do filtro do mapa, da revisão do cadastro e do modal de histórico. Ao mudar uma opção, altere os dois lados.
 - Matrículas armazenam quantidades por sexo e totais, agrupadas por nível ou série/etapa.
+- `Professor` guarda nome, etnia (texto livre, inclusive `NÃO INDÍGENA`), sexo (`M`/`F`), formação e os dados sensíveis CPF e matrícula. `LotacaoProfessor` é a lotação de um professor em um `AnoReferencia`: escola, município, cargo, segmento, número do contrato (sensível), início, amparo legal e tipo de contrato (`String` validada pelo enum `TipoContrato` em `utils/OpcoesProfessor`: `EFETIVO`, `PSS`, `CONTRATO_DIRETO`, `PERMUTA`).
+  - Lotação sem professor é uma vaga em aberto; sem escola, é uma lotação no núcleo de educação do município e exige `municipioId`. Com escola, o município é o da escola. A lotação pertence ao ano, não ao `RegistroAnual`.
+  - Não há unicidade por professor/escola/ano: o mesmo professor pode ter várias lotações (segmentos diferentes). Excluir o professor exclui as lotações (`CascadeType.REMOVE`); excluir a escola pela API remove antes as lotações nela.
+  - **Dados sensíveis** (CPF, matrícula, número do contrato): cifrados com AES-256-GCM pelo `DadoSensivelConverter` (`@Convert`), também nas tabelas `_aud`; chave mestra `SIGEI_CHAVE_DADOS_SENSIVEIS`, obrigatória. O CPF é gravado só com dígitos (`utils/CpfUtils` valida os dígitos verificadores) e tem índice cego `cpfHash` (HMAC, `@NotAudited`) para unicidade e busca. As respostas só trazem esses campos ao `ADMIN` (`AcessoDadosSensiveis` + `semDadosSensiveis()` dos DTOs); para `USUARIO`, vêm nulos. Mensagens de erro não repetem os valores. Nunca registre esses valores em logs.
 - `Usuario` possui nome, e-mail único, senha codificada, perfil (`ADMIN` ou `USUARIO`), estado ativo e indicador `alterarSenha`.
 
 `Escola.registros` e os relacionamentos filhos de `RegistroAnual` usam cascata e remoção de órfãos. Exclusões e substituições de coleções podem remover dados relacionados. Preserve os dois lados dos vínculos ao construir entidades.
@@ -81,10 +86,12 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/matriculaNivel` | CRUD base. |
 | `/matriculaSerie` | CRUD base. |
 | `/usuario` | CRUD base e `GET /{id}`. |
+| `/professor` | CRUD base e `GET /{id}`. Exclusão retorna `204` e remove as lotações. CPF e matrícula só aparecem para `ADMIN`. |
+| `/lotacao` | CRUD base, `GET /{id}`, `GET /buscarPorAno?ano=2026` e `GET /buscarPorProfessor?professorId=1`. Exclusão retorna `204`. Número do contrato só aparece para `ADMIN`. |
 | `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /alterar-senha`. |
 | `/dashboard` | `GET`, com parâmetro opcional `ano`. |
 | `/atualizacao-anual` | `POST /iniciar`, sem corpo. |
-| `/importacoes` | `POST /infraestrutura` e `POST /matriculas`, multipart com campo `arquivo`. |
+| `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo`. |
 
 Os DTOs são a fonte dos nomes de campos, tipos e validações. Não suponha paginação, um envelope único de resposta ou CRUD completo em todos os controllers. Criações normalmente retornam `201`; consultas e edições, `200`. Exclusões variam entre `200` e `204`; preserve o contrato de cada controller.
 
@@ -112,7 +119,7 @@ As regras são avaliadas nesta ordem:
 | Demais `GET /**` | `ADMIN` ou `USUARIO`. |
 | Demais requisições | `ADMIN`. |
 
-Esses matchers não criam endpoints. A exceção pública de infraestrutura não libera uploads, edições ou exclusões. A regra geral de leitura também permite a `USUARIO` consultar `/usuario`; não presuma restrição exclusiva de administrador nessa consulta.
+Esses matchers não criam endpoints. A exceção pública de infraestrutura não libera uploads, edições ou exclusões. A regra geral de leitura também permite a `USUARIO` consultar `/usuario`; não presuma restrição exclusiva de administrador nessa consulta. O mesmo vale para `/professor` e `/lotacao`: a leitura é liberada a `USUARIO`, e é o service (`AcessoDadosSensiveis`) que omite CPF, matrícula e número do contrato para quem não é `ADMIN`.
 
 Fluxo de autenticação:
 
@@ -144,6 +151,8 @@ CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origen
 
 Escolas sem registro anterior são ignoradas. O dashboard abre no maior ano, então o novo ano já mostra os totais copiados até que sejam editados.
 
+As lotações de professores do último ano também são copiadas para o novo, com todos os campos, inclusive vagas em aberto, lotações no núcleo e o número do contrato.
+
 Da foto, só a URL é copiada. O `fotoPublicId` fica apenas no registro que fez o upload, porque a imagem é compartilhada entre os anos e uma remoção no Cloudinary não deve apagar a foto de outro ano. `AtualizacaoAnualServiceTest` cobre a cópia campo a campo; ao acrescentar um campo a essas entidades, inclua-o na cópia e no teste.
 
 ### Cadastro completo de escola
@@ -170,7 +179,15 @@ O Hibernate Envers registra cada criação, alteração e exclusão das entidade
 
 `ImportacaoExcelService` lê a aba `Planilha4`; `ImportacaoMatriculasService` lê `Censo_2025`. Ambos possuem ano fixo `2025` no código. Não são importadores genéricos de qualquer layout ou ano.
 
-Preserve os índices de colunas, a normalização de nomes, o tratamento de coordenadas e as regras de identificação de escolas. Os retornos `ImportacaoResultadoDTO` e `ImportacaoMatriculasResultadoDTO` incluem contadores e erros; uma resposta `200` não significa que todas as linhas foram importadas. Consulte os services e os utilitários antes de modificar esses fluxos.
+Preserve os índices de colunas, a normalização de nomes, o tratamento de coordenadas e as regras de identificação de escolas. Os retornos `ImportacaoResultadoDTO`, `ImportacaoMatriculasResultadoDTO` e `ImportacaoProfessoresResultadoDTO` incluem contadores e erros; uma resposta `200` não significa que todas as linhas foram importadas. Consulte os services e os utilitários antes de modificar esses fluxos.
+
+`ImportacaoProfessoresService` lê a aba `Planilha1` do quadro de escolas e professores indígenas, com ano fixo `2026`, que precisa estar iniciado (senão, `400`). O cabeçalho é conferido (`LOTACAO` na coluna C, `NOME` na I, `CPF` na O). Cada linha é uma lotação:
+
+- `NECESSIDADE` no nome ou no tipo de contrato vira vaga em aberto; lotação iniciada por `NEE` (`NEE SEE`, `NEE CRUZEIRO DO SUL`) vira lotação no núcleo do município.
+- A planilha não tem código INEP. A escola é procurada no município, entre unidades do mesmo tipo (sede/anexo; o anexo é reconhecido pelo nome ou pelo `tipoUnidade`), nesta ordem: nome completo, nome sem o sufixo de anexo, mesma aldeia com alguma palavra em comum, e nome mais semelhante. Prefixos (`ESC.`, `IND.`), preposições e pontuação são ignorados, `DR` equivale a `DOUTOR`, e palavras com uma letra de diferença contam como iguais. Empates são decididos pela aldeia; se persistirem, a linha vai para os erros, em vez de arriscar a escola errada.
+- Professores são localizados pelo CPF (índice cego) ou pelo nome normalizado, desempatado pela etnia; lotações, pelo professor, escola/município e segmento. Por isso a importação pode ser repetida sem duplicar.
+- Células vazias nunca apagam valores gravados: CPF, matrícula e número do contrato vêm em branco na planilha e são preenchidos depois pelo sistema. CPF numérico tem os zeros à esquerda restaurados e é validado.
+- Com a planilha de 2026 e a base de 2025, 595 das 607 linhas são importadas; as 12 restantes são de escolas que não estão cadastradas.
 
 ### Dashboard
 
@@ -191,6 +208,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `DATABASE_POOL_SIZE`, `DATABASE_POOL_MIN_IDLE` | Pool Hikari; padrões 10 e 1. |
 | `JPA_DDL_AUTO`, `JPA_SHOW_SQL` | Padrões `validate` e `false`. Não use `update`: o esquema é responsabilidade do Flyway. |
 | `JWT_SECRET` | Obrigatório; use segredo aleatório com pelo menos 32 bytes para a chave HMAC. |
+| `SIGEI_CHAVE_DADOS_SENSIVEIS` | Obrigatório; chave mestra (≥ 32 bytes em Base64, `openssl rand -base64 32`) da cifra de CPF, matrícula e número do contrato. Sem ela a aplicação não sobe; trocá-la exige recifrar os dados, e perdê-la os torna irrecuperáveis. |
 | `JWT_EXPIRATION` | Validade do token de acesso em milissegundos; padrão 15 minutos. |
 | `JWT_REFRESH_EXPIRATION` | Validade do refresh token em milissegundos; padrão 7 dias. |
 | `SIGEI_COOKIE_SECURE` | Atributo `Secure` dos cookies de sessão; padrão `true`. Use `false` só em acesso HTTP sem TLS por IP da rede. |
@@ -198,7 +216,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `SIGEI_ADMIN_NAME`, `SIGEI_ADMIN_EMAIL`, `SIGEI_ADMIN_PASSWORD` | Administrador inicial. |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Armazenamento de imagens. |
 | `SIGEI_DADOS_INICIAIS_ENABLED` | Carga automática de planilhas; padrão `true`. |
-| `SIGEI_PLANILHA_INFRAESTRUTURA`, `SIGEI_PLANILHA_MATRICULAS` | Resources das planilhas; padrões apontam para `planilhas/`. |
+| `SIGEI_PLANILHA_INFRAESTRUTURA`, `SIGEI_PLANILHA_MATRICULAS`, `SIGEI_PLANILHA_PROFESSORES` | Resources das planilhas; padrões apontam para `planilhas/`. |
 | `PORT` | Porta local da API; padrão 8080. No Compose, controla a porta publicada, com a API interna em 8080. |
 
 `spring.jpa.open-in-view=false`: mantenha o acesso a relacionamentos necessários ao DTO dentro do contexto transacional. O esquema é versionado pelo Flyway em `src/main/resources/db/migration`, e o Hibernate apenas o valida (`ddl-auto=validate`):
@@ -209,6 +227,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 - `V4__trilha_auditoria.sql` cria `revisao` e as tabelas `<entidade>_aud` do Envers, com índices para o histórico por escola. Também grava uma revisão inicial do sistema com o estado dos dados existentes.
 - `V5__padroniza_situacao_e_acesso.sql` padroniza `situacao` e `tipo_acesso` com as opções do sistema; valores fora delas viram nulo. Os ajustes ficam registrados numa revisão do sistema. Migrações que alterem dados devem fazer o mesmo, porque SQL direto não passa pelo Envers.
 - `V6__padroniza_agua_e_energia.sql` faz o mesmo com `tipo_agua` e `tipo_energia`, convertendo também as grafias da planilha (`POÇO`, `RIO/VERTENTE`, `NÃO`, `REDE ELETRICA`, `SIM`).
+- `V7__professores_e_lotacoes.sql` cria `professor` e `lotacao_professor`, com as tabelas `_aud`. As colunas sensíveis só recebem valores cifrados pela aplicação; não grave CPF, matrícula ou contrato por SQL direto.
 - Bancos criados antes do Flyway, sem `flyway_schema_history`, recebem baseline na versão 1 (`spring.flyway.baseline-on-migrate`) e executam só as migrações seguintes.
 
 Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL PostgreSQL correspondente e nunca edite uma migração já aplicada. Para obter o DDL que o Hibernate espera, gere o script com `jakarta.persistence.schema-generation.scripts.action=create` e o dialeto PostgreSQL. `FlywayMigracoesTest` aplica as migrações em um PostgreSQL real (Testcontainers) e sobe o contexto com `validate`. Ele exige Docker e é ignorado quando o Docker não está disponível.
@@ -216,7 +235,7 @@ Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL Po
 Na inicialização:
 
 - `MunicipioInitializer` (`@Order(1)`) cadastra os municípios do Acre ausentes, comparando nomes normalizados.
-- `DadosIniciaisInitializer` (`@Order(2)`) só executa quando habilitado e não existe nenhum registro anual. Valida os dois arquivos e importa infraestrutura antes de matrículas. Arquivos indisponíveis podem impedir a inicialização.
+- `DadosIniciaisInitializer` (`@Order(2)`) só executa quando habilitado. Sem nenhum registro anual, valida os dois arquivos de escolas e importa infraestrutura antes de matrículas; esses arquivos indisponíveis impedem a inicialização. Depois, se não houver professores, importa o quadro de professores de 2026: num banco novo, inicia antes o ano 2026 (`AtualizacaoAnualService`, com a cópia usual de 2025); num banco em uso sem o ano 2026, apenas registra um aviso. Falhas e planilha ausente nesta etapa só geram log, sem impedir a subida.
 - `AdminInitializer` cria o administrador apenas se o e-mail ainda não existir, com troca de senha obrigatória. Sem senha configurada, gera uma temporária e a registra no log. Configurar novas credenciais não altera automaticamente um usuário já existente.
 
 Actuator expõe `health` e `info`; apenas health tem liberação pública explícita. O Dockerfile faz build em Java 21, pula os testes e executa o JAR com usuário sem privilégios. O Compose inclui PostgreSQL 17 e volume persistente.

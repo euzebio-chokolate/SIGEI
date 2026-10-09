@@ -16,7 +16,7 @@ $entities = @()
 foreach ($file in (Get-ChildItem $modelsPath -Filter '*.java' | Sort-Object Name)) {
     $source = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
     if ($source -notmatch '@Entity\b') { continue }
-    if ($source -match '@(Embedded|EmbeddedId|IdClass|Inheritance|SecondaryTable|ManyToMany|ElementCollection|Access|AttributeOverride|Convert|JoinTable|JoinColumns)\b') {
+    if ($source -match '@(Embedded|EmbeddedId|IdClass|Inheritance|SecondaryTable|ManyToMany|ElementCollection|Access|AttributeOverride|JoinTable|JoinColumns)\b') {
         throw "Mapeamento ainda nao suportado em $($file.Name). Atualize o gerador."
     }
     $class = [regex]::Match($source, 'public\s+class\s+(\w+)')
@@ -33,7 +33,7 @@ if ($entities.Count -eq 0) { throw 'Nenhuma entidade encontrada.' }
 
 $tables = @{}
 foreach ($entity in $entities) { $tables[$entity.Name] = $entity.Table }
-$types = @{ Long = 'bigint'; Integer = 'integer'; Double = 'double'; Boolean = 'boolean'; String = 'varchar' }
+$types = @{ Long = 'bigint'; Integer = 'integer'; Double = 'double'; Boolean = 'boolean'; String = 'varchar'; LocalDate = 'date'; Instant = 'timestamp' }
 $lines = [System.Collections.Generic.List[string]]::new()
 $relations = [System.Collections.Generic.List[string]]::new()
 $constraints = [System.Collections.Generic.List[string]]::new()
@@ -80,11 +80,15 @@ foreach ($entity in $entities) {
         if ($annotations -match 'unique\s*=\s*true' -and $keys -notcontains 'UK') { $keys += 'UK' }
         $suffix = ''
         if ($keys.Count -gt 0) { $suffix = ' ' + ($keys -join ',') }
-        if ($annotations -match 'nullable\s*=\s*false|@Id\b') { $suffix += ' "NOT NULL"' }
+        $notes = @()
+        if ($annotations -match 'nullable\s*=\s*false|@Id\b') { $notes += 'NOT NULL' }
+        # @Convert nos campos sensiveis: o conversor grava o valor cifrado
+        if ($annotations -match '@Convert\b') { $notes += 'cifrado' }
+        if ($notes.Count -gt 0) { $suffix += ' "' + ($notes -join ', ') + '"' }
         $lines.Add("        $sqlType $column$suffix")
     }
     $lines.Add('    }')
-    foreach ($constraint in [regex]::Matches($entity.Source, '@UniqueConstraint\(\s*columnNames\s*=\s*\{([^}]+)\}')) {
+    foreach ($constraint in [regex]::Matches($entity.Source, '@UniqueConstraint\((?:\s*name\s*=\s*"[^"]*"\s*,)?\s*columnNames\s*=\s*\{([^}]+)\}')) {
         $columns = [regex]::Matches($constraint.Groups[1].Value, '"([^"]+)"') | ForEach-Object { $_.Groups[1].Value }
         $constraints.Add('- `' + $entity.Table + '`: UNIQUE (' + ($columns -join ', ') + ').')
     }

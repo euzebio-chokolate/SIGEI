@@ -1,0 +1,567 @@
+<div class="space-y-5 font-sans pb-10">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+    <a routerLink="/admin/dashboard" class="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+      <i class="fa-solid fa-house text-slate-400"></i>
+      Início
+    </a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+    <span class="text-slate-800">Professores</span>
+  </nav>
+
+  <!-- Cabeçalho -->
+  <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Professores Indígenas</h1>
+      <p class="text-sm text-slate-500 mt-1">Quadro de professores, lotações nas escolas e vagas em aberto.</p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <label
+        data-admin-action
+        title="Importar a planilha do quadro de professores de {{ anoQuadro }}"
+        class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 transition-all cursor-pointer"
+        [class.opacity-60]="importando"
+        [class.pointer-events-none]="importando"
+      >
+        @if (importando) {
+          <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
+          Importando...
+        } @else {
+          <i class="fa-solid fa-file-excel text-xs text-emerald-600"></i>
+          Importar planilha
+        }
+        <input type="file" accept=".xlsx" class="hidden" (change)="importarPlanilha($event)" />
+      </label>
+
+      <a
+        routerLink="/admin/professores/lotacoes/novo"
+        class="bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
+      >
+        <i class="fa-solid fa-location-dot text-xs"></i>
+        Nova lotação
+      </a>
+
+      <a
+        routerLink="/admin/professores/novo"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all"
+      >
+        <i class="fa-solid fa-plus text-xs"></i>
+        Novo professor
+      </a>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Professores no ano</span>
+        <p class="text-2xl font-bold text-slate-800 mt-1">{{ totalProfessoresNoAno }}</p>
+      </div>
+      <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600 text-lg">
+        <i class="fa-solid fa-chalkboard-user"></i>
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Lotações</span>
+        <p class="text-2xl font-bold text-slate-800 mt-1">{{ lotacoes.length }}</p>
+      </div>
+      <div class="w-12 h-12 bg-sky-50 rounded-xl flex items-center justify-center text-sky-600 text-lg">
+        <i class="fa-solid fa-location-dot"></i>
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Vagas em aberto</span>
+        <p class="text-2xl font-bold text-slate-800 mt-1">{{ totalVagas }}</p>
+      </div>
+      <div class="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 text-lg">
+        <i class="fa-solid fa-user-plus"></i>
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+      <div>
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Escolas atendidas</span>
+        <p class="text-2xl font-bold text-slate-800 mt-1">{{ totalEscolasAtendidas }}</p>
+      </div>
+      <div class="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center text-violet-600 text-lg">
+        <i class="fa-solid fa-school"></i>
+      </div>
+    </div>
+  </div>
+
+  @if (ehAdmin && totalPendentes > 0) {
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-amber-50 border border-amber-100 text-amber-800 text-sm">
+      <i class="fa-solid fa-lock text-amber-500"></i>
+      <span class="flex-1">
+        <strong>{{ totalPendentes }}</strong> professor(es) ainda sem CPF ou matrícula. Esses dados não vêm na planilha
+        e devem ser preenchidos no cadastro de cada professor; ficam visíveis apenas para administradores.
+      </span>
+      <button
+        type="button"
+        (click)="selecionarAba('professores'); somentePendentes = true; aplicarFiltrosProfessor()"
+        class="px-3 py-1.5 rounded-lg bg-white border border-amber-200 text-amber-800 text-xs font-semibold hover:bg-amber-100"
+      >
+        Ver pendentes
+      </button>
+    </div>
+  }
+
+  @if (erroMensagem) {
+    <div class="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-sm">
+      <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+      <span>{{ erroMensagem }}</span>
+    </div>
+  }
+
+  <!-- Abas -->
+  <div class="flex gap-1 p-1 bg-slate-200/60 rounded-xl w-fit">
+    <button
+      type="button"
+      (click)="selecionarAba('lotacoes')"
+      class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+      [class.bg-white]="aba === 'lotacoes'"
+      [class.shadow-sm]="aba === 'lotacoes'"
+      [class.text-slate-800]="aba === 'lotacoes'"
+      [class.text-slate-500]="aba !== 'lotacoes'"
+    >
+      <i class="fa-solid fa-location-dot mr-1.5 text-xs"></i>Lotações
+    </button>
+    <button
+      type="button"
+      (click)="selecionarAba('professores')"
+      class="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+      [class.bg-white]="aba === 'professores'"
+      [class.shadow-sm]="aba === 'professores'"
+      [class.text-slate-800]="aba === 'professores'"
+      [class.text-slate-500]="aba !== 'professores'"
+    >
+      <i class="fa-solid fa-id-card mr-1.5 text-xs"></i>Cadastro de professores
+    </button>
+  </div>
+
+  @if (aba === 'lotacoes') {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <!-- Filtros -->
+      <div class="p-5 border-b border-slate-100 bg-slate-50/50 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-3">
+        <div class="relative xl:col-span-2">
+          <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input
+            type="text"
+            [(ngModel)]="filtroLotacao"
+            (ngModelChange)="aplicarFiltrosLotacao()"
+            placeholder="Buscar professor, escola, cargo ou segmento..."
+            class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+          />
+        </div>
+
+        <select
+          [(ngModel)]="anoSelecionado"
+          (ngModelChange)="carregarLotacoes()"
+          aria-label="Ano"
+          class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+        >
+          @for (ano of anos; track ano.id) {
+            <option [ngValue]="ano.ano">Ano {{ ano.ano }}</option>
+          }
+        </select>
+
+        <select
+          [(ngModel)]="filtroMunicipio"
+          (ngModelChange)="aplicarFiltrosLotacao()"
+          aria-label="Município"
+          class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+        >
+          <option value="">Todos os municípios</option>
+          @for (municipio of municipios; track municipio) {
+            <option [value]="municipio">{{ municipio }}</option>
+          }
+        </select>
+
+        <select
+          [(ngModel)]="filtroTipoContrato"
+          (ngModelChange)="aplicarFiltrosLotacao()"
+          aria-label="Tipo de contrato"
+          class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+        >
+          <option value="">Todos os contratos</option>
+          @for (opcao of opcoesTipoContrato; track opcao.valor) {
+            <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+          }
+        </select>
+
+        <select
+          [(ngModel)]="filtroLocal"
+          (ngModelChange)="aplicarFiltrosLotacao()"
+          aria-label="Situação da lotação"
+          class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+        >
+          <option value="todas">Todas as lotações</option>
+          <option value="escolas">Somente em escolas</option>
+          <option value="nucleo">Somente no núcleo</option>
+          <option value="vagas">Somente vagas em aberto</option>
+        </select>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/80 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100">
+              <th class="px-6 py-3.5">Professor</th>
+              <th class="px-6 py-3.5">Lotação</th>
+              <th class="px-6 py-3.5">Cargo e segmento</th>
+              <th class="px-6 py-3.5">Contrato</th>
+              @if (ehAdmin) {
+                <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>Nº contrato</th>
+              }
+              <th class="px-6 py-3.5 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+            @if (carregandoLotacoes) {
+              <tr>
+                <td [attr.colspan]="ehAdmin ? 6 : 5" class="px-6 py-10 text-center text-slate-400">
+                  <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
+                  <p class="mt-2 text-sm">Carregando lotações...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (lotacao of lotacoesPaginadas; track lotacao.id) {
+                <tr class="hover:bg-slate-50/60 transition-colors">
+                  <td class="px-6 py-4">
+                    @if (lotacao.professor; as professor) {
+                      @if (ehAdmin) {
+                        <a [routerLink]="['/admin/professores/editar', professor.id]" class="font-semibold text-slate-800 hover:text-emerald-700">
+                          {{ professor.nome }}
+                        </a>
+                      } @else {
+                        <p class="font-semibold text-slate-800">{{ professor.nome }}</p>
+                      }
+                      <p class="text-xs text-slate-400 mt-0.5">
+                        {{ professor.etnia || 'Etnia não informada' }} · {{ rotuloSexo(professor.sexo) }}
+                      </p>
+                    } @else {
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold">
+                        <i class="fa-solid fa-user-plus text-[10px]"></i>
+                        Vaga em aberto
+                      </span>
+                    }
+                  </td>
+                  <td class="px-6 py-4">
+                    @if (lotacao.escola; as escola) {
+                      <p class="font-medium text-slate-700">{{ escola.nome }}</p>
+                    } @else {
+                      <p class="font-medium text-slate-700">Núcleo de educação (NEE/SEE)</p>
+                    }
+                    <p class="text-xs text-slate-400 mt-0.5">{{ lotacao.municipio.nome }}</p>
+                  </td>
+                  <td class="px-6 py-4">
+                    <p>{{ lotacao.cargo || '—' }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ lotacao.segmento || 'Segmento não informado' }}</p>
+                  </td>
+                  <td class="px-6 py-4">
+                    <p>{{ lotacao.tipoContrato ? rotuloTipoContrato(lotacao.tipoContrato) : '—' }}</p>
+                    @if (lotacao.inicioContrato) {
+                      <p class="text-xs text-slate-400 mt-0.5">Desde {{ formatarData(lotacao.inicioContrato) }}</p>
+                    }
+                  </td>
+                  @if (ehAdmin) {
+                    <td class="px-6 py-4">
+                      @if (lotacao.numeroContrato) {
+                        <span class="font-mono text-xs">{{ lotacao.numeroContrato }}</span>
+                      } @else if (lotacao.professor) {
+                        <span class="text-xs text-amber-600">Pendente</span>
+                      } @else {
+                        <span class="text-slate-300">—</span>
+                      }
+                    </td>
+                  }
+                  <td class="px-6 py-4 text-right">
+                    <div class="inline-flex items-center gap-1">
+                      <a
+                        [routerLink]="['/admin/professores/lotacoes/editar', lotacao.id]"
+                        class="w-9 h-9 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-sky-600 hover:bg-sky-50"
+                        title="Editar lotação"
+                      >
+                        <i class="fa-solid fa-pen text-xs"></i>
+                      </a>
+                      <button
+                        type="button"
+                        (click)="lotacaoParaExcluir = lotacao"
+                        class="w-9 h-9 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                        title="Excluir lotação"
+                      >
+                        <i class="fa-solid fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td [attr.colspan]="ehAdmin ? 6 : 5" class="px-6 py-10 text-center text-slate-400">
+                    @if (lotacoes.length === 0 && anoSelecionado !== null) {
+                      Nenhuma lotação cadastrada em {{ anoSelecionado }}.
+                      @if (ehAdmin && anoSelecionado === anoQuadro) {
+                        <span class="block mt-1">Use <strong>Importar planilha</strong> para carregar o quadro de professores.</span>
+                      }
+                    } @else {
+                      Nenhuma lotação encontrada com os filtros informados.
+                      <button type="button" (click)="limparFiltrosLotacao()" class="text-emerald-600 font-semibold hover:underline ml-1">Limpar filtros</button>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+        <span class="text-xs text-slate-500">
+          {{ lotacoesFiltradas.length }} lotação(ões) · Página {{ paginaLotacoes }} de {{ totalPaginasLotacoes }}
+        </span>
+        <div class="flex gap-2">
+          <button type="button" (click)="paginaLotacoes = paginaLotacoes - 1" [disabled]="paginaLotacoes === 1" aria-label="Página anterior" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-40">
+            <i class="fa-solid fa-chevron-left text-[10px]"></i>
+          </button>
+          <button type="button" (click)="paginaLotacoes = paginaLotacoes + 1" [disabled]="paginaLotacoes >= totalPaginasLotacoes" aria-label="Próxima página" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-40">
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col md:flex-row gap-3 md:items-center justify-between">
+        <div class="relative w-full md:w-105">
+          <i class="fa-solid fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input
+            type="text"
+            [(ngModel)]="filtroProfessor"
+            (ngModelChange)="aplicarFiltrosProfessor()"
+            placeholder="Buscar por nome, etnia ou formação..."
+            class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+          />
+        </div>
+        @if (ehAdmin) {
+          <label class="flex items-center gap-2 text-sm text-slate-600 cursor-pointer select-none">
+            <input type="checkbox" [(ngModel)]="somentePendentes" (ngModelChange)="aplicarFiltrosProfessor()" class="w-4 h-4 accent-emerald-600" />
+            Somente com CPF ou matrícula pendente
+          </label>
+        }
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/80 text-slate-400 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100">
+              <th class="px-6 py-3.5">Professor</th>
+              <th class="px-6 py-3.5">Formação</th>
+              @if (ehAdmin) {
+                <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>CPF</th>
+                <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>Matrícula</th>
+              }
+              <th class="px-6 py-3.5 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+            @if (carregandoProfessores) {
+              <tr>
+                <td [attr.colspan]="ehAdmin ? 5 : 3" class="px-6 py-10 text-center text-slate-400">
+                  <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
+                  <p class="mt-2 text-sm">Carregando professores...</p>
+                </td>
+              </tr>
+            } @else {
+              @for (professor of professoresPaginados; track professor.id) {
+                <tr class="hover:bg-slate-50/60 transition-colors">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold shrink-0">
+                        {{ professor.nome.charAt(0) }}
+                      </div>
+                      <div>
+                        <p class="font-semibold text-slate-800">{{ professor.nome }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                          {{ professor.etnia || 'Etnia não informada' }} · {{ rotuloSexo(professor.sexo) }}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">{{ professor.formacao || '—' }}</td>
+                  @if (ehAdmin) {
+                    <td class="px-6 py-4">
+                      @if (professor.cpf) {
+                        <span class="font-mono text-xs">{{ mascararCpf(professor.cpf) }}</span>
+                      } @else {
+                        <span class="text-xs text-amber-600">Pendente</span>
+                      }
+                    </td>
+                    <td class="px-6 py-4">
+                      @if (professor.matricula) {
+                        <span class="font-mono text-xs">{{ professor.matricula }}</span>
+                      } @else {
+                        <span class="text-xs text-amber-600">Pendente</span>
+                      }
+                    </td>
+                  }
+                  <td class="px-6 py-4 text-right">
+                    <div class="inline-flex items-center gap-1">
+                      <a
+                        [routerLink]="['/admin/professores/editar', professor.id]"
+                        class="w-9 h-9 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-sky-600 hover:bg-sky-50"
+                        title="Editar professor"
+                      >
+                        <i class="fa-solid fa-pen text-xs"></i>
+                      </a>
+                      <button
+                        type="button"
+                        (click)="professorParaExcluir = professor"
+                        class="w-9 h-9 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                        title="Excluir professor"
+                      >
+                        <i class="fa-solid fa-trash text-xs"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td [attr.colspan]="ehAdmin ? 5 : 3" class="px-6 py-10 text-center text-slate-400">Nenhum professor encontrado.</td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between">
+        <span class="text-xs text-slate-500">
+          {{ professoresFiltrados.length }} professor(es) · Página {{ paginaProfessores }} de {{ totalPaginasProfessores }}
+        </span>
+        <div class="flex gap-2">
+          <button type="button" (click)="paginaProfessores = paginaProfessores - 1" [disabled]="paginaProfessores === 1" aria-label="Página anterior" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-40">
+            <i class="fa-solid fa-chevron-left text-[10px]"></i>
+          </button>
+          <button type="button" (click)="paginaProfessores = paginaProfessores + 1" [disabled]="paginaProfessores >= totalPaginasProfessores" aria-label="Próxima página" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 disabled:opacity-40">
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Resultado da importação -->
+@if (resultadoImportacao || erroImportacao) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4">
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="titulo-importacao">
+      <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        <div class="flex items-start gap-4">
+          <div
+            class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg"
+            [class.bg-emerald-50]="resultadoImportacao"
+            [class.text-emerald-600]="resultadoImportacao"
+            [class.bg-rose-50]="!resultadoImportacao"
+            [class.text-rose-600]="!resultadoImportacao"
+          >
+            <i class="fa-solid" [class.fa-file-circle-check]="resultadoImportacao" [class.fa-file-circle-xmark]="!resultadoImportacao"></i>
+          </div>
+          <div>
+            <h2 id="titulo-importacao" class="text-lg font-bold text-slate-800">
+              {{ resultadoImportacao ? 'Importação concluída' : 'Importação não realizada' }}
+            </h2>
+            <p class="text-sm text-slate-500 mt-1">
+              @if (resultadoImportacao) {
+                Quadro de professores de {{ anoQuadro }}. CPF, matrícula e número do contrato já preenchidos no sistema são mantidos.
+              } @else {
+                {{ erroImportacao }}
+              }
+            </p>
+          </div>
+        </div>
+
+        @if (resultadoImportacao; as resultado) {
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="p-3 rounded-xl bg-slate-50">
+              <p class="text-xl font-bold text-slate-800">{{ resultado.linhasLidas }}</p>
+              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Linhas lidas</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50">
+              <p class="text-xl font-bold text-slate-800">{{ resultado.professoresCriados }}</p>
+              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Professores novos</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50">
+              <p class="text-xl font-bold text-slate-800">{{ resultado.lotacoesCriadas }}</p>
+              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Lotações novas</p>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50">
+              <p class="text-xl font-bold text-slate-800">{{ resultado.lotacoesAtualizadas }}</p>
+              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Lotações atualizadas</p>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-600">
+            {{ resultado.vagasEmAberto }} vaga(s) em aberto e {{ resultado.lotacoesNoNucleo }} lotação(ões) no núcleo de educação.
+          </p>
+
+          @if (resultado.erros.length > 0) {
+            <div class="rounded-xl border border-amber-100 bg-amber-50 p-4">
+              <p class="text-sm font-semibold text-amber-800">
+                {{ resultado.linhasIgnoradas }} linha(s) não importada(s)
+              </p>
+              <p class="text-xs text-amber-700 mt-1">
+                Escolas não identificadas precisam ser cadastradas (ou ter o nome corrigido) antes de importar novamente.
+              </p>
+              <ul class="mt-3 space-y-1 text-xs text-amber-900 max-h-56 overflow-y-auto">
+                @for (erro of resultado.erros; track $index) {
+                  <li>{{ erro }}</li>
+                }
+              </ul>
+            </div>
+          }
+        }
+      </div>
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <button type="button" (click)="fecharImportacao()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold">
+          Concluir
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<app-confirm-modal
+  [aberto]="lotacaoParaExcluir !== null"
+  titulo="Excluir lotação"
+  [mensagem]="lotacaoParaExcluir ? 'Deseja realmente excluir esta lotação' + (lotacaoParaExcluir.professor ? ' de ' + lotacaoParaExcluir.professor.nome : ' (vaga em aberto)') + '?' : ''"
+  textoConfirmar="Excluir"
+  textoCancelar="Cancelar"
+  [carregando]="excluindo"
+  (confirmar)="confirmarExclusaoLotacao()"
+  (cancelar)="cancelarExclusao()"
+/>
+
+<app-confirm-modal
+  [aberto]="professorParaExcluir !== null"
+  titulo="Excluir professor"
+  [mensagem]="professorParaExcluir ? 'Deseja realmente excluir ' + professorParaExcluir.nome + '? As lotações deste cadastro, em todos os anos, também serão excluídas.' : ''"
+  textoConfirmar="Excluir"
+  textoCancelar="Cancelar"
+  [carregando]="excluindo"
+  (confirmar)="confirmarExclusaoProfessor()"
+  (cancelar)="cancelarExclusao()"
+/>
+
+<app-sucesso-modal
+  [aberto]="modalSucessoAberto"
+  [titulo]="tituloSucesso"
+  [mensagem]="mensagemSucesso"
+  textoBotao="Concluir"
+  (fechar)="fecharModalSucesso()"
+/>

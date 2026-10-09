@@ -4,11 +4,13 @@ import ac.gov.br.sigei_backend.models.AnoReferencia;
 import ac.gov.br.sigei_backend.models.EquipeEscola;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.models.InfraestruturaEscola;
+import ac.gov.br.sigei_backend.models.LotacaoProfessor;
 import ac.gov.br.sigei_backend.models.MatriculaNivel;
 import ac.gov.br.sigei_backend.models.MatriculaSerie;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.repository.LotacaoProfessorRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,9 @@ public class AtualizacaoAnualService {
 
     @Autowired
     RegistroAnualRepository registroAnualRepository;
+
+    @Autowired
+    LotacaoProfessorRepository lotacaoProfessorRepository;
 
     @Transactional
     public void iniciarNovoAno() {
@@ -101,6 +106,65 @@ public class AtualizacaoAnualService {
                     registroAnterior,
                     registroSalvo
             );
+        }
+
+        copiarLotacoes(ultimoAno, novoAnoSalvo);
+    }
+
+    /**
+     * As lotações de professores pertencem ao ano, e não ao registro da escola:
+     * as do último ano são copiadas para o novo, inclusive vagas em aberto,
+     * lotações no núcleo e o número do contrato.
+     */
+    private void copiarLotacoes(
+            AnoReferencia anoAnterior,
+            AnoReferencia novoAno
+    ) {
+
+        for (LotacaoProfessor lotacaoAnterior :
+                lotacaoProfessorRepository.buscarPorAno(anoAnterior.getAno())) {
+
+            LotacaoProfessor novaLotacao = new LotacaoProfessor();
+
+            novaLotacao.setAnoReferencia(novoAno);
+
+            novaLotacao.setProfessor(
+                    lotacaoAnterior.getProfessor()
+            );
+
+            novaLotacao.setEscola(
+                    lotacaoAnterior.getEscola()
+            );
+
+            novaLotacao.setMunicipio(
+                    lotacaoAnterior.getMunicipio()
+            );
+
+            novaLotacao.setCargo(
+                    lotacaoAnterior.getCargo()
+            );
+
+            novaLotacao.setSegmento(
+                    lotacaoAnterior.getSegmento()
+            );
+
+            novaLotacao.setNumeroContrato(
+                    lotacaoAnterior.getNumeroContrato()
+            );
+
+            novaLotacao.setInicioContrato(
+                    lotacaoAnterior.getInicioContrato()
+            );
+
+            novaLotacao.setAmparoLegal(
+                    lotacaoAnterior.getAmparoLegal()
+            );
+
+            novaLotacao.setTipoContrato(
+                    lotacaoAnterior.getTipoContrato()
+            );
+
+            lotacaoProfessorRepository.save(novaLotacao);
         }
     }
 

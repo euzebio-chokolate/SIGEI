@@ -1,10 +1,15 @@
 package ac.gov.br.sigei_backend.config.initializer;
 
+import ac.gov.br.sigei_backend.dto.response.ImportacaoProfessoresResultadoDTO;
 import ac.gov.br.sigei_backend.dto.response.ImportacaoResultadoDTO;
 import ac.gov.br.sigei_backend.dto.response.ImportacaoMatriculasResultadoDTO;
+import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
+import ac.gov.br.sigei_backend.repository.ProfessorRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
+import ac.gov.br.sigei_backend.service.AtualizacaoAnualService;
 import ac.gov.br.sigei_backend.service.importacao.ImportacaoExcelService;
 import ac.gov.br.sigei_backend.service.importacao.ImportacaoMatriculasService;
+import ac.gov.br.sigei_backend.service.importacao.ImportacaoProfessoresService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,26 +33,41 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DadosIniciaisInitializer.class);
 
     private final RegistroAnualRepository registroAnualRepository;
+    private final AnoReferenciaRepository anoReferenciaRepository;
+    private final ProfessorRepository professorRepository;
     private final ImportacaoExcelService importacaoExcelService;
     private final ImportacaoMatriculasService importacaoMatriculasService;
+    private final ImportacaoProfessoresService importacaoProfessoresService;
+    private final AtualizacaoAnualService atualizacaoAnualService;
     private final boolean habilitado;
     private final Resource planilhaInfraestrutura;
     private final Resource planilhaMatriculas;
+    private final Resource planilhaProfessores;
 
     public DadosIniciaisInitializer(
             RegistroAnualRepository registroAnualRepository,
+            AnoReferenciaRepository anoReferenciaRepository,
+            ProfessorRepository professorRepository,
             ImportacaoExcelService importacaoExcelService,
             ImportacaoMatriculasService importacaoMatriculasService,
+            ImportacaoProfessoresService importacaoProfessoresService,
+            AtualizacaoAnualService atualizacaoAnualService,
             @Value("${sigei.dados-iniciais.enabled:true}") boolean habilitado,
             @Value("${sigei.dados-iniciais.infraestrutura}") Resource planilhaInfraestrutura,
-            @Value("${sigei.dados-iniciais.matriculas}") Resource planilhaMatriculas
+            @Value("${sigei.dados-iniciais.matriculas}") Resource planilhaMatriculas,
+            @Value("${sigei.dados-iniciais.professores}") Resource planilhaProfessores
     ) {
         this.registroAnualRepository = registroAnualRepository;
+        this.anoReferenciaRepository = anoReferenciaRepository;
+        this.professorRepository = professorRepository;
         this.importacaoExcelService = importacaoExcelService;
         this.importacaoMatriculasService = importacaoMatriculasService;
+        this.importacaoProfessoresService = importacaoProfessoresService;
+        this.atualizacaoAnualService = atualizacaoAnualService;
         this.habilitado = habilitado;
         this.planilhaInfraestrutura = planilhaInfraestrutura;
         this.planilhaMatriculas = planilhaMatriculas;
+        this.planilhaProfessores = planilhaProfessores;
     }
 
     @Override
@@ -57,11 +77,18 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
             return;
         }
 
-        if (registroAnualRepository.count() > 0) {
-            LOGGER.info("Banco já possui registros anuais; carga automática ignorada");
-            return;
+        boolean bancoNovo = registroAnualRepository.count() == 0;
+
+        if (bancoNovo) {
+            carregarEscolas();
+        } else {
+            LOGGER.info("Banco já possui registros anuais; carga automática das escolas ignorada");
         }
 
+        carregarProfessores(bancoNovo);
+    }
+
+    private void carregarEscolas() {
         validarPlanilha(planilhaInfraestrutura, "infraestrutura");
         validarPlanilha(planilhaMatriculas, "matrículas");
 
@@ -86,6 +113,68 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
                 matriculas.linhasLidas(),
                 matriculas.erros().size()
         );
+    }
+
+    /**
+     * Executada enquanto não houver professores cadastrados. O quadro é de 2026: num
+     * banco novo, que acabou de receber os dados de 2025, o ano seguinte é iniciado
+     * (com a cópia usual dos dados) antes da importação. Num banco em uso, o ano não
+     * é iniciado automaticamente; a carga fica para a próxima subida após a abertura.
+     * Falhas nesta etapa são registradas no log sem impedir a inicialização.
+     */
+    private void carregarProfessores(boolean bancoNovo) {
+        if (professorRepository.count() > 0) {
+            LOGGER.info("Banco já possui professores; carga automática do quadro de professores ignorada");
+            return;
+        }
+
+        if (!planilhaProfessores.exists() || !planilhaProfessores.isReadable()) {
+            LOGGER.warn(
+                    "Planilha do quadro de professores não encontrada ou sem permissão de leitura: {}",
+                    planilhaProfessores.getDescription()
+            );
+            return;
+        }
+
+        int ano = ImportacaoProfessoresService.ANO_REFERENCIA;
+
+        if (anoReferenciaRepository.findByAno(ano).isEmpty()) {
+            boolean anoAnteriorEhOUltimo = anoReferenciaRepository.findTopByOrderByAnoDesc()
+                    .map(ultimo -> ultimo.getAno() == ano - 1)
+                    .orElse(false);
+
+            if (!bancoNovo || !anoAnteriorEhOUltimo) {
+                LOGGER.warn(
+                        "Ano {} ainda não iniciado; quadro de professores não importado. " +
+                                "Inicie o ano e importe a planilha pela tela de professores.",
+                        ano
+                );
+                return;
+            }
+
+            LOGGER.info("Iniciando o ano {} para receber o quadro de professores", ano);
+            atualizacaoAnualService.iniciarNovoAno();
+        }
+
+        try {
+            ImportacaoProfessoresResultadoDTO professores = importacaoProfessoresService.importar(
+                    new ResourceMultipartFile("arquivo", planilhaProfessores)
+            );
+
+            LOGGER.info(
+                    "Importação automática do quadro de professores concluída: {} linha(s), " +
+                            "{} professor(es), {} lotação(ões), {} erro(s)",
+                    professores.linhasLidas(),
+                    professores.professoresCriados(),
+                    professores.lotacoesCriadas(),
+                    professores.erros().size()
+            );
+
+            professores.erros().forEach(erro -> LOGGER.warn("Quadro de professores: {}", erro));
+
+        } catch (RuntimeException e) {
+            LOGGER.error("Falha na importação automática do quadro de professores", e);
+        }
     }
 
     private void validarPlanilha(Resource planilha, String tipo) {
