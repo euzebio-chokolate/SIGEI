@@ -415,6 +415,11 @@
         }
       </div>
     }
+
+    <!-- Auditoria: o endpoint é restrito a ADMIN -->
+    @if (escolaSelecionadaId) {
+      <app-trilha-auditoria *seAdmin [escolaId]="escolaSelecionadaId" />
+    }
   }
 
   <app-historico-escola-modal
