@@ -46,6 +46,7 @@
         <a routerLink="/admin/professores" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-chalkboard-user"></i>Professores</a>
         <a routerLink="/admin/historico-escolas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i>Histórico escolar</a>
         <a *seAdmin routerLink="/admin/usuarios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-user-shield"></i>Usuários e acesso</a>
+        <a *seAdmin routerLink="/admin/auditoria" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-user-clock"></i>Auditoria</a>
         <a routerLink="/admin/configuracoes" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-gear"></i>Configurações</a>
       </div>
     </nav>

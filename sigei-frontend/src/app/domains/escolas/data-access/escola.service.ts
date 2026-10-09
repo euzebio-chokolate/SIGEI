@@ -6,7 +6,7 @@ import { environment } from '@environments/environment';
 import type { MunicipioResumo, PovoResumo, TerraIndigenaResumo, AldeiaResumo, EscolaResumo, EscolaResponse, AnoReferenciaResumo, EquipeEscola, InfraestruturaEscolaDetalhe, MatriculaNivel, MatriculaSerie, RegistroAnualDetalhe, EscolaDetalheResponse } from '../models/escola.models';
 export type { MunicipioResumo, PovoResumo, TerraIndigenaResumo, AldeiaResumo, EscolaResumo, EscolaResponse, AnoReferenciaResumo, EquipeEscola, InfraestruturaEscolaDetalhe, MatriculaNivel, MatriculaSerie, RegistroAnualDetalhe, EscolaDetalheResponse } from '../models/escola.models';
 import type { RegistroAnualResponse } from '../models/registro-anual.models';
-import type { AlteracaoHistorico } from '../models/auditoria.models';
+import type { AlteracaoHistorico } from '@domains/auditoria/models/auditoria.models';
 
 export interface CadastroEscolaRequest {
   escola: {

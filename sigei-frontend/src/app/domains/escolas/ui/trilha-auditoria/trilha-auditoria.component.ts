@@ -1,25 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
-import { DatePipe } from '@angular/common';
 
 import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
 import { EscolaService } from '@domains/escolas/data-access/escola.service';
-import {
-  AlteracaoHistorico,
-  OperacaoHistorico,
-  RevisaoHistorico,
-  agruparPorRevisao,
-  campoVisivel,
-  formatarValor,
-  rotuloCampo,
-  rotuloEntidade
-} from '@domains/escolas/models/auditoria.models';
+import { RevisaoHistorico, agruparPorRevisao } from '@domains/auditoria/models/auditoria.models';
+import { LinhaDoTempoAuditoriaComponent } from '@domains/auditoria/ui/linha-do-tempo/linha-do-tempo-auditoria.component';
 import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
-
-const OPERACOES: Record<OperacaoHistorico, { rotulo: string; classe: string }> = {
-  CRIACAO: { rotulo: 'Criação', classe: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  ALTERACAO: { rotulo: 'Alteração', classe: 'bg-sky-50 text-sky-700 border-sky-100' },
-  EXCLUSAO: { rotulo: 'Exclusão', classe: 'bg-rose-50 text-rose-700 border-rose-100' }
-};
 
 /** Revisões exibidas por vez; escolas antigas podem ter centenas. */
 const POR_PAGINA = 15;
@@ -32,7 +17,7 @@ const POR_PAGINA = 15;
 @Component({
   selector: 'app-trilha-auditoria',
   standalone: true,
-  imports: [DatePipe, EstadoErroComponent],
+  imports: [EstadoErroComponent, LinhaDoTempoAuditoriaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './trilha-auditoria.component.html'
 })
@@ -50,11 +35,6 @@ export class TrilhaAuditoriaComponent {
   protected readonly visiveis = computed(() => this.revisoes().slice(0, this.limite()));
   protected readonly restantes = computed(() => Math.max(0, this.revisoes().length - this.limite()));
   protected readonly total = computed(() => this.revisoes().length);
-
-  protected readonly operacoes = OPERACOES;
-  protected readonly rotuloEntidade = rotuloEntidade;
-  protected readonly rotuloCampo = rotuloCampo;
-  protected readonly formatarValor = formatarValor;
 
   constructor() {
     // Outra escola selecionada: descarta a trilha anterior
@@ -95,9 +75,5 @@ export class TrilhaAuditoriaComponent {
 
   mostrarMais(): void {
     this.limite.update(limite => limite + POR_PAGINA);
-  }
-
-  protected camposVisiveis(alteracao: AlteracaoHistorico) {
-    return alteracao.campos.filter(campoVisivel);
   }
 }
