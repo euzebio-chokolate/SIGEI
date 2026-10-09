@@ -6,6 +6,7 @@ import { AuthService } from '@core/auth/auth.service';
 import { interpretarErro } from '@core/http/erro-http';
 import { validarArquivo } from '@core/forms/validadores';
 import { SeAdminDirective } from '@core/auth/se-admin.directive';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
 import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
 import { ProfessorResponse, ProfessorService } from '@domains/professores/data-access/professor.service';
 import {
@@ -30,7 +31,7 @@ type FiltroLocal = 'todas' | 'escolas' | 'nucleo' | 'vagas';
 @Component({
   selector: 'app-professores-lista',
   standalone: true,
-  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SeAdminDirective],
+  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SeAdminDirective, SkeletonLinhaComponent],
   templateUrl: './professores-lista.component.html'
 })
 export class ProfessoresListaComponent implements OnInit {

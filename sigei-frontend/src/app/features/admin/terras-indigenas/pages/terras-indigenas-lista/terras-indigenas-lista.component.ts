@@ -7,11 +7,13 @@ import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territo
 import { SeAdminDirective } from '@core/auth/se-admin.directive';
 import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
 import { ToastService } from '@core/notificacao/toast.service';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
 
 @Component({
   selector: 'app-terras-indigenas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent, SeAdminDirective],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent],
   template: `
     <div class="space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -166,22 +168,21 @@ import { ToastService } from '@core/notificacao/toast.service';
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
-                    @if (carregando) {
-                      <div class="flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                        <span> Carregando terras indígenas... </span>
-                      </div>
-                    } @else if (erroMensagem) {
-                      <span class="text-rose-500 font-semibold">
-                        {{ erroMensagem }}
-                      </span>
-                    } @else {
-                      Nenhuma terra indígena encontrada.
-                    }
-                  </td>
-                </tr>
+                @if (carregando) {
+                  @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                    <tr appSkeletonLinha [colunas]="4"></tr>
+                  }
+                } @else {
+                  <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
+                      @if (erroMensagem) {
+                        <app-estado-erro [mensagem]="erroMensagem" (tentarNovamente)="carregarEstatisticas()" />
+                      } @else {
+                        Nenhuma terra indígena encontrada.
+                      }
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>

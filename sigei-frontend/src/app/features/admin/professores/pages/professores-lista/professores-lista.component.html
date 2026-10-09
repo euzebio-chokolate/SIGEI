@@ -225,12 +225,9 @@
           </thead>
           <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @if (carregandoLotacoes) {
-              <tr>
-                <td [attr.colspan]="ehAdmin ? 6 : 4" class="px-6 py-10 text-center text-slate-400">
-                  <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                  <p class="mt-2 text-sm">Carregando lotações...</p>
-                </td>
-              </tr>
+              @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                <tr appSkeletonLinha [colunas]="ehAdmin ? 6 : 4"></tr>
+              }
             } @else {
               @for (lotacao of lotacoesPaginadas; track lotacao.id) {
                 <tr class="hover:bg-slate-50/60 transition-colors">
@@ -372,12 +369,9 @@
           </thead>
           <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @if (carregandoProfessores) {
-              <tr>
-                <td [attr.colspan]="ehAdmin ? 5 : 2" class="px-6 py-10 text-center text-slate-400">
-                  <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                  <p class="mt-2 text-sm">Carregando professores...</p>
-                </td>
-              </tr>
+              @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                <tr appSkeletonLinha [colunas]="ehAdmin ? 5 : 2"></tr>
+              }
             } @else {
               @for (professor of professoresPaginados; track professor.id) {
                 <tr class="hover:bg-slate-50/60 transition-colors">

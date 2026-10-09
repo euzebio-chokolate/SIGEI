@@ -8,11 +8,13 @@ import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-
 import { ToastService } from '@core/notificacao/toast.service';
 import { ListModalComponent, ListModalItem } from '@shared/ui/list-modal/list-modal.component';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
 
 @Component({
   selector: 'app-povos-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ListModalComponent, ConfirmModalComponent, SeAdminDirective],
+  imports: [RouterLink, FormsModule, ListModalComponent, ConfirmModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent],
   template: `
     <div class="space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -166,22 +168,21 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">
-                    @if (carregando) {
-                      <div class="flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                        <span> Carregando povos... </span>
-                      </div>
-                    } @else if (erroMensagem) {
-                      <span class="text-rose-500 font-semibold">
-                        {{ erroMensagem }}
-                      </span>
-                    } @else {
-                      Nenhum povo encontrado.
-                    }
-                  </td>
-                </tr>
+                @if (carregando) {
+                  @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                    <tr appSkeletonLinha [colunas]="3"></tr>
+                  }
+                } @else {
+                  <tr>
+                    <td colspan="4" class="px-6 py-8 text-center text-slate-400 text-sm">
+                      @if (erroMensagem) {
+                        <app-estado-erro [mensagem]="erroMensagem" (tentarNovamente)="carregarPovos()" />
+                      } @else {
+                        Nenhum povo encontrado.
+                      }
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>

@@ -7,11 +7,13 @@ import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-
 import { ToastService } from '@core/notificacao/toast.service';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
 
 @Component({
   selector: 'app-usuarios-lista',
   standalone: true,
-  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent],
+  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SkeletonLinhaComponent, EstadoErroComponent],
   templateUrl: './usuarios-lista.component.html'
 })
 export class UsuariosListaComponent implements OnInit {

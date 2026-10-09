@@ -24,6 +24,7 @@ import { aplicarErrosServidor } from '@core/http/erros-formulario';
 import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { ToastService } from '@core/notificacao/toast.service';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 
 @Component({
   selector: 'app-escola-form',
@@ -38,7 +39,8 @@ import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.co
     MatriculasNivelEtapaComponent,
     MatriculasSerieEtapaComponent,
     RevisaoEtapaComponent,
-    SucessoModalComponent
+    SucessoModalComponent,
+    SkeletonFormularioComponent
   ],
   templateUrl: './escola-form.component.html'
 })

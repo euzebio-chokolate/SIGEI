@@ -28,12 +28,7 @@
   </div>
 
   @if (carregando) {
-    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-      <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-      <p class="text-sm text-slate-500 mt-2">
-        Carregando usuário...
-      </p>
-    </div>
+    <app-skeleton-formulario [campos]="4" rotulo="Carregando usuário..." />
   } @else {
     <form
       [formGroup]="form"

@@ -49,12 +49,9 @@
         </thead>
         <tbody class="divide-y divide-slate-100">
           @if (carregando) {
-            <tr>
-              <td colspan="4" class="px-6 py-10 text-center text-slate-400">
-                <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                <p class="mt-2 text-sm">Carregando usuários...</p>
-              </td>
-            </tr>
+            @for (linha of [1, 2, 3, 4, 5]; track linha) {
+              <tr appSkeletonLinha [colunas]="4"></tr>
+            }
           } @else {
             @for (usuario of usuariosPaginados; track usuario.id) {
               <tr class="hover:bg-slate-50/60 transition-colors">
@@ -124,8 +121,8 @@
     </div>
 
     @if (erroMensagem) {
-      <div class="px-6 py-4 text-sm text-rose-600 bg-rose-50">
-        {{ erroMensagem }}
+      <div class="border-t border-slate-100 px-6 py-4">
+        <app-estado-erro [mensagem]="erroMensagem" (tentarNovamente)="carregarUsuarios()" />
       </div>
     }
 

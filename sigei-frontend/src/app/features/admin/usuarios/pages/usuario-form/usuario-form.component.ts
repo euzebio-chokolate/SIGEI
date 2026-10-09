@@ -7,12 +7,13 @@ import { mensagemErroFormulario } from '@core/http/erros-formulario';
 import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { PerfilUsuario, UsuarioRequest, UsuarioService } from '@domains/usuarios/data-access/usuario.service';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 
 @Component({
   selector: 'app-usuario-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent],
+  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent, SkeletonFormularioComponent],
   templateUrl: './usuario-form.component.html'
 })
 export class UsuarioFormComponent implements OnInit {
