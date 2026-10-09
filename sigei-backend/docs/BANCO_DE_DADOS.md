@@ -1,6 +1,6 @@
 # Banco de dados — SIGEI
 
-Documentação das 13 entidades persistidas da API, com dicionário de dados e diagrama de relacionamentos. Fonte: [entidades JPA](../src/main/java/ac/gov/br/sigei_backend/models) e [configuração da aplicação](../src/main/resources/application.properties).
+Documentação das 15 entidades persistidas da API, com dicionário de dados e diagrama de relacionamentos. Fonte: [entidades JPA](../src/main/java/ac/gov/br/sigei_backend/models) e [configuração da aplicação](../src/main/resources/application.properties).
 
 Este documento descreve o modelo definido no código, sem consultar uma instância do banco. Nomes e tipos SQL abaixo são os esperados para PostgreSQL com a configuração atual. O esquema é criado e evoluído pelas migrações do Flyway em [`src/main/resources/db/migration`](../src/main/resources/db/migration), e o Hibernate apenas o valida (`ddl-auto=validate`). Bancos criados antes do Flyway pelo antigo `ddl-auto=update` podem conter colunas ou objetos antigos que não constam nas entidades. Este documento não substitui as migrações nem é uma auditoria do banco implantado.
 
@@ -33,6 +33,10 @@ erDiagram
     registro_anual o|..o| infraestrutura_escola : registro_anual_id
     registro_anual o|..o{ matricula_nivel : registro_id
     registro_anual o|..o{ matricula_serie : registro_id
+    professor o|..o{ lotacao_professor : professor_id
+    ano_referencia ||..o{ lotacao_professor : ano_referencia_id
+    escola o|..o{ lotacao_professor : escola_id
+    municipio ||..o{ lotacao_professor : municipio_id
 
     municipio {
         bigint id PK
@@ -80,6 +84,17 @@ erDiagram
         bigint id PK
         bigint registro_id FK
     }
+    professor {
+        bigint id PK
+        varchar cpf_hash UK
+    }
+    lotacao_professor {
+        bigint id PK
+        bigint professor_id FK
+        bigint ano_referencia_id FK
+        bigint escola_id FK
+        bigint municipio_id FK
+    }
     usuario {
         bigint id PK
         varchar email UK
@@ -92,7 +107,7 @@ erDiagram
     usuario ||--o{ refresh_token : "possui"
 ```
 
-As UKs de `aldeia_id` e `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. A unicidade composta de `registro_anual` está detalhada adiante. `usuario` não possui FK para as tabelas do domínio; apenas `refresh_token` referencia `usuario`.
+As UKs de `aldeia_id` e `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. A unicidade composta de `registro_anual` está detalhada adiante. `usuario` não possui FK para as tabelas do domínio; apenas `refresh_token` referencia `usuario`. A lotação de professores pertence ao ano (`ano_referencia`), e não ao `registro_anual` da escola, porque pode não ter escola (núcleo) nem professor (vaga em aberto).
 
 ## Dicionário de dados
 
@@ -244,6 +259,51 @@ Entidade [MatriculaSerie.java](../src/main/java/ac/gov/br/sigei_backend/models/M
 
 Nas duas tabelas de matrícula, não há UK composta por registro e nível/série declarada nas entidades. Os totais são campos persistidos comuns, sem expressão SQL gerada ou restrição declarada que imponha a soma das quantidades. Também não há `CHECK` de valores não negativos declarado nesses campos.
 
+### `professor`
+
+Entidade [Professor.java](../src/main/java/ac/gov/br/sigei_backend/models/Professor.java). Dados pessoais dos professores do quadro de escolas indígenas. Criada pela migração `V7__professores_e_lotacoes.sql`.
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `nome` | `varchar(255)` | Não | Nome completo. |
+| `cpf` | `varchar(255)` | Sim | **Sensível, cifrado.** CPF (11 dígitos) cifrado com AES-256-GCM pelo `DadoSensivelConverter`, no formato `v1:<Base64>`. |
+| `cpf_hash` | `varchar(64)` | Sim | Índice cego do CPF: HMAC-SHA256 em hexadecimal, calculado com chave derivada de `SIGEI_CHAVE_DADOS_SENSIVEIS`. UK `uk_professor_cpf_hash`; permite unicidade e busca sem decifrar. Não é auditado. |
+| `matricula` | `varchar(255)` | Sim | **Sensível, cifrado.** Matrícula funcional. |
+| `etnia` | `varchar(255)` | Sim | Etnia informada no quadro (por exemplo, `HUNI KUI` ou `NÃO INDÍGENA`); texto livre, sem FK para `povo`. |
+| `sexo` | `varchar(1)` | Sim | `M` ou `F`; validado pela API. |
+| `formacao` | `varchar(255)` | Sim | Formação do professor. |
+
+`Professor.lotacoes` é a coleção inversa de `lotacao_professor.professor_id`.
+
+### `lotacao_professor`
+
+Entidade [LotacaoProfessor.java](../src/main/java/ac/gov/br/sigei_backend/models/LotacaoProfessor.java). Lotação de um professor em um ano: onde atua, cargo, segmento e contrato. Cada linha do quadro de professores vira uma lotação.
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `professor_id` | `bigint` | Sim | FK → `professor.id`. Nulo = vaga em aberto (a "NECESSIDADE" da planilha). |
+| `ano_referencia_id` | `bigint` | Não | FK → `ano_referencia.id`. |
+| `escola_id` | `bigint` | Sim | FK → `escola.id`. Nulo = lotação no núcleo de educação do município (o "NEE SEE" da planilha). |
+| `municipio_id` | `bigint` | Não | FK → `municipio.id`. Com escola, é o município da escola (pela aldeia e terra indígena). |
+| `cargo` | `varchar(255)` | Sim | Cargo atual, como `PROFESSOR PS-1 25H`. |
+| `segmento` | `varchar(255)` | Sim | Segmento ofertado, como `1º AO 5º ANO`; texto livre. |
+| `numero_contrato` | `varchar(255)` | Sim | **Sensível, cifrado.** Número do contrato (coluna "CONT" da planilha). |
+| `inicio_contrato` | `date` | Sim | Início do contrato. |
+| `amparo_legal` | `varchar(255)` | Sim | Amparo legal, como `DOE 13864` ou `PARECER`. |
+| `tipo_contrato` | `varchar(255)` | Sim | `EFETIVO`, `PSS`, `CONTRATO_DIRETO` ou `PERMUTA` (enum `TipoContrato`); nulo = não informado. A restrição é aplicada pela aplicação. |
+
+Não há UK por professor, escola e ano: o mesmo professor pode ter mais de uma lotação na mesma escola, em segmentos diferentes. Índices em `ano_referencia_id`, `professor_id` e `escola_id` atendem às consultas por ano, por professor e à exclusão de escola.
+
+#### Dados sensíveis
+
+CPF, matrícula e número do contrato:
+
+- são cifrados antes da gravação, também nas tabelas `_aud`, pois o Envers usa o mesmo conversor;
+- só são devolvidos pela API ao perfil `ADMIN`; para `USUARIO`, os campos vêm nulos;
+- dependem da chave `SIGEI_CHAVE_DADOS_SENSIVEIS` (obrigatória). Sem a chave correta, a leitura falha. Trocar a chave exige recifrar os registros existentes, e perder a chave torna os dados irrecuperáveis.
+
+O texto cifrado usa IV aleatório: o mesmo valor gera conteúdos diferentes, o que impede buscas e unicidade por essas colunas. Por isso o CPF tem também o índice cego `cpf_hash`.
+
 ### `usuario`
 
 Entidade [Usuario.java](../src/main/java/ac/gov/br/sigei_backend/models/Usuario.java). Contas de acesso à API, sem relacionamento JPA com escolas ou municípios.
@@ -291,7 +351,7 @@ Entidade [Revisao.java](../src/main/java/ac/gov/br/sigei_backend/models/Revisao.
 
 ### Tabelas `<entidade>_aud`
 
-`municipio_aud`, `terra_indigena_aud`, `povo_aud`, `aldeia_aud`, `escola_aud`, `ano_referencia_aud`, `registro_anual_aud`, `equipe_escola_aud`, `infraestrutura_escola_aud`, `matricula_nivel_aud`, `matricula_serie_aud` e `usuario_aud`. Cada uma repete as colunas da tabela de origem, sem constraints, e acrescenta:
+`municipio_aud`, `terra_indigena_aud`, `povo_aud`, `aldeia_aud`, `escola_aud`, `ano_referencia_aud`, `registro_anual_aud`, `equipe_escola_aud`, `infraestrutura_escola_aud`, `matricula_nivel_aud`, `matricula_serie_aud`, `usuario_aud`, `professor_aud` e `lotacao_professor_aud` (estas duas criadas pela V7). Cada uma repete as colunas da tabela de origem, sem constraints, e acrescenta:
 
 | Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
 | --- | --- | --- | --- |
@@ -299,6 +359,7 @@ Entidade [Revisao.java](../src/main/java/ac/gov/br/sigei_backend/models/Revisao.
 | `revtype` | `smallint` | Sim | `0` criação, `1` alteração, `2` exclusão. |
 
 - `usuario_aud` não guarda `senha` (`@NotAudited`).
+- `professor_aud` não guarda `cpf_hash` (`@NotAudited`). CPF, matrícula e número do contrato ficam cifrados também nas tabelas `_aud`.
 - Exclusões guardam os últimos valores (`store_data_at_delete`). Assim, o histórico mostra o que foi removido, inclusive por cascata.
 - Mudanças em coleções não geram revisão do lado pai (`revision_on_collection_change=false`); cada filho registra a sua própria.
 - A V4 criou uma revisão inicial atribuída ao sistema, com o estado de todos os dados existentes. Autoria e datas anteriores à migração não são conhecidas.
@@ -315,8 +376,9 @@ As tabelas de auditoria só crescem: nenhuma rotina as limpa. Alterações feita
 | `RegistroAnual.infraestrutura` | `CascadeType.ALL`, `orphanRemoval=true` | Infraestrutura acompanha o ciclo de vida do registro. |
 | `RegistroAnual.matriculasNivel` | `CascadeType.ALL`, `orphanRemoval=true` | Propagação às matrículas por nível e exclusão de órfãos. |
 | `RegistroAnual.matriculasSerie` | `CascadeType.ALL`, `orphanRemoval=true` | Propagação às matrículas por série e exclusão de órfãos. |
+| `Professor.lotacoes` | `CascadeType.REMOVE` | Excluir um professor exclui as suas lotações em todos os anos. |
 
-As demais associações não declaram cascata de remoção. Por exemplo, excluir um povo não implica excluir suas aldeias automaticamente. Referências existentes podem impedir exclusões.
+A exclusão de uma escola pela API (`EscolaService.excluir`) remove antes as lotações de professores nela; os professores continuam cadastrados. As demais associações não declaram cascata de remoção. Por exemplo, excluir um povo não implica excluir suas aldeias automaticamente. Referências existentes podem impedir exclusões.
 
 Essas cascatas são do ORM: não equivalem a `ON DELETE CASCADE` no PostgreSQL. A única exceção é `refresh_token.usuario_id`, que declara `@OnDelete(CASCADE)`: excluir um usuário remove seus tokens no próprio banco. Exclusões por SQL direto ou operações em lote podem ter comportamento diferente das operações de entidade. A remoção de uma linha de infraestrutura também não descreve, por si só, a remoção do arquivo no Cloudinary.
 

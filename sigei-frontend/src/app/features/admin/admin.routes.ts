@@ -87,6 +87,35 @@ export const ADMIN_ROUTES: Routes = [
         title: 'SIGEI - Editar Escola'
       },
       {
+        path: 'professores',
+        loadComponent: () => import('./professores/pages/professores-lista/professores-lista.component').then(module => module.ProfessoresListaComponent),
+        title: 'SIGEI - Professores'
+      },
+      {
+        path: 'professores/novo',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./professores/pages/professor-form/professor-form.component').then(module => module.ProfessorFormComponent),
+        title: 'SIGEI - Novo Professor'
+      },
+      {
+        path: 'professores/editar/:id',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./professores/pages/professor-form/professor-form.component').then(module => module.ProfessorFormComponent),
+        title: 'SIGEI - Editar Professor'
+      },
+      {
+        path: 'professores/lotacoes/novo',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./professores/pages/lotacao-form/lotacao-form.component').then(module => module.LotacaoFormComponent),
+        title: 'SIGEI - Nova Lotação'
+      },
+      {
+        path: 'professores/lotacoes/editar/:id',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./professores/pages/lotacao-form/lotacao-form.component').then(module => module.LotacaoFormComponent),
+        title: 'SIGEI - Editar Lotação'
+      },
+      {
         path: 'historico-escolas',
         loadComponent: () => import('./historico-escolas/pages/historico-escolas/historico-escolas.component').then(module => module.HistoricoEscolasComponent),
         title: 'SIGEI - Histórico de Escolas'

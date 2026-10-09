@@ -37,6 +37,9 @@ public class EscolaService {
     VinculoSedeService vinculoSedeService;
 
     @Autowired
+    LotacaoProfessorRepository lotacaoProfessorRepository;
+
+    @Autowired
     EscolaMapper escolaMapper;
 
     @Autowired
@@ -141,6 +144,9 @@ public class EscolaService {
     public void excluir(Long id){
         escolaRepository.findById(id)
                         .orElseThrow(() -> new NoSuchElementException("Id de escola inválido ou não encontrado"));
+
+        // As lotações de professores na escola saem junto; os professores continuam cadastrados
+        lotacaoProfessorRepository.deleteAll(lotacaoProfessorRepository.findByEscola_Id(id));
 
         escolaRepository.deleteById(id);
     }
