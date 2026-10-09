@@ -8,11 +8,12 @@ import { RegistroAnualResponse, RegistroAnualService } from '@domains/escolas/da
 import { HistoricoEscolaModalComponent } from '@domains/escolas/ui/historico-escola-modal/historico-escola-modal.component';
 import { SeAdminDirective } from '@core/auth/se-admin.directive';
 import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-historico-escolas',
   standalone: true,
-  imports: [FormsModule, RouterLink, HistoricoEscolaModalComponent, SeAdminDirective],
+  imports: [FormsModule, RouterLink, HistoricoEscolaModalComponent, SeAdminDirective, BuscaDebounceDirective],
   templateUrl: './historico-escolas.component.html'
 })
 export class HistoricoEscolasComponent implements OnInit {

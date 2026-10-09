@@ -9,11 +9,12 @@ import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-
 import { ToastService } from '@core/notificacao/toast.service';
 import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
 import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-terras-indigenas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent, BuscaDebounceDirective],
   template: `
     <div class="space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -89,7 +90,7 @@ import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.componen
             <input
               type="text"
               [(ngModel)]="filtroTexto"
-              (ngModelChange)="filtrarTerras()"
+              (buscaDebounce)="filtrarTerras()"
               placeholder="Buscar terra indígena..."
               class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm"
             />

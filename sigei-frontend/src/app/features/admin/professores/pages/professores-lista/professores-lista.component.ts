@@ -24,6 +24,7 @@ import {
 } from '@domains/professores/models/professor.models';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 type Aba = 'lotacoes' | 'professores';
 type FiltroLocal = 'todas' | 'escolas' | 'nucleo' | 'vagas';
@@ -31,7 +32,7 @@ type FiltroLocal = 'todas' | 'escolas' | 'nucleo' | 'vagas';
 @Component({
   selector: 'app-professores-lista',
   standalone: true,
-  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SeAdminDirective, SkeletonLinhaComponent],
+  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SeAdminDirective, SkeletonLinhaComponent, BuscaDebounceDirective],
   templateUrl: './professores-lista.component.html'
 })
 export class ProfessoresListaComponent implements OnInit {

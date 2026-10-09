@@ -21,13 +21,14 @@ import { mensagemErroFormulario } from '@core/http/erros-formulario';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 type Local = 'escola' | 'nucleo';
 
 @Component({
   selector: 'app-lotacao-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent, SkeletonFormularioComponent],
+  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent, SkeletonFormularioComponent, BuscaDebounceDirective],
   templateUrl: './lotacao-form.component.html'
 })
 export class LotacaoFormComponent implements OnInit {
@@ -54,6 +55,8 @@ export class LotacaoFormComponent implements OnInit {
   escolas: EscolaResponse[] = [];
   municipios: MunicipioEstatistica[] = [];
   buscaProfessor = '';
+  professoresFiltrados: ProfessorResponse[] = [];
+  private readonly nomesNormalizados = new Map<number, string>();
 
   modalSucessoAberto = false;
   tituloSucesso = '';
@@ -102,6 +105,7 @@ export class LotacaoFormComponent implements OnInit {
       next: dados => {
         this.anos = [...dados.anos].sort((a, b) => b.ano - a.ano);
         this.professores = dados.professores;
+        this.filtrarProfessores();
         this.escolas = [...dados.escolas].sort((a, b) => a.nome.localeCompare(b.nome));
         this.municipios = [...dados.municipios].sort((a, b) => a.nome.localeCompare(b.nome));
 
@@ -151,13 +155,26 @@ export class LotacaoFormComponent implements OnInit {
     });
   }
 
-  /** Professores que correspondem à busca; o selecionado continua na lista. */
-  get professoresFiltrados(): ProfessorResponse[] {
+  /**
+   * Professores que correspondem à busca; o selecionado continua na lista.
+   * Calculado só quando a busca ou a lista mudam (antes era um getter, refeito
+   * a cada verificação de mudanças e normalizando todos os nomes de novo).
+   */
+  filtrarProfessores(): void {
     const termo = this.normalizar(this.buscaProfessor);
     const selecionado = this.form.controls.professorId.value;
 
-    return this.professores
-      .filter(professor => !termo || professor.id === selecionado || this.normalizar(professor.nome).includes(termo));
+    this.professoresFiltrados = this.professores
+      .filter(professor => !termo || professor.id === selecionado || this.nomeNormalizado(professor).includes(termo));
+  }
+
+  private nomeNormalizado(professor: ProfessorResponse): string {
+    let nome = this.nomesNormalizados.get(professor.id);
+    if (nome === undefined) {
+      nome = this.normalizar(professor.nome);
+      this.nomesNormalizados.set(professor.id, nome);
+    }
+    return nome;
   }
 
   get escolasDoMunicipio(): EscolaResponse[] {
