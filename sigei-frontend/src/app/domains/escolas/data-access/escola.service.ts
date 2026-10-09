@@ -6,6 +6,7 @@ import { environment } from '@environments/environment';
 import type { MunicipioResumo, PovoResumo, TerraIndigenaResumo, AldeiaResumo, EscolaResumo, EscolaResponse, AnoReferenciaResumo, EquipeEscola, InfraestruturaEscolaDetalhe, MatriculaNivel, MatriculaSerie, RegistroAnualDetalhe, EscolaDetalheResponse } from '../models/escola.models';
 export type { MunicipioResumo, PovoResumo, TerraIndigenaResumo, AldeiaResumo, EscolaResumo, EscolaResponse, AnoReferenciaResumo, EquipeEscola, InfraestruturaEscolaDetalhe, MatriculaNivel, MatriculaSerie, RegistroAnualDetalhe, EscolaDetalheResponse } from '../models/escola.models';
 import type { RegistroAnualResponse } from '../models/registro-anual.models';
+import type { AlteracaoHistorico } from '@domains/auditoria/models/auditoria.models';
 
 export interface CadastroEscolaRequest {
   escola: {
@@ -74,6 +75,11 @@ export class EscolaService {
 
   buscarPorId(id: number): Observable<EscolaDetalheResponse> {
     return this.http.get<EscolaDetalheResponse>(`${this.apiUrl}/${id}`);
+  }
+
+  /** Trilha de auditoria (Envers) da escola e de seus registros anuais. Somente ADMIN. */
+  buscarAuditoria(id: number): Observable<AlteracaoHistorico[]> {
+    return this.http.get<AlteracaoHistorico[]>(`${this.apiUrl}/${id}/historico`);
   }
 
   editar(

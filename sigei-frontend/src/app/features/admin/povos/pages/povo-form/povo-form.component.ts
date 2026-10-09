@@ -3,11 +3,17 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { PovoRequest, PovoService } from '@domains/territorios/data-access/povo.service';
+import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
+import { ToastService } from '@core/notificacao/toast.service';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 
 @Component({
   selector: 'app-povo-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ErroCampoComponent, SkeletonFormularioComponent],
   template: `
     <div class="max-w-3xl mx-auto space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -44,6 +50,11 @@ import { PovoRequest, PovoService } from '@domains/territorios/data-access/povo.
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        @if (carregandoRegistro) {
+          <div class="p-8">
+            <app-skeleton-formulario [campos]="2" [contorno]="false" rotulo="Carregando povo..." />
+          </div>
+        } @else {
         <form [formGroup]="form" (ngSubmit)="salvar()" class="p-8 space-y-6">
           <div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
@@ -66,9 +77,7 @@ import { PovoRequest, PovoService } from '@domains/territorios/data-access/povo.
                 [class.border-slate-200]="!form.controls.nome.invalid || !form.controls.nome.touched"
               />
 
-              @if (form.controls.nome.invalid && form.controls.nome.touched) {
-                <p class="text-xs text-rose-500 mt-1.5">Informe o nome do povo.</p>
-              }
+              <app-erro-campo [controle]="form.controls.nome" [mensagens]="{ required: 'Informe o nome do povo.' }" />
             </div>
           </div>
 
@@ -101,6 +110,7 @@ import { PovoRequest, PovoService } from '@domains/territorios/data-access/povo.
             </button>
           </div>
         </form>
+        }
       </div>
     </div>
   `,
@@ -112,16 +122,18 @@ export class PovoFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   // --- Propriedades de Estado ---
   editando = false;
   povoId: number | null = null;
   salvando = false;
   erroMensagem = '';
+  carregandoRegistro = false;
 
   // --- Formulário ---
   form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.minLength(2)]],
+    nome: ['', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]],
   });
 
   // --- Ciclo de Vida ---
@@ -151,8 +163,11 @@ export class PovoFormComponent implements OnInit {
       return;
     }
 
+    this.carregandoRegistro = true;
+
     this.povoService.buscarPorId(this.povoId).subscribe({
       next: (povo) => {
+        this.carregandoRegistro = false;
         this.form.patchValue({
           nome: povo.nome,
         });
@@ -161,7 +176,8 @@ export class PovoFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar povo:', erro);
-        this.erroMensagem = 'Não foi possível carregar os dados do povo.';
+        this.carregandoRegistro = false;
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados do povo.', 'Povo não encontrado.');
         this.cdr.markForCheck();
       },
     });
@@ -191,11 +207,12 @@ export class PovoFormComponent implements OnInit {
       this.povoService.editar(dadosEdicao).subscribe({
         next: () => {
           this.salvando = false;
+          this.toast.sucesso('Os dados do povo foram atualizados.', 'Povo atualizado');
           this.router.navigate(['/admin/povos']);
         },
         error: (erro) => {
           console.error('Erro ao editar povo:', erro);
-          this.erroMensagem = 'Não foi possível editar o povo.';
+          this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível editar o povo.');
           this.salvando = false;
           this.cdr.markForCheck();
         },
@@ -207,11 +224,12 @@ export class PovoFormComponent implements OnInit {
     this.povoService.salvar(dados).subscribe({
       next: () => {
         this.salvando = false;
+        this.toast.sucesso('O novo povo foi cadastrado.', 'Povo cadastrado');
         this.router.navigate(['/admin/povos']);
       },
       error: (erro) => {
         console.error('Erro ao cadastrar povo:', erro);
-        this.erroMensagem = 'Não foi possível cadastrar o povo.';
+        this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível cadastrar o povo.');
         this.salvando = false;
         this.cdr.markForCheck();
       },

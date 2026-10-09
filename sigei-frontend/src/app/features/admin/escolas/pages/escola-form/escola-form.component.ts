@@ -19,7 +19,12 @@ import { MatriculasSerieEtapaComponent } from '@features/admin/escolas/ui/form-s
 import { RevisaoEtapaComponent } from '@features/admin/escolas/ui/form-steps/revisao-etapa.component';
 import { NIVEIS_MATRICULA, SERIES_MATRICULA } from './escola-form.config';
 
+import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
+import { aplicarErrosServidor } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
+import { ToastService } from '@core/notificacao/toast.service';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 
 @Component({
   selector: 'app-escola-form',
@@ -34,7 +39,8 @@ import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.co
     MatriculasNivelEtapaComponent,
     MatriculasSerieEtapaComponent,
     RevisaoEtapaComponent,
-    SucessoModalComponent
+    SucessoModalComponent,
+    SkeletonFormularioComponent
   ],
   templateUrl: './escola-form.component.html'
 })
@@ -48,6 +54,7 @@ export class EscolaFormComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(ToastService);
 
   etapaAtual = 1;
   salvando = false;
@@ -77,15 +84,21 @@ export class EscolaFormComponent implements OnInit {
   private escolasCadastradas: EscolaResponse[] = [];
   anosReferencia: AnoReferencia[] = [];
   escolasSede: { id: number; codigo: string; nome: string; }[] = [];
+  /** Escola em edição que é sede de algum anexo. */
+  private possuiAnexos = false;
 
   modalSucessoAberto = false;
   tituloSucesso = '';
   mensagemSucesso = '';
 
   form = this.fb.group({
-    codigo: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    nome: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    tipoUnidade: this.fb.nonNullable.control('', Validators.required),
+    codigo: this.fb.nonNullable.control('', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]),
+    nome: this.fb.nonNullable.control('', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]),
+    // VinculoSedeService: uma sede com anexos não pode virar ANEXO
+    tipoUnidade: this.fb.nonNullable.control('', [
+      Validators.required,
+      controle => controle.value === 'ANEXO' && this.possuiAnexos ? { possuiAnexos: true } : null
+    ]),
     aldeiaId: this.fb.nonNullable.control(0, [Validators.required, Validators.min(1)]),
     escolaSedeId: this.fb.control<number | null>(null)
   });
@@ -107,10 +120,10 @@ export class EscolaFormComponent implements OnInit {
   });
 
   infraestruturaForm = this.fb.group({
-    anoConstrucao: this.fb.control<number | null>(null),
-    numSalas: this.fb.control<number | null>(null),
-    latitude: this.fb.control<number | null>(null),
-    longitude: this.fb.control<number | null>(null),
+    anoConstrucao: this.fb.control<number | null>(null, [Validators.min(1900), Validators.max(new Date().getFullYear())]),
+    numSalas: this.fb.control<number | null>(null, Validators.min(0)),
+    latitude: this.fb.control<number | null>(null, [Validators.min(-90), Validators.max(90)]),
+    longitude: this.fb.control<number | null>(null, [Validators.min(-180), Validators.max(180)]),
     situacao: this.fb.nonNullable.control('', Validators.required),
     tipoAcesso: this.fb.nonNullable.control('', Validators.required),
     temPredio: this.fb.nonNullable.control(false),
@@ -232,7 +245,7 @@ export class EscolaFormComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar escola para edição:', erro);
-        this.erroMensagem = 'Não foi possível carregar os dados da escola.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados da escola.', 'Escola não encontrada.');
         this.carregandoEdicao = false;
         this.cdr.markForCheck();
       }
@@ -413,9 +426,10 @@ export class EscolaFormComponent implements OnInit {
       error: erro => {
         console.error('Erro ao adicionar ano de referência:', erro);
         this.salvandoAno = false;
-        this.erroNovoAno = erro?.status === 409
+        const falha = interpretarErro(erro, 'Não foi possível adicionar o ano.');
+        this.erroNovoAno = falha.status === 409
           ? 'Este ano já está cadastrado. Atualize a lista e selecione-o.'
-          : 'Não foi possível adicionar o ano.';
+          : falha.mensagem;
         this.cdr.markForCheck();
       }
     });
@@ -439,7 +453,7 @@ export class EscolaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar aldeias:', erro);
-        this.erroMensagem = 'Não foi possível carregar as aldeias.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar as aldeias.');
         this.carregandoAldeias = false;
         this.cdr.markForCheck();
       }
@@ -459,7 +473,7 @@ export class EscolaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar anos de referência:', erro);
-        this.erroAnos = 'Não foi possível carregar os anos de referência.';
+        this.erroAnos = mensagemErroCarregamento(erro, 'Não foi possível carregar os anos de referência.');
         this.carregandoAnos = false;
         this.cdr.markForCheck();
       }
@@ -471,8 +485,12 @@ export class EscolaFormComponent implements OnInit {
       next: (dados) => {
         this.escolasCadastradas = dados ?? [];
         this.atualizarAldeiasDisponiveis();
+        this.possuiAnexos = this.escolaId !== null
+          && this.escolasCadastradas.some(escola => escola.escolaSede?.id === this.escolaId);
+        this.form.controls.tipoUnidade.updateValueAndValidity();
         this.escolasSede = this.escolasCadastradas
-          .filter(escola => escola.tipoUnidade === 'SEDE')
+          // Uma escola não pode ser sede de si mesma (VinculoSedeService)
+          .filter(escola => escola.tipoUnidade === 'SEDE' && escola.id !== this.escolaId)
           .map(escola => ({
             id: escola.id,
             codigo: escola.codigo,
@@ -483,6 +501,9 @@ export class EscolaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar escolas sede:', erro);
+        if (!interpretarErro(erro).global) {
+          this.toast.aviso('Não foi possível carregar a lista de escolas sede.');
+        }
       }
     });
   }
@@ -776,7 +797,7 @@ if (
           erro
         );
         this.salvando = false;
-        this.erroMensagem = this.obterMensagemErroCadastro(erro);
+        this.tratarErroCadastro(erro);
         this.cdr.markForCheck();
       }
     });
@@ -804,13 +825,54 @@ if (
     return totalMatriculas > 0 ? totalMatriculas : null;
   }
 
-  private obterMensagemErroCadastro(erro: any): string {
-    if (erro?.error?.message) return erro.error.message;
-    if (typeof erro?.error === 'string') return erro.error;
-    if (erro?.status === 0) return 'Não foi possível conectar ao servidor.';
-    if (erro?.status === 400) return 'Algum dado informado é inválido. Confira o cadastro e tente novamente.';
-    if (erro?.status === 404) return 'Um dos registros relacionados não foi encontrado.';
-    if (erro?.status >= 500) return 'Ocorreu um erro no servidor ao realizar o cadastro.';
-    return 'Não foi possível concluir o cadastro da escola.';
+  /**
+   * Distribui os erros do cadastro completo entre as etapas do formulário e
+   * volta para a primeira etapa com problema. Os campos chegam com o caminho do
+   * CadastroEscolaRequestDTO (ex.: "escola.nome", "matriculasNivel[2].qtdFeminino").
+   */
+  private tratarErroCadastro(erro: unknown): void {
+    const falha = interpretarErro(erro, 'Não foi possível concluir o cadastro da escola.');
+    const destinos = [
+      { etapa: 1, form: this.form as FormGroup, campos: {} as Record<string, string[]>, regras: [
+        { campo: 'tipoUnidade', padrao: /tipo de unidade|SEDE não pode ter/i },
+        { campo: 'escolaSedeId', padrao: /sede/i }
+      ] },
+      { etapa: 2, form: this.registroForm as FormGroup, campos: {}, regras: [
+        { campo: 'anoReferenciaId', padrao: /registro anual para essa escola neste ano/i }
+      ] },
+      { etapa: 3, form: this.equipeForm as FormGroup, campos: {}, regras: [] },
+      { etapa: 4, form: this.infraestruturaForm as FormGroup, campos: {}, regras: [] },
+      { etapa: 5, form: this.matriculasNivelForm as FormGroup, campos: {}, regras: [] },
+      { etapa: 6, form: this.matriculasSerieForm as FormGroup, campos: {}, regras: [] }
+    ];
+
+    for (const [caminho, mensagens] of Object.entries(falha.campos)) {
+      const nivel = /^matriculasNivel\[(\d+)\]\.(\w+)$/.exec(caminho);
+      const serie = /^matriculasSerie\[(\d+)\]\.(\w+)$/.exec(caminho);
+      const [, grupo, resto] = /^(escola|equipe|infraestrutura)\.(.+)$/.exec(caminho) ?? [];
+
+      if (nivel) {
+        // A primeira linha enviada é o TOTAL_GERAL, que não existe no formulário
+        destinos[4].campos[`matriculas.${Number(nivel[1]) - 1}.${nivel[2]}`] = mensagens;
+      } else if (serie) {
+        destinos[5].campos[`matriculas.${serie[1]}.${serie[2]}`] = mensagens;
+      } else if (grupo) {
+        destinos[{ escola: 0, equipe: 2, infraestrutura: 3 }[grupo]!].campos[resto] = mensagens;
+      } else {
+        destinos[1].campos[caminho] = mensagens;
+      }
+    }
+
+    const comErro = destinos.filter(({ form, campos, regras }) =>
+      aplicarErrosServidor(form, { ...falha, campos }, regras)
+    );
+
+    if (comErro.length) {
+      this.etapaAtual = Math.min(...comErro.map(destino => destino.etapa));
+      this.erroMensagem = 'Corrija os campos destacados e tente novamente.';
+      return;
+    }
+
+    this.erroMensagem = falha.global ? '' : falha.mensagem;
   }
 }

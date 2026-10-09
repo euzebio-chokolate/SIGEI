@@ -122,6 +122,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'usuarios',
+        canActivate: [adminGuard],
         loadComponent: () => import('./usuarios/pages/usuarios-lista/usuarios-lista.component').then(module => module.UsuariosListaComponent),
         title: 'SIGEI - Usuários'
       },
@@ -136,6 +137,12 @@ export const ADMIN_ROUTES: Routes = [
         canActivate: [adminGuard],
         loadComponent: () => import('./usuarios/pages/usuario-form/usuario-form.component').then(module => module.UsuarioFormComponent),
         title: 'SIGEI - Editar Usuário'
+      },
+      {
+        path: 'auditoria',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./auditoria/pages/auditoria/auditoria.component').then(module => module.AuditoriaComponent),
+        title: 'SIGEI - Auditoria'
       },
       {
         path: 'configuracoes',

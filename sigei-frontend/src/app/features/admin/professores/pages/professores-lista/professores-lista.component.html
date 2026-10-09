@@ -16,9 +16,9 @@
       <p class="text-sm text-slate-500 mt-1">Quadro de professores, lotações nas escolas e vagas em aberto.</p>
     </div>
 
+    @if (ehAdmin) {
     <div class="flex flex-wrap items-center gap-2">
       <label
-        data-admin-action
         title="Importar a planilha do quadro de professores de {{ anoQuadro }}"
         class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 transition-all cursor-pointer"
         [class.opacity-60]="importando"
@@ -50,6 +50,7 @@
         Novo professor
       </a>
     </div>
+    }
   </div>
 
   <!-- Cards -->
@@ -154,7 +155,7 @@
           <input
             type="text"
             [(ngModel)]="filtroLotacao"
-            (ngModelChange)="aplicarFiltrosLotacao()"
+            (buscaDebounce)="aplicarFiltrosLotacao()"
             placeholder="Buscar professor, escola, cargo ou segmento..."
             class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
           />
@@ -218,18 +219,15 @@
               <th class="px-6 py-3.5">Contrato</th>
               @if (ehAdmin) {
                 <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>Nº contrato</th>
+                <th class="px-6 py-3.5 text-right">Ações</th>
               }
-              <th class="px-6 py-3.5 text-right">Ações</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @if (carregandoLotacoes) {
-              <tr>
-                <td [attr.colspan]="ehAdmin ? 6 : 5" class="px-6 py-10 text-center text-slate-400">
-                  <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                  <p class="mt-2 text-sm">Carregando lotações...</p>
-                </td>
-              </tr>
+              @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                <tr appSkeletonLinha [colunas]="ehAdmin ? 6 : 4"></tr>
+              }
             } @else {
               @for (lotacao of lotacoesPaginadas; track lotacao.id) {
                 <tr class="hover:bg-slate-50/60 transition-colors">
@@ -281,7 +279,7 @@
                       }
                     </td>
                   }
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="inline-flex items-center gap-1">
                       <a
                         [routerLink]="['/admin/professores/lotacoes/editar', lotacao.id]"
@@ -303,7 +301,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td [attr.colspan]="ehAdmin ? 6 : 5" class="px-6 py-10 text-center text-slate-400">
+                  <td [attr.colspan]="ehAdmin ? 6 : 4" class="px-6 py-10 text-center text-slate-400">
                     @if (lotacoes.length === 0 && anoSelecionado !== null) {
                       Nenhuma lotação cadastrada em {{ anoSelecionado }}.
                       @if (ehAdmin && anoSelecionado === anoQuadro) {
@@ -343,7 +341,7 @@
           <input
             type="text"
             [(ngModel)]="filtroProfessor"
-            (ngModelChange)="aplicarFiltrosProfessor()"
+            (buscaDebounce)="aplicarFiltrosProfessor()"
             placeholder="Buscar por nome, etnia ou formação..."
             class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
           />
@@ -365,18 +363,15 @@
               @if (ehAdmin) {
                 <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>CPF</th>
                 <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>Matrícula</th>
+                <th class="px-6 py-3.5 text-right">Ações</th>
               }
-              <th class="px-6 py-3.5 text-right">Ações</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @if (carregandoProfessores) {
-              <tr>
-                <td [attr.colspan]="ehAdmin ? 5 : 3" class="px-6 py-10 text-center text-slate-400">
-                  <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                  <p class="mt-2 text-sm">Carregando professores...</p>
-                </td>
-              </tr>
+              @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                <tr appSkeletonLinha [colunas]="ehAdmin ? 5 : 2"></tr>
+              }
             } @else {
               @for (professor of professoresPaginados; track professor.id) {
                 <tr class="hover:bg-slate-50/60 transition-colors">
@@ -410,7 +405,7 @@
                       }
                     </td>
                   }
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="inline-flex items-center gap-1">
                       <a
                         [routerLink]="['/admin/professores/editar', professor.id]"
@@ -432,7 +427,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td [attr.colspan]="ehAdmin ? 5 : 3" class="px-6 py-10 text-center text-slate-400">Nenhum professor encontrado.</td>
+                  <td [attr.colspan]="ehAdmin ? 5 : 2" class="px-6 py-10 text-center text-slate-400">Nenhum professor encontrado.</td>
                 </tr>
               }
             }

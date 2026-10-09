@@ -28,12 +28,7 @@
   </div>
 
   @if (carregando) {
-    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-      <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-      <p class="text-sm text-slate-500 mt-2">
-        Carregando usuário...
-      </p>
-    </div>
+    <app-skeleton-formulario [campos]="4" rotulo="Carregando usuário..." />
   } @else {
     <form
       [formGroup]="form"
@@ -52,11 +47,10 @@
             placeholder="Nome completo"
             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
-          @if (form.controls.nome.touched && form.controls.nome.invalid) {
-            <p class="text-xs text-rose-500 mt-1.5">
-              Informe o nome do usuário.
-            </p>
-          }
+          <app-erro-campo
+            [controle]="form.controls.nome"
+            [mensagens]="{ required: 'Informe o nome do usuário.' }"
+          />
         </div>
 
         <!-- E-mail -->
@@ -70,11 +64,10 @@
             placeholder="usuario@sigei.com"
             class="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
-          @if (form.controls.email.touched && form.controls.email.invalid) {
-            <p class="text-xs text-rose-500 mt-1.5">
-              Informe um e-mail válido.
-            </p>
-          }
+          <app-erro-campo
+            [controle]="form.controls.email"
+            [mensagens]="{ required: 'Informe o e-mail do usuário.' }"
+          />
         </div>
 
         <!-- Senha -->
@@ -111,15 +104,10 @@
               ></i>
             </button>
           </div>
-          @if (form.controls.senha.touched && form.controls.senha.invalid) {
-            <p class="text-xs text-rose-500 mt-1.5">
-              @if (form.controls.senha.hasError('required')) {
-                  Informe a senha.
-                } @else if (form.controls.senha.hasError('minlength')) {
-                  A senha deve ter pelo menos 4 caracteres.
-                }
-            </p>
-          }
+          <app-erro-campo
+            [controle]="form.controls.senha"
+            [mensagens]="{ required: 'Informe a senha.' }"
+          />
         </div>
 
         <!-- Perfil -->
@@ -137,6 +125,7 @@
               </option>
             }
           </select>
+          <app-erro-campo [controle]="form.controls.perfil" />
         </div>
       </div>
 

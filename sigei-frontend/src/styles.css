@@ -29,14 +29,13 @@ button, a {
   outline-offset: 3px;
 }
 
-/* Usuários comuns consultam os dados, mas não recebem ações de escrita na interface. */
-.usuario-leitura a[href*="/novo"],
-.usuario-leitura a[href*="/editar"],
-.usuario-leitura button[title^="Editar"],
-.usuario-leitura button[title^="Excluir"],
-.usuario-leitura [data-admin-action] {
-  display: none !important;
+/* Campo inválido depois de tocado: destaca a borda em todos os formulários (fora das camadas do Tailwind, prevalece sobre border-slate-*) */
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+  border-color: var(--color-rose-400, #fb7185);
 }
+
 
 ::selection {
   color: #fff;

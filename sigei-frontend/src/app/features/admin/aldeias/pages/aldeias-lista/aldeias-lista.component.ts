@@ -3,12 +3,18 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { AldeiaResponse, AldeiaService } from '@domains/territorios/data-access/aldeia.service';
+import { SeAdminDirective } from '@core/auth/se-admin.directive';
+import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
+import { ToastService } from '@core/notificacao/toast.service';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-aldeias-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent, BuscaDebounceDirective],
   template: `
     <div class="space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -28,7 +34,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
           </p>
         </div>
 
-        <a routerLink="/admin/aldeias/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
+        <a *seAdmin routerLink="/admin/aldeias/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
           <i class="fa-solid fa-plus text-xs"></i>
           Nova Aldeia
         </a>
@@ -85,7 +91,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
             <input
               type="text"
               [(ngModel)]="filtroTexto"
-              (ngModelChange)="filtrarAldeias()"
+              (buscaDebounce)="filtrarAldeias()"
               placeholder="Buscar aldeia, terra, município ou povo..."
               class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm"
             />
@@ -100,7 +106,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                 <th class="px-6 py-3.5">Terra Indígena</th>
                 <th class="px-6 py-3.5">Município</th>
                 <th class="px-6 py-3.5">Povo</th>
-                <th class="px-6 py-3.5 text-right">Ações</th>
+                <th *seAdmin class="px-6 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
@@ -136,7 +142,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                     </span>
                   </td>
 
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-1">
                       <a
                         [routerLink]="['/admin/aldeias/editar', aldeia.id]"
@@ -162,22 +168,21 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
-                    @if (carregando) {
-                      <div class="flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                        <span> Carregando aldeias... </span>
-                      </div>
-                    } @else if (erroMensagem) {
-                      <span class="text-rose-500 font-semibold">
-                        {{ erroMensagem }}
-                      </span>
-                    } @else {
-                      Nenhuma aldeia encontrada.
-                    }
-                  </td>
-                </tr>
+                @if (carregando) {
+                  @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                    <tr appSkeletonLinha [colunas]="4"></tr>
+                  }
+                } @else {
+                  <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
+                      @if (erroMensagem) {
+                        <app-estado-erro [mensagem]="erroMensagem" (tentarNovamente)="carregarAldeias()" />
+                      } @else {
+                        Nenhuma aldeia encontrada.
+                      }
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -233,6 +238,7 @@ export class AldeiasListaComponent implements OnInit {
   // --- Injeções de Dependência ---
   private readonly aldeiaService = inject(AldeiaService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   // --- Propriedades de Estado ---
   aldeiasLista: AldeiaResponse[] = [];
@@ -285,7 +291,7 @@ export class AldeiasListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar aldeias:', erro);
-        this.erroMensagem = 'Não foi possível carregar as aldeias.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar as aldeias.');
         this.carregando = false;
         this.cdr.markForCheck();
       },
@@ -361,13 +367,15 @@ export class AldeiasListaComponent implements OnInit {
           this.paginaAtual--;
         }
 
+        this.toast.sucesso(`A aldeia ${aldeia.nome} foi excluída.`, 'Aldeia excluída');
         this.excluindoId = null;
         this.aldeiaParaExcluir = null;
         this.cdr.markForCheck();
       },
       error: (erro) => {
         console.error('Erro ao excluir aldeia:', erro);
-        this.erroMensagem = 'Não foi possível excluir a aldeia. Verifique se existem escolas vinculadas.';
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a aldeia.', 'Não é possível excluir a aldeia: existem escolas vinculadas a ela.');
+        if (mensagem) this.toast.erro(mensagem);
         this.excluindoId = null;
         this.aldeiaParaExcluir = null;
         this.cdr.markForCheck();

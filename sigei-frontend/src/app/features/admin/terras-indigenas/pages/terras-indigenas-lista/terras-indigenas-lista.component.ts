@@ -4,11 +4,17 @@ import { FormsModule } from '@angular/forms';
 
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
 import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territorios/data-access/terra-indigena.service';
+import { SeAdminDirective } from '@core/auth/se-admin.directive';
+import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
+import { ToastService } from '@core/notificacao/toast.service';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-terras-indigenas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent, BuscaDebounceDirective],
   template: `
     <div class="space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -27,7 +33,7 @@ import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territo
             Consulte as terras indígenas, municípios, aldeias e escolas vinculadas.
           </p>
         </div>
-        <a routerLink="/admin/terras-indigenas/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
+        <a *seAdmin routerLink="/admin/terras-indigenas/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
           <i class="fa-solid fa-plus text-xs"></i>
           Nova Terra Indígena
         </a>
@@ -84,7 +90,7 @@ import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territo
             <input
               type="text"
               [(ngModel)]="filtroTexto"
-              (ngModelChange)="filtrarTerras()"
+              (buscaDebounce)="filtrarTerras()"
               placeholder="Buscar terra indígena..."
               class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-slate-700 placeholder:text-slate-400 shadow-sm"
             />
@@ -99,7 +105,7 @@ import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territo
                 <th class="px-6 py-3.5">Município</th>
                 <th class="px-6 py-3.5 text-center">Aldeias</th>
                 <th class="px-6 py-3.5 text-center">Escolas</th>
-                <th class="px-6 py-3.5 text-right">Ações</th>
+                <th *seAdmin class="px-6 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
 
@@ -136,7 +142,7 @@ import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territo
                     </span>
                   </td>
 
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-1">
                       <a
                         [routerLink]="['/admin/terras-indigenas/editar', terra.id]"
@@ -163,22 +169,21 @@ import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territo
                   </td>
                 </tr>
               } @empty {
-                <tr>
-                  <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
-                    @if (carregando) {
-                      <div class="flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-                        <span> Carregando terras indígenas... </span>
-                      </div>
-                    } @else if (erroMensagem) {
-                      <span class="text-rose-500 font-semibold">
-                        {{ erroMensagem }}
-                      </span>
-                    } @else {
-                      Nenhuma terra indígena encontrada.
-                    }
-                  </td>
-                </tr>
+                @if (carregando) {
+                  @for (linha of [1, 2, 3, 4, 5, 6]; track linha) {
+                    <tr appSkeletonLinha [colunas]="4"></tr>
+                  }
+                } @else {
+                  <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-slate-400 text-sm">
+                      @if (erroMensagem) {
+                        <app-estado-erro [mensagem]="erroMensagem" (tentarNovamente)="carregarEstatisticas()" />
+                      } @else {
+                        Nenhuma terra indígena encontrada.
+                      }
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -234,6 +239,7 @@ export class TerrasIndigenasListaComponent implements OnInit {
   // --- Injeções de Dependência ---
   private terraIndigenaService = inject(TerraIndigenaService);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
 
   // --- Propriedades de Estado ---
   terrasLista: TerraIndigenaEstatistica[] = [];
@@ -286,7 +292,7 @@ export class TerrasIndigenasListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('❌ Erro ao carregar terras indígenas:', erro);
-        this.erroMensagem = 'Não foi possível carregar as terras indígenas.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar as terras indígenas.');
         this.carregando = false;
         this.cdr.markForCheck();
       },
@@ -360,13 +366,15 @@ export class TerrasIndigenasListaComponent implements OnInit {
           this.paginaAtual--;
         }
 
+        this.toast.sucesso(`A terra indígena ${terra.nome} foi excluída.`, 'Terra indígena excluída');
         this.excluindoId = null;
         this.terraParaExcluir = null;
         this.cdr.markForCheck();
       },
       error: (erro) => {
         console.error('Erro ao excluir terra indígena:', erro);
-        this.erroMensagem = 'Não foi possível excluir a terra indígena. Verifique se existem aldeias vinculadas.';
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a terra indígena.', 'Não é possível excluir a terra indígena: existem aldeias vinculadas a ela.');
+        if (mensagem) this.toast.erro(mensagem);
         this.excluindoId = null;
         this.terraParaExcluir = null;
         this.cdr.markForCheck();

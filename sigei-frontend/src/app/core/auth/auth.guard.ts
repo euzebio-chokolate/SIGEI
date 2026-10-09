@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { ToastService } from '@core/notificacao/toast.service';
 import { AuthService } from './auth.service';
 
 export const authGuard: CanActivateFn = () => {
@@ -27,7 +28,11 @@ export const adminGuard: CanActivateFn = () => {
 
   if (!authService.estaLogado()) return router.createUrlTree(['/login']);
   if (authService.deveAlterarSenha()) return router.createUrlTree(['/alterar-senha']);
-  return authService.ehAdmin() ? true : router.createUrlTree(['/admin/dashboard']);
+  if (authService.ehAdmin()) return true;
+
+  // Acesso por URL digitada ou link antigo: explica o redirecionamento em vez de só trocar de tela
+  inject(ToastService).aviso('Esta área é restrita a administradores.', 'Acesso restrito');
+  return router.createUrlTree(['/admin/dashboard']);
 };
 
 export const fallbackGuard: CanActivateFn = () => {

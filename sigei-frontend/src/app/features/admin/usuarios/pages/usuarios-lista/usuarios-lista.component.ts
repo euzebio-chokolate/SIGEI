@@ -3,18 +3,24 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { UsuarioResponse, UsuarioService } from '@domains/usuarios/data-access/usuario.service';
+import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
+import { ToastService } from '@core/notificacao/toast.service';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-usuarios-lista',
   standalone: true,
-  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent],
+  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SkeletonLinhaComponent, EstadoErroComponent, BuscaDebounceDirective],
   templateUrl: './usuarios-lista.component.html'
 })
 export class UsuariosListaComponent implements OnInit {
   private readonly usuarioService = inject(UsuarioService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   usuarios: UsuarioResponse[] = [];
   usuariosFiltrados: UsuarioResponse[] = [];
@@ -50,7 +56,7 @@ export class UsuariosListaComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar usuários:', erro);
-        this.erroMensagem = 'Não foi possível carregar os usuários.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os usuários.');
         this.carregando = false;
         this.cdr.markForCheck();
       }
@@ -131,6 +137,14 @@ export class UsuariosListaComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao excluir usuário:', erro);
+        const mensagem = mensagemErroExclusao(
+          erro,
+          'Não foi possível excluir o usuário.',
+          // As sessões (refresh_token) do usuário impedem a exclusão no backend
+          'Não é possível excluir este usuário porque ele já acessou o sistema. Desative-o em vez de excluir.'
+        );
+        if (mensagem) this.toast.erro(mensagem);
+        this.usuarioParaExcluir = null;
         this.excluindoId = null;
         this.cdr.markForCheck();
       }

@@ -5,11 +5,17 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AldeiaRequest, AldeiaService } from '@domains/territorios/data-access/aldeia.service';
 import { TerraIndigenaEstatistica, TerraIndigenaService } from '@domains/territorios/data-access/terra-indigena.service';
 import { PovoResponse, PovoService } from '@domains/territorios/data-access/povo.service';
+import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
+import { ToastService } from '@core/notificacao/toast.service';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 
 @Component({
   selector: 'app-aldeia-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ErroCampoComponent, SkeletonFormularioComponent],
   template: `
     <div class="max-w-3xl mx-auto space-y-5 font-sans pb-10">
       <!-- Breadcrumb -->
@@ -45,6 +51,11 @@ import { PovoResponse, PovoService } from '@domains/territorios/data-access/povo
 
       <!-- Card -->
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        @if (carregandoRegistro) {
+          <div class="p-8">
+            <app-skeleton-formulario [campos]="3" [contorno]="false" rotulo="Carregando aldeia..." />
+          </div>
+        } @else {
         <form [formGroup]="form" (ngSubmit)="salvar()" class="p-8 space-y-6">
           <div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
@@ -67,9 +78,7 @@ import { PovoResponse, PovoService } from '@domains/territorios/data-access/povo
                   [class.border-rose-400]="form.controls.nome.invalid && form.controls.nome.touched"
                   [class.border-slate-200]="!form.controls.nome.invalid || !form.controls.nome.touched"
                 />
-                @if (form.controls.nome.invalid && form.controls.nome.touched) {
-                  <p class="text-xs text-rose-500 mt-1.5">Informe o nome da aldeia.</p>
-                }
+                <app-erro-campo [controle]="form.controls.nome" [mensagens]="{ required: 'Informe o nome da aldeia.' }" />
               </div>
 
               <!-- Terra Indígena -->
@@ -92,9 +101,10 @@ import { PovoResponse, PovoService } from '@domains/territorios/data-access/povo
                     </option>
                   }
                 </select>
-                @if (form.controls.terraIndigenaId.invalid && form.controls.terraIndigenaId.touched) {
-                  <p class="text-xs text-rose-500 mt-1.5">Selecione uma terra indígena.</p>
-                }
+                <app-erro-campo
+                  [controle]="form.controls.terraIndigenaId"
+                  [mensagens]="{ required: 'Selecione uma terra indígena.', min: 'Selecione uma terra indígena.' }"
+                />
               </div>
 
               <!-- Povo -->
@@ -117,9 +127,10 @@ import { PovoResponse, PovoService } from '@domains/territorios/data-access/povo
                     </option>
                   }
                 </select>
-                @if (form.controls.povoId.invalid && form.controls.povoId.touched) {
-                  <p class="text-xs text-rose-500 mt-1.5">Selecione um povo.</p>
-                }
+                <app-erro-campo
+                  [controle]="form.controls.povoId"
+                  [mensagens]="{ required: 'Selecione um povo.', min: 'Selecione um povo.' }"
+                />
               </div>
             </div>
           </div>
@@ -162,6 +173,7 @@ import { PovoResponse, PovoService } from '@domains/territorios/data-access/povo
             </button>
           </div>
         </form>
+        }
       </div>
     </div>
   `,
@@ -175,6 +187,7 @@ export class AldeiaFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   // --- Propriedades de Estado ---
   terras: TerraIndigenaEstatistica[] = [];
@@ -187,10 +200,11 @@ export class AldeiaFormComponent implements OnInit {
   carregandoPovos = false;
   salvando = false;
   erroMensagem = '';
+  carregandoRegistro = false;
 
   // --- Formulário ---
   form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.minLength(2)]],
+    nome: ['', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]],
     terraIndigenaId: [0, [Validators.required, Validators.min(1)]],
     povoId: [0, [Validators.required, Validators.min(1)]],
   });
@@ -229,8 +243,11 @@ export class AldeiaFormComponent implements OnInit {
       return;
     }
 
+    this.carregandoRegistro = true;
+
     this.aldeiaService.buscarPorId(this.aldeiaId).subscribe({
       next: (aldeia) => {
+        this.carregandoRegistro = false;
         this.form.patchValue({
           nome: aldeia.nome,
           terraIndigenaId: aldeia.terraIndigena.id,
@@ -240,7 +257,8 @@ export class AldeiaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar aldeia:', erro);
-        this.erroMensagem = 'Não foi possível carregar os dados da aldeia.';
+        this.carregandoRegistro = false;
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados da aldeia.', 'Aldeia não encontrada.');
         this.cdr.markForCheck();
       }
     });
@@ -257,7 +275,7 @@ export class AldeiaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar terras indígenas:', erro);
-        this.erroMensagem = 'Não foi possível carregar as terras indígenas.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar as terras indígenas.');
         this.carregandoTerras = false;
         this.cdr.markForCheck();
       },
@@ -275,7 +293,7 @@ export class AldeiaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar povos:', erro);
-        this.erroMensagem = 'Não foi possível carregar os povos.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os povos.');
         this.carregandoPovos = false;
         this.cdr.markForCheck();
       },
@@ -312,11 +330,12 @@ export class AldeiaFormComponent implements OnInit {
       this.aldeiaService.editar(dadosEdicao).subscribe({
         next: () => {
           this.salvando = false;
+          this.toast.sucesso('Os dados da aldeia foram atualizados.', 'Aldeia atualizada');
           this.router.navigate(['/admin/aldeias']);
         },
         error: (erro) => {
           console.error('Erro ao editar aldeia:', erro);
-          this.erroMensagem = 'Não foi possível editar a aldeia.';
+          this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível editar a aldeia.');
           this.salvando = false;
           this.cdr.markForCheck();
         }
@@ -328,11 +347,12 @@ export class AldeiaFormComponent implements OnInit {
     this.aldeiaService.salvar(dados).subscribe({
       next: () => {
         this.salvando = false;
+        this.toast.sucesso('A nova aldeia foi cadastrada.', 'Aldeia cadastrada');
         this.router.navigate(['/admin/aldeias']);
       },
       error: (erro) => {
         console.error('Erro ao cadastrar aldeia:', erro);
-        this.erroMensagem = 'Não foi possível cadastrar a aldeia.';
+        this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível cadastrar a aldeia.');
         this.salvando = false;
         this.cdr.markForCheck();
       }

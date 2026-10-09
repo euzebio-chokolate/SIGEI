@@ -17,6 +17,8 @@ import {
   AldeiaResponse
 } from '@domains/territorios/data-access/aldeia.service';
 
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+
 export interface EscolaFormControls {
   codigo: FormControl<string>;
   nome: FormControl<string>;
@@ -30,7 +32,8 @@ export interface EscolaFormControls {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    RouterLink
+    RouterLink,
+    ErroCampoComponent
   ],
   templateUrl: './escola-etapa.component.html'
 })
