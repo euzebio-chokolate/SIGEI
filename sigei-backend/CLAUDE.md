@@ -246,6 +246,20 @@ Na inicialização:
 
 Actuator expõe `health` e `info`; apenas health tem liberação pública explícita. O Dockerfile faz build em Java 21, pula os testes e executa o JAR com usuário sem privilégios. O Compose inclui PostgreSQL 17 e volume persistente.
 
+### Demonstração pública gratuita
+
+O Git local tem a raiz em `SIGEI`, contendo backend e frontend. No Render, use
+Blueprint Path `sigei-backend/render.yaml`; o arquivo define `rootDir: sigei-backend`.
+Na Vercel, use Root Directory `sigei-frontend`.
+`render.yaml` configura somente a API no Render Free, com PostgreSQL externo no
+Neon, heap Java de 256 MB, pool de três conexões e carga automática de planilhas
+desligada. Esses limites precisam de validação no ambiente hospedado.
+`docs/HOSPEDAGEM_GRATUITA.md` descreve a publicação e a preparação dos dados.
+`docs/deploy/vercel.json.example` é um modelo para o repositório do frontend:
+substitua o endereço de exemplo pela API real antes de usá-lo como `vercel.json`.
+O proxy `/api` da Vercel mantém a mesma origem da sessão; a API não deve entrar
+em cache compartilhado. Os arquivos não publicam os serviços automaticamente.
+
 ## Execução e verificação
 
 Execute na raiz com JDK 21 configurado. No PowerShell:

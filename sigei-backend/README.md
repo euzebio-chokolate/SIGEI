@@ -67,6 +67,10 @@ banco local e testar uma carga nova, execute `docker compose down -v`.
 
 ## Hospedagem
 
+Para a demonstração do TCC com orçamento zero e acesso mesmo com o computador
+desligado, veja [hospedagem gratuita com Vercel, Render e Neon](docs/HOSPEDAGEM_GRATUITA.md).
+O `render.yaml` prepara a API no plano Free; o guia inclui o modelo do proxy do frontend.
+
 Use o `Dockerfile` e um PostgreSQL gerenciado. Configure:
 
 - `DATABASE_URL`, no formato `jdbc:postgresql://host:5432/banco`
@@ -78,7 +82,7 @@ Use o `Dockerfile` e um PostgreSQL gerenciado. Configure:
 - `SIGEI_COOKIE_SECURE=true` (padrão), para que os cookies de sessão só trafeguem por HTTPS
 
 A sessão usa cookies `HttpOnly` e `SameSite=Strict`, portanto o frontend deve
-acessar a API pela mesma origem, pelo proxy `/api` do Nginx do frontend.
+acessar a API pela mesma origem, pelo proxy `/api` do Nginx do frontend ou da Vercel.
 
 O esquema do banco é criado e atualizado pelo Flyway na inicialização
 (`src/main/resources/db/migration`). Bancos já existentes, criados pelo Hibernate
