@@ -6,6 +6,8 @@ import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.repository.LotacaoProfessorRepository;
+import ac.gov.br.sigei_backend.models.LotacaoProfessor;
 import ac.gov.br.sigei_backend.mappers.EscolaMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -34,6 +36,9 @@ public class EscolaServiceTest {
 
     @Mock
     EscolaMapper escolaMapper;
+
+    @Mock
+    LotacaoProfessorRepository lotacaoProfessorRepository;
 
     @InjectMocks
     EscolaService escolaService;
@@ -216,11 +221,16 @@ public class EscolaServiceTest {
         Escola escola = new Escola();
         escola.setId(id);
 
+        List<LotacaoProfessor> lotacoes = List.of(new LotacaoProfessor());
+
         when(escolaRepository.findById(id)).thenReturn(Optional.of(escola));
+        when(lotacaoProfessorRepository.findByEscola_Id(id)).thenReturn(lotacoes);
         doNothing().when(escolaRepository).deleteById(id);
 
         assertDoesNotThrow(() -> escolaService.excluir(id));
         verify(escolaRepository, times(1)).findById(id);
+        // As lotações de professores na escola são removidas antes da escola
+        verify(lotacaoProfessorRepository).deleteAll(lotacoes);
         verify(escolaRepository, times(1)).deleteById(id);
     }
 
