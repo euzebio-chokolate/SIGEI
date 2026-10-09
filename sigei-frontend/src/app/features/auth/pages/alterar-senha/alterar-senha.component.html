@@ -18,15 +18,23 @@
       <div>
         <label for="senhaAtual" class="mb-1.5 block text-xs font-semibold text-slate-700">Senha atual</label>
         <input id="senhaAtual" [type]="mostrarSenhas ? 'text' : 'password'" formControlName="senhaAtual" autocomplete="current-password" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+        <app-erro-campo [controle]="form.controls.senhaAtual" [mensagens]="{ required: 'Informe a senha atual.' }" />
       </div>
       <div>
         <label for="novaSenha" class="mb-1.5 block text-xs font-semibold text-slate-700">Nova senha</label>
         <input id="novaSenha" [type]="mostrarSenhas ? 'text' : 'password'" formControlName="novaSenha" autocomplete="new-password" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
-        @if (form.controls.novaSenha.touched && form.controls.novaSenha.invalid) { <p class="mt-1.5 text-xs text-rose-500">Informe uma senha com pelo menos 8 caracteres.</p> }
+        <app-erro-campo
+          [controle]="form.controls.novaSenha"
+          [mensagens]="{ required: 'Informe a nova senha.', minlength: 'A nova senha deve ter pelo menos 8 caracteres.', igualAtual: 'A nova senha deve ser diferente da senha atual.' }"
+        />
       </div>
       <div>
         <label for="confirmacaoSenha" class="mb-1.5 block text-xs font-semibold text-slate-700">Confirme a nova senha</label>
         <input id="confirmacaoSenha" [type]="mostrarSenhas ? 'text' : 'password'" formControlName="confirmacaoSenha" autocomplete="new-password" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
+        <app-erro-campo
+          [controle]="form.controls.confirmacaoSenha"
+          [mensagens]="{ required: 'Confirme a nova senha.', confirmacao: 'A confirmação não corresponde à nova senha.' }"
+        />
       </div>
 
       <label class="flex cursor-pointer items-center gap-2 text-sm text-slate-600"><input type="checkbox" [checked]="mostrarSenhas" (change)="mostrarSenhas = !mostrarSenhas" class="accent-emerald-600" /> Mostrar senhas</label>

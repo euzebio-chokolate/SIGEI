@@ -3,11 +3,13 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
+import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 
 @Component({
   selector: 'app-alterar-senha',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ErroCampoComponent],
   templateUrl: './alterar-senha.component.html'
 })
 export class AlterarSenhaComponent {
@@ -35,7 +37,11 @@ export class AlterarSenhaComponent {
 
     const dados = this.form.getRawValue();
     if (dados.novaSenha !== dados.confirmacaoSenha) {
-      this.erroMensagem = 'A confirmação não corresponde à nova senha.';
+      this.form.controls.confirmacaoSenha.setErrors({ confirmacao: true });
+      return;
+    }
+    if (dados.novaSenha === dados.senhaAtual) {
+      this.form.controls.novaSenha.setErrors({ igualAtual: true });
       return;
     }
     if (this.carregando) return;
@@ -50,11 +56,12 @@ export class AlterarSenhaComponent {
       },
       error: erro => {
         this.carregando = false;
-        if (erro?.status === 400) this.erroMensagem = typeof erro?.error === 'string' ? erro.error : erro?.error?.message ?? 'Confira a senha atual e os requisitos da nova senha.';
-        else if (erro?.status === 401) this.erroMensagem = 'O token não foi aceito pelo servidor. Entre novamente.';
-        else if (erro?.status === 403) this.erroMensagem = 'O servidor bloqueou esta troca de senha (403). Verifique se o backend em execução contém a liberação de /auth/alterar-senha para usuários autenticados.';
-        else if (erro?.status === 0) this.erroMensagem = 'Não foi possível conectar ao servidor.';
-        else this.erroMensagem = 'Não foi possível alterar a senha.';
+        // Mensagens do AuthService do backend; a sessão expirada (401) é tratada pelo authInterceptor
+        this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível alterar a senha.', [
+          { campo: 'senhaAtual', padrao: /senha atual inválida/i },
+          { campo: 'confirmacaoSenha', padrao: /não coincidem/i },
+          { campo: 'novaSenha', padrao: /nova senha/i }
+        ]);
         this.cdr.markForCheck();
       }
     });

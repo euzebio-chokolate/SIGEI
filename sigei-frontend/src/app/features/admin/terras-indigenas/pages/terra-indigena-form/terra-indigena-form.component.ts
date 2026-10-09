@@ -4,11 +4,15 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { TerraIndigenaRequest, TerraIndigenaService } from '@domains/territorios/data-access/terra-indigena.service';
 import { MunicipioEstatistica, MunicipioService } from '@domains/territorios/data-access/municipio.service';
+import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { ToastService } from '@core/notificacao/toast.service';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 
 @Component({
   selector: 'app-terra-indigena-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ErroCampoComponent],
   template: `
     <div class="max-w-3xl mx-auto space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -68,9 +72,7 @@ import { MunicipioEstatistica, MunicipioService } from '@domains/territorios/dat
                   [class.border-slate-200]="!form.controls.nome.invalid || !form.controls.nome.touched"
                 />
 
-                @if (form.controls.nome.invalid && form.controls.nome.touched) {
-                  <p class="text-xs text-rose-500 mt-1.5">Informe o nome da terra indígena.</p>
-                }
+                <app-erro-campo [controle]="form.controls.nome" [mensagens]="{ required: 'Informe o nome da terra indígena.' }" />
               </div>
 
               <div>
@@ -101,9 +103,10 @@ import { MunicipioEstatistica, MunicipioService } from '@domains/territorios/dat
                   </p>
                 }
 
-                @if (form.controls.municipioId.invalid && form.controls.municipioId.touched) {
-                  <p class="text-xs text-rose-500 mt-1.5">Selecione um município.</p>
-                }
+                <app-erro-campo
+                  [controle]="form.controls.municipioId"
+                  [mensagens]="{ required: 'Selecione um município.', min: 'Selecione um município.' }"
+                />
               </div>
             </div>
           </div>
@@ -149,6 +152,7 @@ export class TerraIndigenaFormComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private cdr = inject(ChangeDetectorRef);
+  private toast = inject(ToastService);
 
   // --- Propriedades de Estado ---
   editando = false;
@@ -193,7 +197,7 @@ export class TerraIndigenaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar municípios:', erro);
-        this.erroMensagem = 'Não foi possível carregar os municípios.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os municípios.');
         this.carregandoMunicipios = false;
         this.cdr.markForCheck();
       },
@@ -215,7 +219,7 @@ export class TerraIndigenaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar terra indígena:', erro);
-        this.erroMensagem = 'Não foi possível carregar os dados da terra indígena.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados da terra indígena.', 'Terra indígena não encontrada.');
         this.cdr.markForCheck();
       },
     });
@@ -247,11 +251,12 @@ export class TerraIndigenaFormComponent implements OnInit {
       this.terraIndigenaService.editar(dadosEdicao).subscribe({
         next: () => {
           this.salvando = false;
+          this.toast.sucesso('Os dados da terra indígena foram atualizados.', 'Terra indígena atualizada');
           this.router.navigate(['/admin/terras-indigenas']);
         },
         error: (erro) => {
           console.error('Erro ao editar terra indígena:', erro);
-          this.erroMensagem = 'Não foi possível salvar as alterações.';
+          this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível salvar as alterações.');
           this.salvando = false;
           this.cdr.markForCheck();
         },
@@ -263,11 +268,12 @@ export class TerraIndigenaFormComponent implements OnInit {
     this.terraIndigenaService.salvar(dados).subscribe({
       next: () => {
         this.salvando = false;
+        this.toast.sucesso('A nova terra indígena foi cadastrada.', 'Terra indígena cadastrada');
         this.router.navigate(['/admin/terras-indigenas']);
       },
       error: (erro) => {
         console.error('Erro ao cadastrar terra indígena:', erro);
-        this.erroMensagem = 'Não foi possível cadastrar a terra indígena.';
+        this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível cadastrar a terra indígena.');
         this.salvando = false;
         this.cdr.markForCheck();
       },

@@ -1,9 +1,10 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
+import { interpretarErro } from '@core/http/erro-http';
+import { SeAdminDirective } from '@core/auth/se-admin.directive';
 import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
 import { ProfessorResponse, ProfessorService } from '@domains/professores/data-access/professor.service';
 import {
@@ -28,7 +29,7 @@ type FiltroLocal = 'todas' | 'escolas' | 'nucleo' | 'vagas';
 @Component({
   selector: 'app-professores-lista',
   standalone: true,
-  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent],
+  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SeAdminDirective],
   templateUrl: './professores-lista.component.html'
 })
 export class ProfessoresListaComponent implements OnInit {
@@ -314,11 +315,10 @@ export class ProfessoresListaComponent implements OnInit {
         this.carregarProfessores();
         this.carregarLotacoes();
       },
-      error: (erro: HttpErrorResponse) => {
+      error: erro => {
         this.importando = false;
-        this.erroImportacao = typeof erro.error === 'string' && erro.error
-          ? erro.error
-          : 'Não foi possível importar a planilha.';
+        // As falhas de leitura da planilha voltam como 400 com o motivo em texto
+        this.erroImportacao = interpretarErro(erro, 'Não foi possível importar a planilha.').mensagem;
         this.cdr.markForCheck();
       }
     });
@@ -344,8 +344,8 @@ export class ProfessoresListaComponent implements OnInit {
 
   private registrarErro(mensagem: string, erro: unknown): void {
     console.error(mensagem, erro);
-    const detalhe = erro instanceof HttpErrorResponse && typeof erro.error === 'string' ? erro.error : '';
-    this.erroMensagem = detalhe ? `${mensagem} ${detalhe}` : mensagem;
+    const falha = interpretarErro(erro, mensagem);
+    this.erroMensagem = falha.global || falha.mensagem === mensagem ? mensagem : `${mensagem} ${falha.mensagem}`;
     this.cdr.markForCheck();
   }
 

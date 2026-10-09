@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
 import { MunicipioService, MunicipioEstatistica } from '@domains/territorios/data-access/municipio.service';
+import { mensagemErroCarregamento } from '@core/http/erro-http';
 
 @Component({
   selector: 'app-municipios-lista',
@@ -272,7 +273,7 @@ export class MunicipiosListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar estatísticas dos municípios:', erro);
-        this.erroMensagem = 'Não foi possível carregar as estatísticas. Verifique a conexão com a API.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar as estatísticas dos municípios.');
         this.carregando = false;
         this.paginaAtual = 1;
         this.cdr.markForCheck();

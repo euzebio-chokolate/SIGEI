@@ -16,6 +16,8 @@ import {
   AnoReferencia
 } from '@domains/escolas/data-access/ano-referencia.service';
 
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+
 export interface RegistroAnualFormControls {
   anoReferenciaId: FormControl<number>;
   rede: FormControl<string>;
@@ -30,7 +32,8 @@ export type StatusAnoRegistro = 'carregando' | 'existente' | 'novo' | null;
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    FormsModule
+    FormsModule,
+    ErroCampoComponent
   ],
   templateUrl: './registro-anual-etapa.component.html'
 })

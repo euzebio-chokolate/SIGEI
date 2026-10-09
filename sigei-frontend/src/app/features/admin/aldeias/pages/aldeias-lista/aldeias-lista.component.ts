@@ -3,12 +3,15 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { AldeiaResponse, AldeiaService } from '@domains/territorios/data-access/aldeia.service';
+import { SeAdminDirective } from '@core/auth/se-admin.directive';
+import { mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
+import { ToastService } from '@core/notificacao/toast.service';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-aldeias-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, SeAdminDirective],
   template: `
     <div class="space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -28,7 +31,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
           </p>
         </div>
 
-        <a routerLink="/admin/aldeias/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
+        <a *seAdmin routerLink="/admin/aldeias/novo" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow flex items-center gap-2 transition-all shrink-0">
           <i class="fa-solid fa-plus text-xs"></i>
           Nova Aldeia
         </a>
@@ -100,7 +103,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                 <th class="px-6 py-3.5">Terra Indígena</th>
                 <th class="px-6 py-3.5">Município</th>
                 <th class="px-6 py-3.5">Povo</th>
-                <th class="px-6 py-3.5 text-right">Ações</th>
+                <th *seAdmin class="px-6 py-3.5 text-right">Ações</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
@@ -136,7 +139,7 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
                     </span>
                   </td>
 
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="flex items-center justify-end gap-1">
                       <a
                         [routerLink]="['/admin/aldeias/editar', aldeia.id]"
@@ -233,6 +236,7 @@ export class AldeiasListaComponent implements OnInit {
   // --- Injeções de Dependência ---
   private readonly aldeiaService = inject(AldeiaService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   // --- Propriedades de Estado ---
   aldeiasLista: AldeiaResponse[] = [];
@@ -285,7 +289,7 @@ export class AldeiasListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar aldeias:', erro);
-        this.erroMensagem = 'Não foi possível carregar as aldeias.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar as aldeias.');
         this.carregando = false;
         this.cdr.markForCheck();
       },
@@ -361,13 +365,15 @@ export class AldeiasListaComponent implements OnInit {
           this.paginaAtual--;
         }
 
+        this.toast.sucesso(`A aldeia ${aldeia.nome} foi excluída.`, 'Aldeia excluída');
         this.excluindoId = null;
         this.aldeiaParaExcluir = null;
         this.cdr.markForCheck();
       },
       error: (erro) => {
         console.error('Erro ao excluir aldeia:', erro);
-        this.erroMensagem = 'Não foi possível excluir a aldeia. Verifique se existem escolas vinculadas.';
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a aldeia.', 'Não é possível excluir a aldeia: existem escolas vinculadas a ela.');
+        if (mensagem) this.toast.erro(mensagem);
         this.excluindoId = null;
         this.aldeiaParaExcluir = null;
         this.cdr.markForCheck();

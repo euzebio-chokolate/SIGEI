@@ -2,6 +2,9 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EscolaResponse, EscolaService } from '@domains/escolas/data-access/escola.service';
+import { SeAdminDirective } from '@core/auth/se-admin.directive';
+import { interpretarErro, mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
+import { ToastService } from '@core/notificacao/toast.service';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
 import { AtualizacaoAnualService } from '@domains/escolas/data-access/atualizacao-anual.service';
 import { AnoModalComponent } from '@domains/escolas/ui/ano-modal/ano-modal.component';
@@ -12,13 +15,14 @@ import { RegistroAnualResponse } from '@domains/escolas/data-access/registro-anu
 @Component({
   selector: 'app-escolas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent, HistoricoEscolaModalComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent, HistoricoEscolaModalComponent, SeAdminDirective],
   templateUrl: './escolas-lista.component.html'
 })
 export class EscolasListaComponent implements OnInit {
   private readonly escolaService = inject(EscolaService);
   private readonly atualizacaoAnualService = inject(AtualizacaoAnualService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly toast = inject(ToastService);
 
   escolasLista: EscolaResponse[] = [];
   escolasFiltradas: EscolaResponse[] = [];
@@ -58,7 +62,7 @@ export class EscolasListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar escolas:', erro);
-        this.erroMensagem = 'Não foi possível carregar as escolas.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar as escolas.');
         this.carregando = false;
         this.cdr.markForCheck();
       }
@@ -112,7 +116,7 @@ export class EscolasListaComponent implements OnInit {
         const registro = detalhe.registroAnual;
 
         if (!registro) {
-          this.erroMensagem = 'Esta escola ainda não possui um registro anual para visualização.';
+          this.toast.info('Esta escola ainda não possui um registro anual para visualização.');
           this.visualizandoId = null;
           this.cdr.markForCheck();
           return;
@@ -130,7 +134,7 @@ export class EscolasListaComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar detalhes da escola:', erro);
-        this.erroMensagem = 'Não foi possível carregar os detalhes desta escola.';
+        this.toast.erro(mensagemErroCarregamento(erro, 'Não foi possível carregar os detalhes desta escola.'));
         this.visualizandoId = null;
         this.cdr.markForCheck();
       }
@@ -169,6 +173,13 @@ export class EscolasListaComponent implements OnInit {
     },
     error: erro => {
       console.error('Erro ao excluir escola:', erro);
+      const mensagem = mensagemErroExclusao(
+        erro,
+        'Não foi possível excluir a escola.',
+        'Não é possível excluir a escola: existem registros vinculados a ela (anexos ou lotações de professores).'
+      );
+      if (mensagem) this.toast.erro(mensagem);
+      this.escolaParaExcluir = null;
       this.excluindoId = null;
       this.cdr.markForCheck();
     }
@@ -238,6 +249,10 @@ confirmarAtualizacaoAnual(): void {
         );
 
         this.atualizandoAno = false;
+
+        // Recusas de negócio do AtualizacaoAnualService chegam como 400 com o motivo
+        const falha = interpretarErro(erro, 'Não foi possível iniciar o novo ano.');
+        if (!falha.global) this.toast.erro(falha.mensagem);
 
         this.cdr.markForCheck();
       }

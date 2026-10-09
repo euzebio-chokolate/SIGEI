@@ -2,13 +2,16 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
+import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { mensagemErroFormulario } from '@core/http/erros-formulario';
 import { PerfilUsuario, UsuarioRequest, UsuarioService } from '@domains/usuarios/data-access/usuario.service';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 
 @Component({
   selector: 'app-usuario-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent],
+  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent],
   templateUrl: './usuario-form.component.html'
 })
 export class UsuarioFormComponent implements OnInit {
@@ -70,7 +73,7 @@ export class UsuarioFormComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar usuário:', erro);
-        this.erroMensagem = 'Não foi possível carregar o usuário.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar o usuário.', 'Usuário não encontrado.');
         this.carregando = false;
         this.cdr.markForCheck();
       }
@@ -124,7 +127,10 @@ export class UsuarioFormComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao salvar usuário:', erro);
-        this.erroMensagem = 'Não foi possível salvar o usuário.';
+        this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível salvar o usuário.', [
+          { campo: 'email', padrao: /e-?mail/i },
+          { campo: 'senha', padrao: /senha/i }
+        ]);
         this.salvando = false;
         this.cdr.markForCheck();
       }
