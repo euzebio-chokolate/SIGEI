@@ -1,0 +1,186 @@
+<div class="space-y-5 pb-10">
+  <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+    <a routerLink="/admin/dashboard" class="flex items-center gap-1.5 transition-colors hover:text-emerald-600">
+      <i class="fa-solid fa-house text-slate-400"></i>
+      Início
+    </a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+    <span class="text-slate-800">Auditoria</span>
+  </nav>
+
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800">Auditoria</h1>
+    <p class="mt-1 text-sm text-slate-500">
+      Quem criou, alterou ou excluiu cada registro do sistema, e quando. CPF, matrícula e número do contrato não são exibidos.
+    </p>
+  </div>
+
+  <!-- Filtros -->
+  <section class="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div>
+        <label for="filtro-entidade" class="mb-1.5 block text-xs font-semibold text-slate-700">Tipo de registro</label>
+        <select
+          id="filtro-entidade"
+          [(ngModel)]="entidade"
+          (ngModelChange)="aplicarFiltros()"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        >
+          <option value="">Todos</option>
+          @for (opcao of entidades; track opcao.valor) {
+            <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="filtro-operacao" class="mb-1.5 block text-xs font-semibold text-slate-700">Operação</label>
+        <select
+          id="filtro-operacao"
+          [(ngModel)]="operacao"
+          (ngModelChange)="aplicarFiltros()"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        >
+          <option value="">Todas</option>
+          @for (opcao of operacoes; track opcao.valor) {
+            <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="filtro-autor" class="mb-1.5 block text-xs font-semibold text-slate-700">Autor</label>
+        <select
+          id="filtro-autor"
+          [(ngModel)]="autor"
+          (ngModelChange)="aplicarFiltros()"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        >
+          <option value="">Todos</option>
+          <option [value]="autorSistema">Sistema (cargas e rotinas automáticas)</option>
+          @for (usuario of usuarios(); track usuario.id) {
+            <option [value]="usuario.id.toString()">{{ usuario.nome }}</option>
+          }
+        </select>
+      </div>
+
+      <div>
+        <label for="filtro-de" class="mb-1.5 block text-xs font-semibold text-slate-700">De</label>
+        <input
+          id="filtro-de"
+          type="date"
+          [(ngModel)]="de"
+          (change)="aplicarFiltros()"
+          [max]="ate || hoje"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        />
+      </div>
+
+      <div>
+        <label for="filtro-ate" class="mb-1.5 block text-xs font-semibold text-slate-700">Até</label>
+        <input
+          id="filtro-ate"
+          type="date"
+          [(ngModel)]="ate"
+          (change)="aplicarFiltros()"
+          [min]="de"
+          [max]="hoje"
+          class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+        />
+      </div>
+    </div>
+
+    @if (erroFiltro() || temFiltros()) {
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+        @if (erroFiltro()) {
+          <p class="flex items-center gap-1.5 text-xs text-rose-500" role="alert">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            {{ erroFiltro() }}
+          </p>
+        } @else {
+          <span></span>
+        }
+        @if (temFiltros()) {
+          <button type="button" (click)="limparFiltros()" class="text-xs font-semibold text-slate-500 hover:text-emerald-700">
+            <i class="fa-solid fa-xmark mr-1"></i>
+            Limpar filtros
+          </button>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Resultado -->
+  <section class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+    <header class="flex items-center justify-between gap-3 border-b border-slate-100 px-6 py-4">
+      <h2 class="text-sm font-bold text-slate-800">Alterações</h2>
+      @if (pagina(); as resultado) {
+        <span class="text-xs font-semibold text-slate-400">
+          {{ resultado.totalAlteracoes.toLocaleString('pt-BR') }} {{ resultado.totalAlteracoes === 1 ? 'alteração' : 'alterações' }}
+        </span>
+      }
+    </header>
+
+    @if (carregando()) {
+      <div class="space-y-5 px-6 py-5" role="status" aria-busy="true">
+        <span class="sr-only">Carregando alterações...</span>
+        @for (item of [1, 2, 3, 4]; track item) {
+          <div class="flex gap-4" aria-hidden="true">
+            <div class="h-8 w-8 shrink-0 rounded-full bg-slate-100 animate-pulse"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3 w-56 rounded-full bg-slate-200/80 animate-pulse"></div>
+              <div class="h-2.5 w-32 rounded-full bg-slate-100 animate-pulse"></div>
+              <div class="h-16 rounded-xl bg-slate-100 animate-pulse"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (erro()) {
+      <div class="px-6 py-4">
+        <app-estado-erro [mensagem]="erro()" (tentarNovamente)="recarregar()" />
+      </div>
+    } @else if (revisoes().length === 0) {
+      <div class="flex flex-col items-center gap-2 px-6 py-12 text-center">
+        <span class="grid h-11 w-11 place-items-center rounded-xl bg-slate-100 text-slate-400">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+        <p class="text-sm font-semibold text-slate-600">Nenhuma alteração encontrada</p>
+        @if (temFiltros()) {
+          <p class="text-xs text-slate-400">Ajuste ou limpe os filtros para ver mais resultados.</p>
+        }
+      </div>
+    } @else {
+      <div class="px-6 py-5">
+        <app-linha-do-tempo-auditoria [revisoes]="revisoes()" />
+      </div>
+    }
+
+    @if (pagina(); as resultado) {
+      @if (resultado.totalPaginas > 1 && !erro()) {
+        <footer class="flex flex-col items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/30 px-6 py-4 text-xs text-slate-500 sm:flex-row">
+          <span>Página <strong>{{ resultado.pagina + 1 }}</strong> de <strong>{{ resultado.totalPaginas }}</strong></span>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="irParaPagina(resultado.pagina - 1)"
+              [disabled]="resultado.pagina === 0 || carregando()"
+              class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-600 transition-all hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <i class="fa-solid fa-chevron-left text-[10px]"></i>
+              Mais recentes
+            </button>
+            <button
+              type="button"
+              (click)="irParaPagina(resultado.pagina + 1)"
+              [disabled]="resultado.pagina + 1 >= resultado.totalPaginas || carregando()"
+              class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5 font-semibold text-slate-600 transition-all hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Mais antigas
+              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            </button>
+          </div>
+        </footer>
+      }
+    }
+  </section>
+</div>

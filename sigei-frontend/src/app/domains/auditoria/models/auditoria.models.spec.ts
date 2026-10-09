@@ -8,6 +8,7 @@ const alteracao = (revisao: number, entidade: string): AlteracaoHistorico => ({
   usuarioEmail: 'admin@sigei.com',
   entidade,
   entidadeId: revisao * 10,
+  descricao: null,
   ano: entidade === 'Escola' ? null : 2026,
   operacao: 'ALTERACAO',
   campos: []
@@ -29,10 +30,15 @@ describe('auditoria', () => {
     expect(formatarValor('nome', null)).toBe('—');
     expect(formatarValor('totalAlunos', 1234)).toBe('1.234');
     expect(formatarValor('fotoUrl', 'https://res.cloudinary.com/x.jpg')).toBe('Enviada');
+    // Ano sem separador de milhar; data do backend (yyyy-MM-dd) no formato brasileiro
+    expect(formatarValor('anoConstrucao', 2010)).toBe('2010');
+    expect(formatarValor('inicioContrato', '2026-03-01')).toBe('01/03/2026');
+    expect(formatarValor('cpf', '(dado protegido)')).toBe('(dado protegido)');
   });
 
   it('traduz entidades e campos, com alternativa para nomes desconhecidos', () => {
     expect(rotuloEntidade('InfraestruturaEscola')).toBe('Infraestrutura');
+    expect(rotuloEntidade('LotacaoProfessor')).toBe('Lotação de professor');
     expect(rotuloCampo('numSalas')).toBe('Número de salas');
     expect(rotuloCampo('temAreaLazer')).toBe('Tem Area Lazer');
   });
