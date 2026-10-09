@@ -16,9 +16,9 @@
       <p class="text-sm text-slate-500 mt-1">Quadro de professores, lotações nas escolas e vagas em aberto.</p>
     </div>
 
+    @if (ehAdmin) {
     <div class="flex flex-wrap items-center gap-2">
       <label
-        data-admin-action
         title="Importar a planilha do quadro de professores de {{ anoQuadro }}"
         class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 transition-all cursor-pointer"
         [class.opacity-60]="importando"
@@ -50,6 +50,7 @@
         Novo professor
       </a>
     </div>
+    }
   </div>
 
   <!-- Cards -->
@@ -218,14 +219,14 @@
               <th class="px-6 py-3.5">Contrato</th>
               @if (ehAdmin) {
                 <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>Nº contrato</th>
+                <th class="px-6 py-3.5 text-right">Ações</th>
               }
-              <th class="px-6 py-3.5 text-right">Ações</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @if (carregandoLotacoes) {
               <tr>
-                <td [attr.colspan]="ehAdmin ? 6 : 5" class="px-6 py-10 text-center text-slate-400">
+                <td [attr.colspan]="ehAdmin ? 6 : 4" class="px-6 py-10 text-center text-slate-400">
                   <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
                   <p class="mt-2 text-sm">Carregando lotações...</p>
                 </td>
@@ -281,7 +282,7 @@
                       }
                     </td>
                   }
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="inline-flex items-center gap-1">
                       <a
                         [routerLink]="['/admin/professores/lotacoes/editar', lotacao.id]"
@@ -303,7 +304,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td [attr.colspan]="ehAdmin ? 6 : 5" class="px-6 py-10 text-center text-slate-400">
+                  <td [attr.colspan]="ehAdmin ? 6 : 4" class="px-6 py-10 text-center text-slate-400">
                     @if (lotacoes.length === 0 && anoSelecionado !== null) {
                       Nenhuma lotação cadastrada em {{ anoSelecionado }}.
                       @if (ehAdmin && anoSelecionado === anoQuadro) {
@@ -365,14 +366,14 @@
               @if (ehAdmin) {
                 <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>CPF</th>
                 <th class="px-6 py-3.5"><i class="fa-solid fa-lock text-[9px] mr-1"></i>Matrícula</th>
+                <th class="px-6 py-3.5 text-right">Ações</th>
               }
-              <th class="px-6 py-3.5 text-right">Ações</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
             @if (carregandoProfessores) {
               <tr>
-                <td [attr.colspan]="ehAdmin ? 5 : 3" class="px-6 py-10 text-center text-slate-400">
+                <td [attr.colspan]="ehAdmin ? 5 : 2" class="px-6 py-10 text-center text-slate-400">
                   <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
                   <p class="mt-2 text-sm">Carregando professores...</p>
                 </td>
@@ -410,7 +411,7 @@
                       }
                     </td>
                   }
-                  <td class="px-6 py-4 text-right">
+                  <td *seAdmin class="px-6 py-4 text-right">
                     <div class="inline-flex items-center gap-1">
                       <a
                         [routerLink]="['/admin/professores/editar', professor.id]"
@@ -432,7 +433,7 @@
                 </tr>
               } @empty {
                 <tr>
-                  <td [attr.colspan]="ehAdmin ? 5 : 3" class="px-6 py-10 text-center text-slate-400">Nenhum professor encontrado.</td>
+                  <td [attr.colspan]="ehAdmin ? 5 : 2" class="px-6 py-10 text-center text-slate-400">Nenhum professor encontrado.</td>
                 </tr>
               }
             }

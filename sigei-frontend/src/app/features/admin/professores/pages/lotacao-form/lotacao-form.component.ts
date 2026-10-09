@@ -1,6 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
@@ -17,6 +16,9 @@ import {
   OPCOES_TIPO_CONTRATO,
   TipoContrato
 } from '@domains/professores/models/professor.models';
+import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 
 type Local = 'escola' | 'nucleo';
@@ -24,7 +26,7 @@ type Local = 'escola' | 'nucleo';
 @Component({
   selector: 'app-lotacao-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent],
+  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent],
   templateUrl: './lotacao-form.component.html'
 })
 export class LotacaoFormComponent implements OnInit {
@@ -113,7 +115,7 @@ export class LotacaoFormComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar dados do formulário de lotação:', erro);
-        this.erroMensagem = 'Não foi possível carregar os dados do formulário.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados do formulário.');
         this.carregando = false;
         this.cdr.markForCheck();
       }
@@ -141,7 +143,7 @@ export class LotacaoFormComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao carregar lotação:', erro);
-        this.erroMensagem = 'Não foi possível carregar a lotação.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar a lotação.', 'Lotação não encontrada.');
         this.carregando = false;
         this.cdr.markForCheck();
       }
@@ -225,11 +227,13 @@ export class LotacaoFormComponent implements OnInit {
         this.modalSucessoAberto = true;
         this.cdr.markForCheck();
       },
-      error: (erro: HttpErrorResponse) => {
+      error: erro => {
         console.error('Erro ao salvar lotação:', erro);
-        this.erroMensagem = typeof erro.error === 'string' && erro.error
-          ? erro.error
-          : 'Não foi possível salvar a lotação.';
+        this.erroMensagem = mensagemErroFormulario(this.form, erro, 'Não foi possível salvar a lotação.', [
+          { campo: 'anoReferenciaId', padrao: /ano/i },
+          { campo: 'escolaId', padrao: /escola/i },
+          { campo: 'professorId', padrao: /professor/i }
+        ]);
         this.salvando = false;
         this.cdr.markForCheck();
       }

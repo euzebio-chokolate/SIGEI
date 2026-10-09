@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { mensagemErroCarregamento } from '@core/http/erro-http';
 import { DashboardEvolucao, DashboardItem, DashboardResponse, DashboardService } from '@features/admin/dashboard/data-access/dashboard.service';
 
 interface EvolucaoPorAno { ano: number; matriculas: number; escolas: number; }
@@ -37,7 +38,7 @@ export class DashboardComponent implements OnInit {
       },
       error: erro => {
         this.carregando = false;
-        this.erroMensagem = erro?.status === 404 ? 'Não há dados cadastrados para o ano selecionado.' : 'Não foi possível carregar os indicadores do dashboard.';
+        this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os indicadores do dashboard.', 'Não há dados cadastrados para o ano selecionado.');
         this.cdr.markForCheck();
       }
     });

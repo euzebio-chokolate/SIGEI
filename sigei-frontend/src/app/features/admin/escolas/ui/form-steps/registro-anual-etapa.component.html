@@ -38,11 +38,10 @@
             </p>
           }
 
-          @if (form.controls.anoReferenciaId.invalid && form.controls.anoReferenciaId.touched) {
-            <p class="text-xs text-rose-500 mt-1.5">
-              Selecione o ano de referência.
-            </p>
-          }
+          <app-erro-campo
+            [controle]="form.controls.anoReferenciaId"
+            [mensagens]="{ required: 'Selecione o ano de referência.', min: 'Selecione o ano de referência.' }"
+          />
 
           @if (editando && statusAno === 'carregando') {
             <p class="text-xs text-slate-400 mt-1.5">
@@ -66,7 +65,7 @@
           }
 
           <!-- Novo ano -->
-          <div class="mt-3" data-admin-action>
+          <div class="mt-3">
             <p class="text-xs text-slate-500 mb-1.5">O ano não está na lista? Adicione um ano anterior:</p>
             <div class="flex gap-2">
               <input
@@ -117,11 +116,7 @@
             </option>
           </select>
 
-          @if (form.controls.rede.invalid && form.controls.rede.touched) {
-            <p class="text-xs text-rose-500 mt-1.5">
-              Selecione a rede.
-            </p>
-          }
+          <app-erro-campo [controle]="form.controls.rede" [mensagens]="{ required: 'Selecione a rede.' }" />
         </div>
 
         <!-- Local -->
@@ -146,11 +141,7 @@
             </option>
           </select>
 
-          @if (form.controls.localFuncionamento.invalid && form.controls.localFuncionamento.touched) {
-            <p class="text-xs text-rose-500 mt-1.5">
-              Selecione o local de funcionamento.
-            </p>
-          }
+          <app-erro-campo [controle]="form.controls.localFuncionamento" [mensagens]="{ required: 'Selecione o local de funcionamento.' }" />
         </div>
 
         <!-- Total de alunos -->
@@ -171,11 +162,7 @@
             Se ficar em branco, será usado o total das matrículas por nível{{ totalMatriculas > 0 ? ' (' + totalMatriculas + ')' : '' }}, quando informado.
           </p>
 
-          @if (form.controls.totalAlunos.invalid && form.controls.totalAlunos.touched) {
-            <p class="text-xs text-rose-500 mt-1.5">
-              O total de alunos não pode ser negativo.
-            </p>
-          }
+          <app-erro-campo [controle]="form.controls.totalAlunos" [mensagens]="{ min: 'O total de alunos não pode ser negativo.' }" />
         </div>
       </div>
     </div>

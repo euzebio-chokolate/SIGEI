@@ -122,6 +122,7 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'usuarios',
+        canActivate: [adminGuard],
         loadComponent: () => import('./usuarios/pages/usuarios-lista/usuarios-lista.component').then(module => module.UsuariosListaComponent),
         title: 'SIGEI - Usuários'
       },
