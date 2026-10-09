@@ -19,6 +19,7 @@ import {
 import { mensagemErroCarregamento } from '@core/http/erro-http';
 import { mensagemErroFormulario } from '@core/http/erros-formulario';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 
 type Local = 'escola' | 'nucleo';
@@ -26,7 +27,7 @@ type Local = 'escola' | 'nucleo';
 @Component({
   selector: 'app-lotacao-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent],
+  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent, SkeletonFormularioComponent],
   templateUrl: './lotacao-form.component.html'
 })
 export class LotacaoFormComponent implements OnInit {

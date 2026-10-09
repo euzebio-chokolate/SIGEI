@@ -8,11 +8,12 @@ import { mensagemErroFormulario } from '@core/http/erros-formulario';
 import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { ToastService } from '@core/notificacao/toast.service';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 
 @Component({
   selector: 'app-povo-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ErroCampoComponent],
+  imports: [ReactiveFormsModule, RouterLink, ErroCampoComponent, SkeletonFormularioComponent],
   template: `
     <div class="max-w-3xl mx-auto space-y-5 font-sans pb-10">
       <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
@@ -49,6 +50,11 @@ import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
       </div>
 
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        @if (carregandoRegistro) {
+          <div class="p-8">
+            <app-skeleton-formulario [campos]="2" [contorno]="false" rotulo="Carregando povo..." />
+          </div>
+        } @else {
         <form [formGroup]="form" (ngSubmit)="salvar()" class="p-8 space-y-6">
           <div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
@@ -104,6 +110,7 @@ import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
             </button>
           </div>
         </form>
+        }
       </div>
     </div>
   `,
@@ -122,6 +129,7 @@ export class PovoFormComponent implements OnInit {
   povoId: number | null = null;
   salvando = false;
   erroMensagem = '';
+  carregandoRegistro = false;
 
   // --- Formulário ---
   form = this.fb.nonNullable.group({
@@ -155,8 +163,11 @@ export class PovoFormComponent implements OnInit {
       return;
     }
 
+    this.carregandoRegistro = true;
+
     this.povoService.buscarPorId(this.povoId).subscribe({
       next: (povo) => {
+        this.carregandoRegistro = false;
         this.form.patchValue({
           nome: povo.nome,
         });
@@ -165,6 +176,7 @@ export class PovoFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar povo:', erro);
+        this.carregandoRegistro = false;
         this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados do povo.', 'Povo não encontrado.');
         this.cdr.markForCheck();
       },

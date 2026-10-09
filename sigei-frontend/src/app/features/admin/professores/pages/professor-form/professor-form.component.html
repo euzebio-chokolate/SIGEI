@@ -23,10 +23,7 @@
   </div>
 
   @if (carregando) {
-    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-      <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
-      <p class="text-sm text-slate-500 mt-2">Carregando professor...</p>
-    </div>
+    <app-skeleton-formulario [campos]="6" rotulo="Carregando professor..." />
   } @else {
     <form [formGroup]="form" (ngSubmit)="salvar()" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-8 space-y-8">
       <!-- Dados do professor -->

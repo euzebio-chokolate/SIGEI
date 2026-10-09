@@ -10,11 +10,12 @@ import { mensagemErroFormulario } from '@core/http/erros-formulario';
 import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { ToastService } from '@core/notificacao/toast.service';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 
 @Component({
   selector: 'app-aldeia-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, ErroCampoComponent],
+  imports: [ReactiveFormsModule, RouterLink, ErroCampoComponent, SkeletonFormularioComponent],
   template: `
     <div class="max-w-3xl mx-auto space-y-5 font-sans pb-10">
       <!-- Breadcrumb -->
@@ -50,6 +51,11 @@ import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 
       <!-- Card -->
       <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        @if (carregandoRegistro) {
+          <div class="p-8">
+            <app-skeleton-formulario [campos]="3" [contorno]="false" rotulo="Carregando aldeia..." />
+          </div>
+        } @else {
         <form [formGroup]="form" (ngSubmit)="salvar()" class="p-8 space-y-6">
           <div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
@@ -167,6 +173,7 @@ import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
             </button>
           </div>
         </form>
+        }
       </div>
     </div>
   `,
@@ -193,6 +200,7 @@ export class AldeiaFormComponent implements OnInit {
   carregandoPovos = false;
   salvando = false;
   erroMensagem = '';
+  carregandoRegistro = false;
 
   // --- Formulário ---
   form = this.fb.nonNullable.group({
@@ -235,8 +243,11 @@ export class AldeiaFormComponent implements OnInit {
       return;
     }
 
+    this.carregandoRegistro = true;
+
     this.aldeiaService.buscarPorId(this.aldeiaId).subscribe({
       next: (aldeia) => {
+        this.carregandoRegistro = false;
         this.form.patchValue({
           nome: aldeia.nome,
           terraIndigenaId: aldeia.terraIndigena.id,
@@ -246,6 +257,7 @@ export class AldeiaFormComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao carregar aldeia:', erro);
+        this.carregandoRegistro = false;
         this.erroMensagem = mensagemErroCarregamento(erro, 'Não foi possível carregar os dados da aldeia.', 'Aldeia não encontrada.');
         this.cdr.markForCheck();
       }

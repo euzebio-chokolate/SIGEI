@@ -21,6 +21,7 @@ import {
   somenteDigitos
 } from '@domains/professores/models/professor.models';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { SkeletonFormularioComponent } from '@shared/ui/skeleton/skeleton-formulario.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 
 function validarCpf(controle: AbstractControl): ValidationErrors | null {
@@ -31,7 +32,7 @@ function validarCpf(controle: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-professor-form',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent],
+  imports: [ReactiveFormsModule, RouterLink, SucessoModalComponent, ErroCampoComponent, SkeletonFormularioComponent],
   templateUrl: './professor-form.component.html'
 })
 export class ProfessorFormComponent implements OnInit {

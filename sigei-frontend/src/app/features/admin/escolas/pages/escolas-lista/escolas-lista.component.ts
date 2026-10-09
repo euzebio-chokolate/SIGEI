@@ -11,11 +11,13 @@ import { AnoModalComponent } from '@domains/escolas/ui/ano-modal/ano-modal.compo
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 import { HistoricoEscolaModalComponent } from '@domains/escolas/ui/historico-escola-modal/historico-escola-modal.component';
 import { RegistroAnualResponse } from '@domains/escolas/data-access/registro-anual.service';
+import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
+import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
 
 @Component({
   selector: 'app-escolas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent, HistoricoEscolaModalComponent, SeAdminDirective],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent, HistoricoEscolaModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent],
   templateUrl: './escolas-lista.component.html'
 })
 export class EscolasListaComponent implements OnInit {
