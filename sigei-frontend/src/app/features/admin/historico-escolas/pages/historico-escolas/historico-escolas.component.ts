@@ -6,6 +6,7 @@ import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-acces
 import { EscolaResponse, EscolaService } from '@domains/escolas/data-access/escola.service';
 import { RegistroAnualResponse, RegistroAnualService } from '@domains/escolas/data-access/registro-anual.service';
 import { HistoricoEscolaModalComponent } from '@domains/escolas/ui/historico-escola-modal/historico-escola-modal.component';
+import { TrilhaAuditoriaComponent } from '@domains/escolas/ui/trilha-auditoria/trilha-auditoria.component';
 import { SeAdminDirective } from '@core/auth/se-admin.directive';
 import { mensagemErroCarregamento } from '@core/http/erro-http';
 import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
@@ -13,7 +14,7 @@ import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.direct
 @Component({
   selector: 'app-historico-escolas',
   standalone: true,
-  imports: [FormsModule, RouterLink, HistoricoEscolaModalComponent, SeAdminDirective, BuscaDebounceDirective],
+  imports: [FormsModule, RouterLink, HistoricoEscolaModalComponent, SeAdminDirective, BuscaDebounceDirective, TrilhaAuditoriaComponent],
   templateUrl: './historico-escolas.component.html'
 })
 export class HistoricoEscolasComponent implements OnInit {
