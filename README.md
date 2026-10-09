@@ -2,7 +2,7 @@
 
 Plataforma web que centraliza as informações das escolas indígenas do Estado
 do Acre: localização, povos, aldeias, terras indígenas, matrículas, equipes
-escolares e infraestrutura, com histórico por ano.
+escolares, professores e infraestrutura, com histórico por ano.
 
 O sistema tem duas partes:
 
@@ -28,6 +28,7 @@ Projeto desenvolvido como Trabalho de Conclusão de Curso no IFAC.
 - Histórico anual por ano ou por escola, incluindo o cadastro retroativo de anos anteriores.
 - Abertura de um novo ano letivo, copiando o último registro de cada escola.
 - Importação das planilhas de infraestrutura e de matrículas do censo (apenas pela API).
+- Quadro de professores: cadastro dos professores, lotação anual em escolas ou no núcleo de educação do município, vagas em aberto e importação da planilha do quadro pela tela. CPF, matrícula e número do contrato são gravados com criptografia e exibidos apenas a administradores.
 - Gestão de usuários com os perfis `ADMIN` (leitura e escrita) e `USUARIO` (somente leitura).
 - Troca de senha obrigatória no primeiro acesso.
 
@@ -109,7 +110,8 @@ Pré-requisito: Docker com Compose.
 Pré-requisitos: JDK 21, Node.js 22, npm e um PostgreSQL acessível.
 
 ```bash
-# Backend: configure DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD e JWT_SECRET
+# Backend: configure DATABASE_URL, DATABASE_USERNAME, DATABASE_PASSWORD, JWT_SECRET
+# e SIGEI_CHAVE_DADOS_SENSIVEIS
 # (no ambiente ou em sigei-backend/.env)
 cd sigei-backend
 ./mvnw spring-boot:run        # Windows: .\mvnw.cmd spring-boot:run

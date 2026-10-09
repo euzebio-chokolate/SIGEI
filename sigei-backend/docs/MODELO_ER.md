@@ -54,6 +54,19 @@ erDiagram
         varchar foto_url
         varchar foto_public_id
     }
+    lotacao_professor {
+        bigint id PK "NOT NULL"
+        bigint professor_id FK
+        bigint ano_referencia_id FK "NOT NULL"
+        bigint escola_id FK
+        bigint municipio_id FK "NOT NULL"
+        varchar cargo
+        varchar segmento
+        varchar numero_contrato "cifrado"
+        date inicio_contrato
+        varchar amparo_legal
+        varchar tipo_contrato
+    }
     matricula_nivel {
         bigint id PK "NOT NULL"
         bigint registro_id FK
@@ -79,6 +92,25 @@ erDiagram
         bigint id PK "NOT NULL"
         varchar nome
     }
+    professor {
+        bigint id PK "NOT NULL"
+        varchar nome "NOT NULL"
+        varchar cpf "cifrado"
+        varchar cpf_hash
+        varchar matricula "cifrado"
+        varchar etnia
+        varchar sexo
+        varchar formacao
+    }
+    refresh_token {
+        bigint id PK "NOT NULL"
+        bigint usuario_id FK "NOT NULL"
+        varchar token_hash UK "NOT NULL"
+        timestamp criado_em "NOT NULL"
+        timestamp expira_em "NOT NULL"
+        boolean revogado "NOT NULL"
+        timestamp revogado_em
+    }
     registro_anual {
         bigint id PK "NOT NULL"
         bigint escola_id FK
@@ -86,6 +118,13 @@ erDiagram
         varchar rede
         varchar local_funcionamento
         integer total_alunos
+    }
+    revisao {
+        bigint id PK "NOT NULL"
+        timestamp data_hora "NOT NULL"
+        bigint usuario_id
+        varchar usuario_email
+        varchar usuario_nome
     }
     terra_indigena {
         bigint id PK "NOT NULL"
@@ -108,8 +147,13 @@ erDiagram
     escola o|..o{ escola : escola_sede_id
     aldeia o|..o| escola : aldeia_id
     registro_anual o|..o| infraestrutura_escola : registro_anual_id
+    professor o|..o{ lotacao_professor : professor_id
+    ano_referencia ||..o{ lotacao_professor : ano_referencia_id
+    escola o|..o{ lotacao_professor : escola_id
+    municipio ||..o{ lotacao_professor : municipio_id
     registro_anual o|..o{ matricula_nivel : registro_id
     registro_anual o|..o{ matricula_serie : registro_id
+    usuario ||..o{ refresh_token : usuario_id
     escola o|..o{ registro_anual : escola_id
     ano_referencia o|..o{ registro_anual : ano_referencia_id
     municipio o|..o{ terra_indigena : municipio_id
@@ -117,6 +161,7 @@ erDiagram
 
 ## Unicidades compostas
 
+- `professor`: UNIQUE (cpf_hash).
 - `registro_anual`: UNIQUE (escola_id, ano_referencia_id).
 
 Descricoes e regras de exclusao: [dicionario do banco](BANCO_DE_DADOS.md).

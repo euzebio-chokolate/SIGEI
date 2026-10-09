@@ -3,10 +3,14 @@ package ac.gov.br.sigei_backend.utils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 
 import java.math.BigDecimal;
 import java.text.Normalizer;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
 public final class ExcelUtils {
@@ -151,6 +155,61 @@ public final class ExcelUtils {
                 .trim()
                 .replaceAll("\\s+", " ")
                 .toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Lê uma data gravada como data do Excel (número de série) ou como texto
+     * dd/MM/aaaa. Vazio ou "-" resultam em nulo.
+     */
+    public static LocalDate lerData(
+            Row linha,
+            int numeroColuna
+    ) {
+        if (linha == null) {
+            return null;
+        }
+
+        Cell celula = linha.getCell(
+                numeroColuna,
+                Row.MissingCellPolicy.RETURN_BLANK_AS_NULL
+        );
+
+        if (celula == null) {
+            return null;
+        }
+
+        if (celula.getCellType() == CellType.NUMERIC) {
+            double valor = celula.getNumericCellValue();
+
+            if (!DateUtil.isValidExcelDate(valor)) {
+                throw new IllegalArgumentException(
+                        "Data inválida na coluna " + (numeroColuna + 1)
+                );
+            }
+
+            return DateUtil.getLocalDateTime(valor).toLocalDate();
+        }
+
+        String texto = lerTexto(linha, numeroColuna);
+
+        if (texto == null) {
+            return null;
+        }
+
+        try {
+            return LocalDate.parse(
+                    texto,
+                    DateTimeFormatter.ofPattern("dd/MM/uuuu")
+            );
+
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException(
+                    "Data inválida na coluna " +
+                            (numeroColuna + 1) +
+                            ": " +
+                            texto
+            );
+        }
     }
 
     public static boolean linhaVazia(Row linha) {

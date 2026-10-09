@@ -1,0 +1,224 @@
+<div class="max-w-4xl mx-auto space-y-5 font-sans pb-10">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+    <a routerLink="/admin/dashboard" class="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+      <i class="fa-solid fa-house text-slate-400"></i>
+      Início
+    </a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+    <a routerLink="/admin/professores" class="hover:text-emerald-600 transition-colors">Professores</a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+    <span class="text-slate-800">{{ editando ? 'Editar professor' : 'Novo professor' }}</span>
+  </nav>
+
+  <!-- Cabeçalho -->
+  <div class="flex items-center gap-4">
+    <a routerLink="/admin/professores" aria-label="Voltar" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-all shadow-sm">
+      <i class="fa-solid fa-arrow-left"></i>
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-slate-800 tracking-tight">{{ editando ? 'Editar professor' : 'Cadastrar professor' }}</h1>
+      <p class="text-sm text-slate-500 mt-0.5">Dados pessoais e funcionais. A lotação em escolas é registrada por ano.</p>
+    </div>
+  </div>
+
+  @if (carregando) {
+    <div class="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+      <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
+      <p class="text-sm text-slate-500 mt-2">Carregando professor...</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="salvar()" class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-8 space-y-8">
+      <!-- Dados do professor -->
+      <section>
+        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">Dados do professor</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div class="md:col-span-2">
+            <label for="nome" class="block text-xs font-semibold text-slate-700 mb-1.5">
+              Nome completo <span class="text-rose-500">*</span>
+            </label>
+            <input
+              id="nome"
+              type="text"
+              formControlName="nome"
+              class="w-full px-4 py-2.5 bg-white border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+              [class.border-rose-400]="form.controls.nome.invalid && form.controls.nome.touched"
+              [class.border-slate-200]="!form.controls.nome.invalid || !form.controls.nome.touched"
+            />
+            @if (form.controls.nome.invalid && form.controls.nome.touched) {
+              <p class="text-xs text-rose-500 mt-1.5">Informe o nome do professor.</p>
+            }
+          </div>
+
+          <div>
+            <label for="etnia" class="block text-xs font-semibold text-slate-700 mb-1.5">Etnia</label>
+            <input
+              id="etnia"
+              type="text"
+              formControlName="etnia"
+              placeholder="Ex.: Huni Kui, Não indígena"
+              class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+            />
+          </div>
+
+          <div>
+            <label for="sexo" class="block text-xs font-semibold text-slate-700 mb-1.5">Sexo</label>
+            <select
+              id="sexo"
+              formControlName="sexo"
+              class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+            >
+              <option value="">Não informado</option>
+              @for (opcao of opcoesSexo; track opcao.valor) {
+                <option [value]="opcao.valor">{{ opcao.rotulo }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="md:col-span-2">
+            <label for="formacao" class="block text-xs font-semibold text-slate-700 mb-1.5">Formação</label>
+            <input
+              id="formacao"
+              type="text"
+              formControlName="formacao"
+              placeholder="Ex.: Ensino Superior - Pedagogia"
+              class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Dados sensíveis -->
+      <section class="rounded-2xl border border-amber-100 bg-amber-50/40 p-5">
+        <div class="flex items-start gap-3 mb-4">
+          <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-lock text-sm"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-slate-800">Dados sensíveis</h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Gravados com criptografia e exibidos apenas a administradores. Não constam na planilha do quadro:
+              preencha aqui quando disponíveis.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label for="cpf" class="block text-xs font-semibold text-slate-700 mb-1.5">CPF</label>
+            <input
+              id="cpf"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              formControlName="cpf"
+              (input)="formatarCampoCpf()"
+              placeholder="000.000.000-00"
+              class="w-full px-4 py-2.5 bg-white border rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+              [class.border-rose-400]="form.controls.cpf.invalid && form.controls.cpf.touched"
+              [class.border-slate-200]="!form.controls.cpf.invalid || !form.controls.cpf.touched"
+            />
+            @if (form.controls.cpf.invalid && form.controls.cpf.touched) {
+              <p class="text-xs text-rose-500 mt-1.5">CPF inválido.</p>
+            }
+          </div>
+
+          <div>
+            <label for="matricula" class="block text-xs font-semibold text-slate-700 mb-1.5">Matrícula</label>
+            <input
+              id="matricula"
+              type="text"
+              autocomplete="off"
+              formControlName="matricula"
+              class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
+            />
+            @if (form.controls.matricula.invalid && form.controls.matricula.touched) {
+              <p class="text-xs text-rose-500 mt-1.5">A matrícula deve ter no máximo 30 caracteres.</p>
+            }
+          </div>
+        </div>
+      </section>
+
+      @if (erroMensagem) {
+        <div class="flex items-start gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-700 text-sm">
+          <i class="fa-solid fa-circle-exclamation mt-0.5"></i>
+          <span>{{ erroMensagem }}</span>
+        </div>
+      }
+
+      <div class="flex justify-end gap-3 pt-2">
+        <a routerLink="/admin/professores" class="px-4 py-2.5 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50">
+          Cancelar
+        </a>
+        <button
+          type="submit"
+          [disabled]="salvando"
+          class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold flex items-center gap-2 disabled:opacity-60"
+        >
+          @if (salvando) {
+            <i class="fa-solid fa-circle-notch animate-spin"></i>
+            Salvando...
+          } @else {
+            <i class="fa-solid fa-check"></i>
+            {{ editando ? 'Salvar alterações' : 'Cadastrar professor' }}
+          }
+        </button>
+      </div>
+    </form>
+
+    <!-- Lotações do professor -->
+    @if (editando) {
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-slate-800">Lotações</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Onde atua em cada ano.</p>
+          </div>
+          <a
+            [routerLink]="['/admin/professores/lotacoes/novo']"
+            [queryParams]="{ professorId: professorId }"
+            class="px-3 py-2 rounded-xl border border-emerald-200 text-emerald-700 text-xs font-semibold hover:bg-emerald-50 flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            Nova lotação
+          </a>
+        </div>
+
+        <ul class="divide-y divide-slate-100">
+          @for (lotacao of lotacoes; track lotacao.id) {
+            <li class="px-6 py-4 flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-slate-700">
+                  {{ lotacao.escola?.nome ?? 'Núcleo de educação (NEE/SEE)' }}
+                </p>
+                <p class="text-xs text-slate-400 mt-0.5">
+                  {{ lotacao.anoReferencia.ano }} · {{ lotacao.municipio.nome }} · {{ lotacao.segmento || 'Segmento não informado' }}
+                  · {{ lotacao.tipoContrato ? rotuloTipoContrato(lotacao.tipoContrato) : 'Contrato não informado' }}
+                  @if (lotacao.inicioContrato) { desde {{ formatarData(lotacao.inicioContrato) }} }
+                </p>
+              </div>
+              <a
+                [routerLink]="['/admin/professores/lotacoes/editar', lotacao.id]"
+                class="w-9 h-9 rounded-lg inline-flex items-center justify-center text-slate-400 hover:text-sky-600 hover:bg-sky-50 shrink-0"
+                title="Editar lotação"
+              >
+                <i class="fa-solid fa-pen text-xs"></i>
+              </a>
+            </li>
+          } @empty {
+            <li class="px-6 py-8 text-center text-sm text-slate-400">Nenhuma lotação registrada.</li>
+          }
+        </ul>
+      </div>
+    }
+  }
+</div>
+
+<app-sucesso-modal
+  [aberto]="modalSucessoAberto"
+  [titulo]="tituloSucesso"
+  [mensagem]="mensagemSucesso"
+  [textoBotao]="editando ? 'Concluir' : 'Registrar lotação'"
+  (fechar)="fecharModalSucesso()"
+/>

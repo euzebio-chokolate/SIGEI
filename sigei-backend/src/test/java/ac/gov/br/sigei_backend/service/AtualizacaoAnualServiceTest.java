@@ -3,6 +3,7 @@ package ac.gov.br.sigei_backend.service;
 import ac.gov.br.sigei_backend.models.*;
 import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.repository.LotacaoProfessorRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,8 +25,11 @@ class AtualizacaoAnualServiceTest {
     @Autowired EscolaRepository escolas;
     @Autowired AnoReferenciaRepository anos;
     @Autowired RegistroAnualRepository registros;
+    @Autowired LotacaoProfessorRepository lotacoes;
 
     private Escola escola;
+    private Professor professor;
+    private Municipio municipio;
 
     @BeforeEach
     void preparar() {
@@ -77,6 +81,35 @@ class AtualizacaoAnualServiceTest {
         registro.getMatriculasSerie().add(serie);
 
         registros.save(registro);
+
+        municipio = new Municipio();
+        municipio.setNome("Municipio virada");
+        entityManager.persist(municipio);
+
+        professor = new Professor();
+        professor.setNome("Professor virada");
+        entityManager.persist(professor);
+
+        LotacaoProfessor lotacao = new LotacaoProfessor();
+        lotacao.setAnoReferencia(ano2025);
+        lotacao.setProfessor(professor);
+        lotacao.setEscola(escola);
+        lotacao.setMunicipio(municipio);
+        lotacao.setCargo("PROFESSOR PS-1 25H");
+        lotacao.setSegmento("1º AO 5º ANO");
+        lotacao.setNumeroContrato("CT-123");
+        lotacao.setInicioContrato(java.time.LocalDate.of(2025, 2, 10));
+        lotacao.setAmparoLegal("DOE 13864");
+        lotacao.setTipoContrato("PSS");
+        lotacoes.save(lotacao);
+
+        // Vaga em aberto no núcleo do município
+        LotacaoProfessor vaga = new LotacaoProfessor();
+        vaga.setAnoReferencia(ano2025);
+        vaga.setMunicipio(municipio);
+        vaga.setSegmento("6º AO 9º ANO");
+        lotacoes.save(vaga);
+
         entityManager.flush();
         entityManager.clear();
     }
@@ -111,5 +144,41 @@ class AtualizacaoAnualServiceTest {
 
         // O registro de origem não é alterado
         assertEquals(42, registros.findByEscolaAndAnoReferencia_Ano(escola, 2025).orElseThrow().getTotalAlunos());
+    }
+
+    @Test
+    void novoAnoDeveCopiarAsLotacoesDoUltimoAno() {
+        service.iniciarNovoAno();
+        entityManager.flush();
+        entityManager.clear();
+
+        java.util.List<LotacaoProfessor> copiadas = lotacoes.buscarPorAno(2026);
+        assertEquals(2, copiadas.size());
+
+        LotacaoProfessor lotacao = copiadas.stream()
+                .filter(item -> item.getProfessor() != null)
+                .findFirst()
+                .orElseThrow();
+
+        assertEquals(professor.getId(), lotacao.getProfessor().getId());
+        assertEquals(escola.getId(), lotacao.getEscola().getId());
+        assertEquals(municipio.getId(), lotacao.getMunicipio().getId());
+        assertEquals("PROFESSOR PS-1 25H", lotacao.getCargo());
+        assertEquals("1º AO 5º ANO", lotacao.getSegmento());
+        assertEquals("CT-123", lotacao.getNumeroContrato());
+        assertEquals(java.time.LocalDate.of(2025, 2, 10), lotacao.getInicioContrato());
+        assertEquals("DOE 13864", lotacao.getAmparoLegal());
+        assertEquals("PSS", lotacao.getTipoContrato());
+
+        LotacaoProfessor vaga = copiadas.stream()
+                .filter(item -> item.getProfessor() == null)
+                .findFirst()
+                .orElseThrow();
+
+        assertNull(vaga.getEscola());
+        assertEquals("6º AO 9º ANO", vaga.getSegmento());
+
+        // As lotações de origem continuam no ano anterior
+        assertEquals(2, lotacoes.buscarPorAno(2025).size());
     }
 }
