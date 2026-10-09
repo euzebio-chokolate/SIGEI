@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
 import { interpretarErro } from '@core/http/erro-http';
+import { validarArquivo } from '@core/forms/validadores';
 import { SeAdminDirective } from '@core/auth/se-admin.directive';
 import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
 import { ProfessorResponse, ProfessorService } from '@domains/professores/data-access/professor.service';
@@ -303,6 +304,13 @@ export class ProfessoresListaComponent implements OnInit {
     campo.value = '';
 
     if (!arquivo || this.importando) return;
+
+    const problema = validarArquivo(arquivo, { extensoes: ['.xlsx'] });
+    if (problema) {
+      this.resultadoImportacao = null;
+      this.erroImportacao = problema;
+      return;
+    }
 
     this.importando = true;
     this.erroImportacao = '';

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
 import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { ToastService } from '@core/notificacao/toast.service';
 import { ProfessorRequest, ProfessorService } from '@domains/professores/data-access/professor.service';
 import {
@@ -58,10 +59,10 @@ export class ProfessorFormComponent implements OnInit {
   mensagemSucesso = '';
 
   form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.maxLength(255)]],
-    etnia: ['', [Validators.maxLength(255)]],
+    nome: ['', [textoObrigatorio, Validators.maxLength(TAMANHO_TEXTO)]],
+    etnia: ['', [Validators.maxLength(TAMANHO_TEXTO)]],
     sexo: ['' as Sexo | ''],
-    formacao: ['', [Validators.maxLength(255)]],
+    formacao: ['', [Validators.maxLength(TAMANHO_TEXTO)]],
     cpf: ['', [validarCpf]],
     matricula: ['', [Validators.maxLength(30)]]
   });
