@@ -39,7 +39,7 @@
             <option value="SEDE">Sede</option>
             <option value="ANEXO">Anexo</option>
           </select>
-          <app-erro-campo [controle]="form.controls.tipoUnidade" [mensagens]="{ required: 'Selecione o tipo da unidade.' }" />
+          <app-erro-campo [controle]="form.controls.tipoUnidade" [mensagens]="{ required: 'Selecione o tipo da unidade.', possuiAnexos: 'Esta escola é sede de anexos e não pode passar a ser do tipo ANEXO.' }" />
         </div>
 
         <!-- Nome -->

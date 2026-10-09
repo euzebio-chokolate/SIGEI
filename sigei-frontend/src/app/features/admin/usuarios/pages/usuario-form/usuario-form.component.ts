@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { mensagemErroCarregamento } from '@core/http/erro-http';
 import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { PerfilUsuario, UsuarioRequest, UsuarioService } from '@domains/usuarios/data-access/usuario.service';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
@@ -34,9 +35,10 @@ export class UsuarioFormComponent implements OnInit {
   perfis: PerfilUsuario[] = ['ADMIN', 'USUARIO'];
 
   form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.minLength(2)]],
-    email: ['', [Validators.required, Validators.email]],
-    senha: ['', [Validators.minLength(4)]],
+    nome: ['', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]],
+    email: ['', [textoObrigatorio, Validators.email, Validators.maxLength(TAMANHO_TEXTO)]],
+    // Mesmo mínimo exigido na troca de senha (AlterarSenhaRequestDTO), para a senha inicial não ficar abaixo da política
+    senha: ['', [Validators.minLength(8), Validators.maxLength(TAMANHO_TEXTO)]],
     perfil: ['USUARIO' as PerfilUsuario, [Validators.required]],
     ativo: [true]
   });

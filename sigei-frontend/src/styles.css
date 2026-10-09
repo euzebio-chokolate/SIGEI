@@ -29,6 +29,13 @@ button, a {
   outline-offset: 3px;
 }
 
+/* Campo inválido depois de tocado: destaca a borda em todos os formulários (fora das camadas do Tailwind, prevalece sobre border-slate-*) */
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched {
+  border-color: var(--color-rose-400, #fb7185);
+}
+
 
 ::selection {
   color: #fff;

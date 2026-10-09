@@ -19,6 +19,10 @@
             placeholder="Ex: 2020"
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
+          <app-erro-campo
+            [controle]="form.controls.anoConstrucao"
+            [mensagens]="{ min: 'Informe um ano a partir de 1900.', max: 'O ano de construção não pode estar no futuro.' }"
+          />
         </div>
 
         <!-- Número de Salas -->
@@ -34,6 +38,7 @@
             placeholder="Ex: 4"
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
+          <app-erro-campo [controle]="form.controls.numSalas" [mensagens]="{ min: 'O número de salas não pode ser negativo.' }" />
         </div>
       </div>
     </div>
@@ -58,6 +63,10 @@
             placeholder="-10.9234444"
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
+          <app-erro-campo
+            [controle]="form.controls.latitude"
+            [mensagens]="{ min: 'A latitude deve estar entre -90 e 90.', max: 'A latitude deve estar entre -90 e 90.' }"
+          />
         </div>
 
         <!-- Longitude -->
@@ -73,6 +82,10 @@
             placeholder="-69.949"
             class="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
           >
+          <app-erro-campo
+            [controle]="form.controls.longitude"
+            [mensagens]="{ min: 'A longitude deve estar entre -180 e 180.', max: 'A longitude deve estar entre -180 e 180.' }"
+          />
         </div>
       </div>
     </div>

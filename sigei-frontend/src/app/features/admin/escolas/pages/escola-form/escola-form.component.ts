@@ -21,6 +21,7 @@ import { NIVEIS_MATRICULA, SERIES_MATRICULA } from './escola-form.config';
 
 import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
 import { aplicarErrosServidor } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { ToastService } from '@core/notificacao/toast.service';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 
@@ -81,15 +82,21 @@ export class EscolaFormComponent implements OnInit {
   private escolasCadastradas: EscolaResponse[] = [];
   anosReferencia: AnoReferencia[] = [];
   escolasSede: { id: number; codigo: string; nome: string; }[] = [];
+  /** Escola em edição que é sede de algum anexo. */
+  private possuiAnexos = false;
 
   modalSucessoAberto = false;
   tituloSucesso = '';
   mensagemSucesso = '';
 
   form = this.fb.group({
-    codigo: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    nome: this.fb.nonNullable.control('', [Validators.required, Validators.minLength(2)]),
-    tipoUnidade: this.fb.nonNullable.control('', Validators.required),
+    codigo: this.fb.nonNullable.control('', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]),
+    nome: this.fb.nonNullable.control('', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]),
+    // VinculoSedeService: uma sede com anexos não pode virar ANEXO
+    tipoUnidade: this.fb.nonNullable.control('', [
+      Validators.required,
+      controle => controle.value === 'ANEXO' && this.possuiAnexos ? { possuiAnexos: true } : null
+    ]),
     aldeiaId: this.fb.nonNullable.control(0, [Validators.required, Validators.min(1)]),
     escolaSedeId: this.fb.control<number | null>(null)
   });
@@ -111,10 +118,10 @@ export class EscolaFormComponent implements OnInit {
   });
 
   infraestruturaForm = this.fb.group({
-    anoConstrucao: this.fb.control<number | null>(null),
-    numSalas: this.fb.control<number | null>(null),
-    latitude: this.fb.control<number | null>(null),
-    longitude: this.fb.control<number | null>(null),
+    anoConstrucao: this.fb.control<number | null>(null, [Validators.min(1900), Validators.max(new Date().getFullYear())]),
+    numSalas: this.fb.control<number | null>(null, Validators.min(0)),
+    latitude: this.fb.control<number | null>(null, [Validators.min(-90), Validators.max(90)]),
+    longitude: this.fb.control<number | null>(null, [Validators.min(-180), Validators.max(180)]),
     situacao: this.fb.nonNullable.control('', Validators.required),
     tipoAcesso: this.fb.nonNullable.control('', Validators.required),
     temPredio: this.fb.nonNullable.control(false),
@@ -476,8 +483,12 @@ export class EscolaFormComponent implements OnInit {
       next: (dados) => {
         this.escolasCadastradas = dados ?? [];
         this.atualizarAldeiasDisponiveis();
+        this.possuiAnexos = this.escolaId !== null
+          && this.escolasCadastradas.some(escola => escola.escolaSede?.id === this.escolaId);
+        this.form.controls.tipoUnidade.updateValueAndValidity();
         this.escolasSede = this.escolasCadastradas
-          .filter(escola => escola.tipoUnidade === 'SEDE')
+          // Uma escola não pode ser sede de si mesma (VinculoSedeService)
+          .filter(escola => escola.tipoUnidade === 'SEDE' && escola.id !== this.escolaId)
           .map(escola => ({
             id: escola.id,
             codigo: escola.codigo,

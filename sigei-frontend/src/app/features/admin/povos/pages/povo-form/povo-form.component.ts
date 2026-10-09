@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { PovoRequest, PovoService } from '@domains/territorios/data-access/povo.service';
 import { mensagemErroCarregamento } from '@core/http/erro-http';
 import { mensagemErroFormulario } from '@core/http/erros-formulario';
+import { TAMANHO_TEXTO, textoObrigatorio } from '@core/forms/validadores';
 import { ToastService } from '@core/notificacao/toast.service';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 
@@ -124,7 +125,7 @@ export class PovoFormComponent implements OnInit {
 
   // --- Formulário ---
   form = this.fb.nonNullable.group({
-    nome: ['', [Validators.required, Validators.minLength(2)]],
+    nome: ['', [textoObrigatorio, Validators.minLength(2), Validators.maxLength(TAMANHO_TEXTO)]],
   });
 
   // --- Ciclo de Vida ---
