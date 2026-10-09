@@ -90,6 +90,7 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/lotacao` | CRUD base, `GET /{id}`, `GET /buscarPorAno?ano=2026` e `GET /buscarPorProfessor?professorId=1`. Exclusão retorna `204`. Número do contrato só aparece para `ADMIN`. |
 | `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /alterar-senha`. |
 | `/dashboard` | `GET`, com parâmetro opcional `ano`. |
+| `/auditoria` | `GET`, só `ADMIN`: alterações de todas as entidades auditadas, paginadas (`pagina` a partir de 0, `tamanho` até 100) e filtráveis por `entidade`, `operacao`, `usuarioId`, `sistema`, `de` e `ate` (datas do Acre). Responde `PaginaAuditoriaDTO`. |
 | `/atualizacao-anual` | `POST /iniciar`, sem corpo. |
 | `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo`. |
 
@@ -116,6 +117,7 @@ As regras são avaliadas nesta ordem:
 | `/auth/alterar-senha` | Qualquer usuário autenticado. |
 | `GET /infraestrutura` e descendentes | Público. |
 | `GET /escola/*/historico` | `ADMIN`. |
+| `GET /auditoria` e descendentes | `ADMIN`. |
 | Demais `GET /**` | `ADMIN` ou `USUARIO`. |
 | Demais requisições | `ADMIN`. |
 
@@ -171,7 +173,11 @@ O Hibernate Envers registra cada criação, alteração e exclusão das entidade
 
 `HistoricoEscolaService` monta `GET /escola/{id}/historico`, com as alterações da escola, de seus registros anuais e, em cada registro, de equipe, infraestrutura e matrículas. Compara cada versão com a anterior da mesma entidade e devolve apenas os campos alterados. Relacionamentos aparecem como `<campo>Id`. A ordem vai da revisão mais recente à mais antiga, e cada item traz o `ano` do registro. Uma escola excluída mantém o histórico; uma escola sem revisões resulta em `404`.
 
-- As revisões só são gravadas no commit. Testes que verificam auditoria precisam de transações reais, como em `HistoricoEscolaServiceTest`, com `Propagation.NOT_SUPPORTED`.
+`AuditoriaService` monta `GET /auditoria`, a auditoria geral. Lista primeiro uma projeção leve (revisão, ID) de cada tabela `_aud` para ordenar e contar, e só então carrega e compara os registros da página. A paginação é por alteração, não por revisão, porque a revisão inicial da `V4` contém todos os registros existentes na época. Cada item traz uma `descricao` (nome do registro ou, para partes do registro anual e lotações, a escola ou o professor), buscada nos dados atuais e, para registros excluídos, na última versão auditada.
+
+As duas trilhas usam `service/auditoria/VersoesAuditadas` para ler e comparar versões. O Envers decifra CPF, matrícula e número do contrato ao ler as tabelas `_aud`; `VersoesAuditadas` compara os valores reais, mas devolve esses campos (os anotados com `DadoSensivelConverter`) como `(dado protegido)`. Ao criar outro campo sensível, use o mesmo conversor para que ele seja protegido também na auditoria.
+
+- As revisões só são gravadas no commit. Testes que verificam auditoria precisam de transações reais, como em `HistoricoEscolaServiceTest` e `AuditoriaServiceTest`, com `Propagation.NOT_SUPPORTED`. As revisões se acumulam no banco H2 entre testes; filtre pelo autor do teste, como faz `AuditoriaServiceTest`.
 - Alterações por SQL direto não são registradas.
 - Ao adicionar ou mudar um campo de entidade auditada, a migração deve alterar também a tabela `_aud`.
 
