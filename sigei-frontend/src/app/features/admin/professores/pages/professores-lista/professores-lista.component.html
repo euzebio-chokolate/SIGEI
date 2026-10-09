@@ -155,7 +155,7 @@
           <input
             type="text"
             [(ngModel)]="filtroLotacao"
-            (ngModelChange)="aplicarFiltrosLotacao()"
+            (buscaDebounce)="aplicarFiltrosLotacao()"
             placeholder="Buscar professor, escola, cargo ou segmento..."
             class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
           />
@@ -341,7 +341,7 @@
           <input
             type="text"
             [(ngModel)]="filtroProfessor"
-            (ngModelChange)="aplicarFiltrosProfessor()"
+            (buscaDebounce)="aplicarFiltrosProfessor()"
             placeholder="Buscar por nome, etnia ou formação..."
             class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-sm"
           />

@@ -9,11 +9,12 @@ import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.co
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
 import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-usuarios-lista',
   standalone: true,
-  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SkeletonLinhaComponent, EstadoErroComponent],
+  imports: [FormsModule, RouterLink, ConfirmModalComponent, SucessoModalComponent, SkeletonLinhaComponent, EstadoErroComponent, BuscaDebounceDirective],
   templateUrl: './usuarios-lista.component.html'
 })
 export class UsuariosListaComponent implements OnInit {

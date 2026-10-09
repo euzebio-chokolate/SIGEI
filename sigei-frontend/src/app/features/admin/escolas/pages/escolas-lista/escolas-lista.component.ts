@@ -13,11 +13,12 @@ import { HistoricoEscolaModalComponent } from '@domains/escolas/ui/historico-esc
 import { RegistroAnualResponse } from '@domains/escolas/data-access/registro-anual.service';
 import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
 import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.component';
+import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.directive';
 
 @Component({
   selector: 'app-escolas-lista',
   standalone: true,
-  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent, HistoricoEscolaModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent],
+  imports: [RouterLink, FormsModule, ConfirmModalComponent, AnoModalComponent, SucessoModalComponent, HistoricoEscolaModalComponent, SeAdminDirective, SkeletonLinhaComponent, EstadoErroComponent, BuscaDebounceDirective],
   templateUrl: './escolas-lista.component.html'
 })
 export class EscolasListaComponent implements OnInit {
