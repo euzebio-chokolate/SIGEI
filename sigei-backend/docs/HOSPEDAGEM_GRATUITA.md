@@ -1,8 +1,19 @@
 # Demonstracao publica do SIGEI sem custo
 
+> Este guia é para demonstração que tolere espera no primeiro acesso.
+> O Render pode exigir cartão para verificar algumas contas. Se isso acontecer,
+> não prossiga com esse provedor quando o requisito for não cadastrar cartão.
+> Veja também [as alternativas sem cartão](HOSPEDAGEM_SEM_CARTAO.md).
+
 Arquitetura para o TCC: Angular na Vercel Hobby, API Docker no Render Free e
 PostgreSQL no Neon Free. O computador do desenvolvedor pode ficar desligado.
 Use os subdominios gratuitos dos provedores; nao e necessario comprar dominio.
+
+Escolha explicitamente os planos Hobby/Free, sem iniciar planos pagos.
+A [equipe do Render informa que pode solicitar cartão na verificação](https://community.render.com/t/the-deployement-of-a-web-service-fails/36005).
+O [Neon permite cadastro gratuito sem cartão](https://neon.com/blog/making-pricing-more-predictable).
+Em [02/10/2026, o armazenamento gratuito do Neon passou para 1 GB por projeto](https://neon.com/blog/neon-free-plan-1-gb-per-project);
+há também cotas de computação, e o plano não oferece execução ilimitada.
 
 Os arquivos deste repositorio preparam a implantacao, mas nao criam contas,
 publicam servicos nem transferem o banco local automaticamente.
@@ -13,7 +24,7 @@ no mesmo repositorio. As instrucoes abaixo usam essa estrutura.
 ## 1. Criar o banco no Neon
 
 Crie um projeto no plano Free. Para ficar proximo da API configurada no
-`render.yaml`, prefira AWS US East (N. Virginia), se disponivel no plano.
+`render.yaml`, use AWS US West (Oregon), a região do projeto SIGEI existente.
 Escolha PostgreSQL 17, que e a versao usada pelo Compose local.
 
 No painel de conexao, obtenha host, banco, usuario e senha. Use inicialmente a
@@ -67,9 +78,15 @@ Guarde a chave. Se restaurar um banco local que ja tenha dados cifrados, use a
 mesma chave desse banco; uma chave nova nao consegue ler os valores existentes.
 
 O Blueprint limita o heap Java a 256 MB para deixar espaco para a memoria nativa
-dentro dos 512 MB do Render Free. Esse e um ajuste inicial: a inicializacao e os
-fluxos reais ainda precisam ser validados nesse limite. Nao aumente o heap para
-512 MB, pois a JVM consome memoria adicional fora dele.
+dentro dos 512 MB do Render Free. A API foi validada localmente nesse limite,
+com CPU limitada a 0,1 e PostgreSQL descartável. A validação no endereço
+publicado, com Neon e proxy Vercel, ainda precisa ser feita. Nao aumente o heap
+para 512 MB, pois a JVM consome memoria adicional fora dele.
+
+O mesmo arquivo limita os workers HTTP a 20 (com dois iniciais) e habilita
+compressão de JSON a partir de 1 KB. O mapa usa uma projeção direta para evitar
+carregar o grafo de entidades JPA e executar consultas adicionais por escola.
+Manter o Neon e a API na mesma região reduz a latência das consultas do dashboard.
 
 O Render fornece `PORT`; a aplicacao ja le essa variavel. Aguarde o health check
 `https://ENDERECO-REAL-DA-API/actuator/health` retornar `{"status":"UP"}`.
@@ -138,9 +155,43 @@ intervalo: abra o health check da API, aguarde `UP` e depois acesse o frontend.
 Faca isso antes da apresentacao. O Neon tambem pode suspender o compute ocioso.
 O endereco continua publico; isso nao significa resposta imediata 24 horas.
 
-Mantenha todos os servicos nos planos gratuitos e acompanhe suas cotas. Uma
-instancia de API com 512 MB precisa de validacao; esta configuracao nao e um
-resultado de teste de carga. O historico de auditoria tambem ocupa espaco no banco.
+Para a apresentação, abra o health check e percorra mapa, login e dashboard
+de três a cinco minutos antes de começar. A partida inicial da aplicação Java
+levou aproximadamente 161 segundos na simulação local de 0,1 CPU; o tempo real
+do provedor pode variar. Teste também um cadastro e uma foto, caso
+esse fluxo faça parte da demonstração. Isso reduz a chance de encontrar a
+reativação do serviço durante a fala, mas não garante tempo de resposta.
+
+Mantenha todos os servicos nos planos gratuitos e acompanhe suas cotas.
+O historico de auditoria tambem ocupa espaco no banco.
+
+## 6. Validação local de usabilidade e recursos
+
+Executada em 12/10/2026, com a imagem Docker do projeto, limite de 512 MB e
+0,1 CPU para a API, PostgreSQL 17 local e 100 escolas fictícias com dois anos.
+Não usou o banco real nem publicou dados. As medições não incluem a internet,
+o Neon, o proxy Vercel, imagens Cloudinary ou camadas externas do mapa.
+
+| Verificação | Resultado |
+| --- | --- |
+| Suíte Java, incluindo migrações PostgreSQL | 272 testes; zero falhas, erros ou testes ignorados. |
+| Build Angular de produção | Passou; 354,92 kB iniciais, transferência estimada de 92,09 kB, mais módulos sob demanda. Aviso CommonJS do Leaflet. |
+| Consulta do mapa | Uma consulta SQL, sem carregar entidades; teste de regressão adicionado. |
+| Mapa antes da otimização, seis requisições | Mediana de 650 ms. |
+| Mapa após a otimização, seis requisições | Mediana de 204 ms; amostras entre 97 e 299 ms. |
+| Oito requisições ao mapa, quatro simultâneas | Todas concluídas; entre 167 e 786 ms. |
+| Compressão JSON do mapa | 36.377 bytes reduzidos a 1.511 bytes com gzip. |
+| Pico de memória do contêiner após as mudanças | 341,6 MiB, dentro dos 512 MiB configurados. |
+| Login, troca de senha, dashboard, cadastro de ano com CSRF, refresh e logout | Passaram na API com limite de recursos. |
+
+Essa é uma verificação pequena para demonstração, não uma garantia de latência
+ou capacidade em produção. Os cookies foram testados por HTTP em loopback com
+`SIGEI_COOKIE_SECURE=false` somente no ambiente descartável; a configuração
+do Render mantém `true`, e o fluxo HTTPS deve ser conferido após a publicação.
+O upload de fotos depende das credenciais Cloudinary e não foi exercitado.
+
+A publicação exige acesso às contas Neon, Render e Vercel e a definição da URL
+real da API no proxy do frontend. Preparar os arquivos não cria esses serviços.
 
 ## Referencias
 

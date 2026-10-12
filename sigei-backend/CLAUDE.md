@@ -142,6 +142,14 @@ CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origen
 
 ## Fluxos importantes
 
+### Mapa público
+
+`GET /infraestrutura/maisRecentes` seleciona diretamente `InfraestruturaEscolaResponseDTO`
+no repository, incluindo os resumos de escola e ano por um construtor de projeção.
+Isso evita materializar entidades e carregar relacionamentos EAGER por escola.
+Preserve uma infraestrutura por escola, do ano mais recente que tenha infraestrutura;
+o teste de repository também verifica uma única consulta e nenhuma entidade carregada.
+
 ### Abertura de ano
 
 `AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia para novas entidades:

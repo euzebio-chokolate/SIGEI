@@ -66,11 +66,7 @@ public class InfraestruturaEscolaService {
     }
 
     public List<InfraestruturaEscolaResponseDTO> buscarMaisRecentes() {
-
-        return infraestruturaRepository.buscarMaisRecentesPorEscola()
-                .stream()
-                .map(infraestruturaMapper::converter)
-                .toList();
+        return infraestruturaRepository.buscarMaisRecentesPorEscola();
     }
 
     public InfraestruturaEscolaResponseDTO editar(InfraestruturaEscolaRequestDTO infraDTO) {

@@ -70,6 +70,11 @@ banco local e testar uma carga nova, execute `docker compose down -v`.
 Para a demonstração do TCC com orçamento zero e acesso mesmo com o computador
 desligado, veja [hospedagem gratuita com Vercel, Render e Neon](docs/HOSPEDAGEM_GRATUITA.md).
 O `render.yaml` prepara a API no plano Free; o guia inclui o modelo do proxy do frontend.
+O Render pode solicitar cartão para verificar a conta; nesse caso essa alternativa
+não atende à exigência de publicar sem cartão.
+
+Como alternativa para uma apresentação ao vivo com o computador ligado, veja
+[o acesso temporário sem cartão](docs/HOSPEDAGEM_SEM_CARTAO.md).
 
 Use o `Dockerfile` e um PostgreSQL gerenciado. Configure:
 
