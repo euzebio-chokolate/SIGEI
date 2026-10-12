@@ -45,5 +45,6 @@ Thumbs.db
 
 # Vercel local project metadata
 .vercel/
-.vercel
-.env*
+.env
+.env.*
+!.env.example

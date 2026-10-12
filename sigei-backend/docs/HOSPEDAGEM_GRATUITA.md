@@ -80,7 +80,8 @@ mesma chave desse banco; uma chave nova nao consegue ler os valores existentes.
 O Blueprint limita o heap Java a 256 MB para deixar espaco para a memoria nativa
 dentro dos 512 MB do Render Free. A API foi validada localmente nesse limite,
 com CPU limitada a 0,1 e PostgreSQL descartável. A validação no endereço
-publicado, com Neon e proxy Vercel, ainda precisa ser feita. Nao aumente o heap
+publicado, com Neon e proxy Vercel, também passou; veja o
+[registro da publicação](DEPLOY_DEMONSTRACAO_20261012.md). Nao aumente o heap
 para 512 MB, pois a JVM consome memoria adicional fora dele.
 
 O mesmo arquivo limita os workers HTTP a 20 (com dois iniciais) e habilita
@@ -187,11 +188,15 @@ o Neon, o proxy Vercel, imagens Cloudinary ou camadas externas do mapa.
 Essa é uma verificação pequena para demonstração, não uma garantia de latência
 ou capacidade em produção. Os cookies foram testados por HTTP em loopback com
 `SIGEI_COOKIE_SECURE=false` somente no ambiente descartável; a configuração
-do Render mantém `true`, e o fluxo HTTPS deve ser conferido após a publicação.
+do Render mantém `true`. O fluxo HTTPS também passou na publicação de 12/10/2026,
+incluindo cookies HttpOnly/Secure, CSRF, renovação de sessão e logout.
 O upload de fotos depende das credenciais Cloudinary e não foi exercitado.
 
-A publicação exige acesso às contas Neon, Render e Vercel e a definição da URL
-real da API no proxy do frontend. Preparar os arquivos não cria esses serviços.
+O sistema foi publicado em <https://sigei-coral.vercel.app>, reutilizando os
+recursos existentes no Neon Free, Render Free e Vercel Hobby. O mapa carregou
+178 marcadores. Em cinco consultas com a API ativa, a mediana foi de 412 ms
+para o mapa e 503 ms para o dashboard. Essas medições pequenas não representam
+garantia de latência e não incluem a espera de reativação da API.
 
 ## Referencias
 
