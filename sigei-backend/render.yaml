@@ -1,11 +1,10 @@
 # Demonstracao do TCC: API no Render Free e PostgreSQL externo no Neon.
-# Passo a passo: docs/HOSPEDAGEM_GRATUITA.md
 services:
   - type: web
-    name: sigei-backend
+    name: SIGEI
     runtime: docker
     plan: free
-    region: virginia
+    region: oregon
     rootDir: sigei-backend
     dockerfilePath: ./Dockerfile
     healthCheckPath: /actuator/health
@@ -16,6 +15,16 @@ services:
         value: "3"
       - key: DATABASE_POOL_MIN_IDLE
         value: "0"
+      - key: SERVER_TOMCAT_THREADS_MAX
+        value: "20"
+      - key: SERVER_TOMCAT_THREADS_MIN_SPARE
+        value: "2"
+      - key: SERVER_COMPRESSION_ENABLED
+        value: "true"
+      - key: SERVER_COMPRESSION_MIME_TYPES
+        value: application/json
+      - key: SERVER_COMPRESSION_MIN_RESPONSE_SIZE
+        value: 1KB
       - key: DATABASE_URL
         sync: false
       - key: DATABASE_USERNAME

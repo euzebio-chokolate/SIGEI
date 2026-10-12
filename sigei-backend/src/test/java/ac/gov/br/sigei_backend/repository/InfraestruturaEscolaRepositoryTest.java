@@ -1,6 +1,9 @@
 package ac.gov.br.sigei_backend.repository;
 
 import ac.gov.br.sigei_backend.models.*;
+import ac.gov.br.sigei_backend.dto.response.InfraestruturaEscolaResponseDTO;
+import jakarta.persistence.EntityManager;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +42,9 @@ public class InfraestruturaEscolaRepositoryTest {
 
  @Autowired
  PovoRepository povoRepository;
+
+ @Autowired
+ EntityManager entityManager;
 
  private Escola escola;
  private RegistroAnual registroAnual2025;
@@ -169,6 +175,39 @@ public class InfraestruturaEscolaRepositoryTest {
  }
 
  @Test
+ public void deveConsultarDadosDoMapaSemCarregarEntidadesRelacionadas() {
+  infra2026.setLatitude(-9.9);
+  infra2026.setLongitude(-67.8);
+  infra2026.setTemInternet(true);
+  infra2026.setFotoUrl("https://example.com/foto.jpg");
+  entityManager.flush();
+  entityManager.clear();
+  var statistics = entityManager.getEntityManagerFactory()
+          .unwrap(SessionFactory.class).getStatistics();
+  statistics.setStatisticsEnabled(true);
+  statistics.clear();
+  try {
+   var resultado = infraestruturaEscolaRepository.buscarMaisRecentesPorEscola();
+   assertEquals(1, resultado.size());
+   var item = resultado.get(0);
+   assertEquals(infra2026.getId(), item.id());
+   assertEquals(escola.getNome(), item.escola().nome());
+   assertEquals(2026, item.anoReferencia().ano());
+   assertEquals(-9.9, item.latitude());
+   assertEquals(-67.8, item.longitude());
+   assertTrue(item.temInternet());
+   assertNull(item.numSalas());
+   assertEquals("https://example.com/foto.jpg", item.fotoUrl());
+   assertEquals(1, statistics.getPrepareStatementCount(),
+           "O mapa deve buscar os campos da resposta em uma consulta, sem consultas por relacionamento");
+   assertEquals(0, statistics.getEntityLoadCount(),
+           "O mapa não precisa materializar entidades e seus relacionamentos EAGER");
+  } finally {
+   statistics.setStatisticsEnabled(false);
+  }
+ }
+
+ @Test
  public void deveBuscarUmaInfraestruturaPorEscolaDoAnoMaisRecente() {
   // Outra escola: infraestrutura só em 2025 e um registro de 2027 ainda sem infraestrutura
   Escola outraEscola = new Escola();
@@ -196,7 +235,7 @@ public class InfraestruturaEscolaRepositoryTest {
 
   List<Long> ids = infraestruturaEscolaRepository.buscarMaisRecentesPorEscola()
           .stream()
-          .map(InfraestruturaEscola::getId)
+          .map(InfraestruturaEscolaResponseDTO::id)
           .sorted()
           .toList();
 

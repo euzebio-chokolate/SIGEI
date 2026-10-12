@@ -142,6 +142,14 @@ CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origen
 
 ## Fluxos importantes
 
+### Mapa público
+
+`GET /infraestrutura/maisRecentes` seleciona diretamente `InfraestruturaEscolaResponseDTO`
+no repository, incluindo os resumos de escola e ano por um construtor de projeção.
+Isso evita materializar entidades e carregar relacionamentos EAGER por escola.
+Preserve uma infraestrutura por escola, do ano mais recente que tenha infraestrutura;
+o teste de repository também verifica uma única consulta e nenhuma entidade carregada.
+
 ### Abertura de ano
 
 `AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia para novas entidades:
@@ -254,7 +262,6 @@ Na Vercel, use Root Directory `sigei-frontend`.
 `render.yaml` configura somente a API no Render Free, com PostgreSQL externo no
 Neon, heap Java de 256 MB, pool de três conexões e carga automática de planilhas
 desligada. Esses limites precisam de validação no ambiente hospedado.
-`docs/HOSPEDAGEM_GRATUITA.md` descreve a publicação e a preparação dos dados.
 `docs/deploy/vercel.json.example` é um modelo para o repositório do frontend:
 substitua o endereço de exemplo pela API real antes de usá-lo como `vercel.json`.
 O proxy `/api` da Vercel mantém a mesma origem da sessão; a API não deve entrar

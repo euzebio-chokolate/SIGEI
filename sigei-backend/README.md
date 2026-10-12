@@ -67,10 +67,6 @@ banco local e testar uma carga nova, execute `docker compose down -v`.
 
 ## Hospedagem
 
-Para a demonstração do TCC com orçamento zero e acesso mesmo com o computador
-desligado, veja [hospedagem gratuita com Vercel, Render e Neon](docs/HOSPEDAGEM_GRATUITA.md).
-O `render.yaml` prepara a API no plano Free; o guia inclui o modelo do proxy do frontend.
-
 Use o `Dockerfile` e um PostgreSQL gerenciado. Configure:
 
 - `DATABASE_URL`, no formato `jdbc:postgresql://host:5432/banco`
