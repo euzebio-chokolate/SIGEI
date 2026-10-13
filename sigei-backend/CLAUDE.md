@@ -9,7 +9,7 @@ API de gestão da educação escolar indígena do Acre: municípios, terras ind�
 - Java 21 e Maven Wrapper (`mvnw` / `mvnw.cmd`).
 - Spring Boot 4.0.5, Spring MVC, Spring Data JPA, Bean Validation, Spring Security e Actuator.
 - PostgreSQL na aplicação; H2 nos testes com perfil `test`.
-- MapStruct 1.6.3 para conversões; Apache POI 5.4.1 para Excel.
+- MapStruct 1.6.3 para conversões; Apache POI 5.4.1 para Excel; OpenPDF 2.0.3 para os relatórios em PDF.
 - JWT com JJWT 0.12.6; senhas com BCrypt.
 - Cloudinary 2.0.0 para imagens; Springdoc 2.8.13 declarado no `pom.xml` para OpenAPI/Swagger.
 - Flyway 11 (gerenciado pelo Spring Boot) para versionar o esquema; Testcontainers 2 nos testes de migração.
@@ -89,10 +89,11 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/professor` | CRUD base e `GET /{id}`. Exclusão retorna `204` e remove as lotações. CPF e matrícula só aparecem para `ADMIN`. |
 | `/lotacao` | CRUD base, `GET /{id}`, `GET /buscarPorAno?ano=2026` e `GET /buscarPorProfessor?professorId=1`. Exclusão retorna `204`. Número do contrato só aparece para `ADMIN`. |
 | `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /alterar-senha`. |
-| `/dashboard` | `GET`, com parâmetro opcional `ano`. |
+| `/dashboard` | `GET`, com parâmetro opcional `ano`. Inclui o bloco `professores` (lotados, lotações, vagas, núcleo e lotações por tipo de contrato). |
 | `/auditoria` | `GET`, só `ADMIN`: alterações de todas as entidades auditadas, paginadas (`pagina` a partir de 0, `tamanho` até 100) e filtráveis por `entidade`, `operacao`, `usuarioId`, `sistema`, `de` e `ate` (datas do Acre). Responde `PaginaAuditoriaDTO`. |
 | `/atualizacao-anual` | `POST /iniciar`, sem corpo. |
 | `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo` e parâmetro opcional `ano` (sem ele, o mais recente); `GET /layouts` (colunas aceitas por tipo) e `GET /modelos/{tipo}` (planilha modelo `.xlsx`). |
+| `/relatorios` | `GET /{tipo}` (`painel`, `escolas`, `matriculas`, `professores`), com `formato` (`xlsx` padrão ou `pdf`), `ano` e `municipioId` opcionais; responde o arquivo como anexo. |
 
 Os DTOs são a fonte dos nomes de campos, tipos e validações. Não suponha paginação, um envelope único de resposta ou CRUD completo em todos os controllers. Criações normalmente retornam `201`; consultas e edições, `200`. Exclusões variam entre `200` e `204`; preserve o contrato de cada controller.
 
@@ -215,7 +216,15 @@ No frontend, a tela `/admin/importacoes` (só `ADMIN`) faz as três importaçõe
 
 ### Dashboard
 
-`DashboardService` usa o ano solicitado ou o maior ano cadastrado. Retorna resumo, evolução histórica de matrículas e escolas, matrículas por nível, infraestrutura, escolas por município e situação das escolas. As séries históricas abrangem os anos, enquanto os indicadores selecionados usam o ano resolvido. Consultas ficam em `DashboardRepository`; confira agregações para evitar duplicar contagens em joins.
+`DashboardService` usa o ano solicitado ou o maior ano cadastrado. Retorna resumo, evolução histórica de matrículas e escolas, matrículas por nível, infraestrutura, escolas por município e situação das escolas, além das lotações de professores do ano (`professores`: professores distintos, lotações, vagas em aberto, lotações no núcleo e distribuição por tipo de contrato, com o valor gravado). As séries históricas abrangem os anos, enquanto os indicadores selecionados usam o ano resolvido. Consultas ficam em `DashboardRepository`; confira agregações para evitar duplicar contagens em joins.
+
+### Relatórios exportáveis
+
+`RelatorioService` (`service/relatorio`) monta, para um ano e opcionalmente um município, os relatórios `painel` (indicadores consolidados), `escolas`, `matriculas` e `professores`. O conteúdo é um modelo independente do formato (`Relatorio`: seções com indicadores e tabelas), convertido por `GeradorPlanilhaRelatorio` (.xlsx: aba Resumo e uma aba por tabela, números como números) e `GeradorPdfRelatorio` (A4, paisagem nas tabelas largas, cabeçalho repetido e rodapé com emissão e página).
+
+- As consultas ficam em `RelatorioRepository` e selecionam projeções (`repository/projection/*Relatorio`), sem carregar entidades; o filtro por município é aplicado no service. Ano ou município inexistente resulta em `404`; formato inválido, em `400`.
+- Os números seguem o painel: matrículas pelo `totalAlunos` do registro e energia presente quando o tipo não é `NAO`.
+- CPF, matrícula e número do contrato nunca entram nos relatórios: as projeções não selecionam esses campos, e por isso os relatórios ficam liberados também a `USUARIO`. `RelatorioServiceTest` verifica que esses valores não aparecem na planilha nem no PDF; preserve isso ao acrescentar colunas.
 
 ### Imagens
 
@@ -322,7 +331,7 @@ Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organiz
 | `CredenciaisInvalidasException` | `401`, "E-mail ou senha inválidos" (login). |
 | `UsuarioDesativadoException` | `403`, "Usuário desativado" (login com a senha correta). |
 
-Não existe um formato universal de erro. Exceções sem tratamento no advice não chegam ao cliente como `500`. O encaminhamento interno para `/error` passa pelo Spring Security; para um cliente anônimo, essa rota exige autenticação, e o cliente recebe `401` sem corpo. Trate os erros esperados com exceções próprias e `@ExceptionHandler`, e não com `RuntimeException`.
+Não existe um formato universal de erro. Exceções sem tratamento no advice e rotas inexistentes são encaminhadas para `/error`, liberado em `SecurityConfig` (`DispatcherType.ERROR`): o `JwtFilter` não roda nesse encaminhamento, e sem a liberação o usuário autenticado recebia `401`, que o frontend trata como sessão expirada e encerra a sessão. A autorização continua valendo na requisição original (rota protegida sem token: `401`), e o corpo padrão do Spring não traz mensagem nem stack trace. `ErroEncaminhadoHttpTest` cobre isso com servidor real, porque o MockMvc não faz o encaminhamento. Trate os erros esperados com exceções próprias e `@ExceptionHandler`, e não com `RuntimeException`.
 
 Ao trabalhar no projeto:
 

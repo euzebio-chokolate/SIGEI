@@ -74,6 +74,7 @@ JavaScript separado, baixado somente quando acessado.
 | `/alterar-senha` | Troca de senha | `authenticatedGuard` |
 | `/admin` | Shell administrativo (redireciona para `/admin/dashboard`) | `authGuard` |
 | `/admin/dashboard` | Indicadores | herda `authGuard` |
+| `/admin/relatorios` | Relatórios exportáveis em PDF e planilha | herda |
 | `/admin/municipios` | Municípios com estatísticas (somente leitura) | herda |
 | `/admin/terras-indigenas` | Lista de terras indígenas | herda |
 | `/admin/terras-indigenas/novo`, `/editar/:id` | Formulário | `adminGuard` |
@@ -197,6 +198,17 @@ nível, percentuais de internet, energia e prédio, escolas por município e
 situação das escolas. Os gráficos são barras desenhadas com HTML e Tailwind
 (largura/altura via `[style]`), sem biblioteca de gráficos.
 
+Mostra também o quadro de professores do ano (card de professores lotados e seção com
+lotações, vagas em aberto, lotações no núcleo e distribuição por tipo de contrato) e
+exporta os indicadores do ano exibido em PDF ou planilha.
+
+### Relatórios
+
+A tela `/admin/relatorios` (menu "Relatórios", ADMIN e USUARIO) gera os relatórios de
+`GET /relatorios/{tipo}` em PDF ou planilha, filtrados por ano e município. O download usa
+`core/http/download.ts` (`salvarArquivo` e o nome do `Content-Disposition`), também usado no
+modelo de importação. Serviço e opções ficam em `domains/relatorios`.
+
 ### Cadastros territoriais
 
 - **Municípios:** somente leitura, com estatísticas por município. Os
@@ -308,7 +320,7 @@ código em 29/09/2026:
 | --- | --- | --- |
 | `DELETE /infraestrutura/{id}/foto` não existe no backend | Remover a foto de uma escola já cadastrada e salvar dá erro, depois de escola, registro e demais dados já terem sido gravados | `infraestrutura.service.ts`, `escola-form.component.ts` |
 | `GET /infraestrutura` devolve os registros de todos os anos | Uma escola com mais de um ano cadastrado aparece com vários marcadores no mapa público | `mapa-publico.component.ts` |
-| `MunicipioService.listar()` usa `/municipio/buscarTudo` e `buscarPorId()` usa `/municipio/{id}`, rotas que não existem | Nenhum, porque os métodos não são chamados; são código morto | `municipio.service.ts` |
+| `MunicipioService.buscarPorId()` usa `/municipio/{id}`, rota que não existe (`listar()` foi corrigido para `GET /municipio` e é usado pela tela de relatórios) | Nenhum, porque o método não é chamado; é código morto | `municipio.service.ts` |
 | Porta do proxy (8081) diferente da porta padrão do backend (8080) | `npm start` não alcança a API sem ajuste | `proxy.conf.json` |
 | `environment.production.ts` usa a URL do backend, mas o README descreve o uso de `/api` via Nginx | No Docker, o proxy `/api` do Nginx não é usado pelo build de produção | `environment.production.ts`, `README.md` |
 

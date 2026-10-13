@@ -16,7 +16,7 @@ export class MunicipioService {
   }
 
   listar(): Observable<Municipio[]> {
-    return this.http.get<Municipio[]>(`${this.apiUrl}/buscarTudo`);
+    return this.http.get<Municipio[]>(this.apiUrl);
   }
 
   buscarPorId(id: number): Observable<Municipio> {

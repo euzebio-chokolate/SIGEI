@@ -1,19 +1,26 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { mensagemErroCarregamento } from '@core/http/erro-http';
+import { RouterLink } from '@angular/router';
+import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
 import { DashboardEvolucao, DashboardItem, DashboardResponse, DashboardService } from '@features/admin/dashboard/data-access/dashboard.service';
+import { rotuloTipoContrato } from '@domains/professores/models/professor.models';
+import { RelatorioService } from '@domains/relatorios/data-access/relatorio.service';
+import { FormatoRelatorio } from '@domains/relatorios/models/relatorio.models';
 
 interface EvolucaoPorAno { ano: number; matriculas: number; escolas: number; }
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
+  private readonly relatorioService = inject(RelatorioService);
   private readonly cdr = inject(ChangeDetectorRef);
+
+  readonly rotuloTipoContrato = rotuloTipoContrato;
 
   dados: DashboardResponse | null = null;
   carregando = true;
@@ -21,6 +28,29 @@ export class DashboardComponent implements OnInit {
   anoSelecionado: number | null = null;
   anosDisponiveis: number[] = [];
   evolucao: EvolucaoPorAno[] = [];
+
+  /** Formato do painel em exportação, ou nulo. */
+  exportando: FormatoRelatorio | null = null;
+  erroExportacao = '';
+
+  /** Exporta os indicadores do ano exibido (relatório "painel"). */
+  exportar(formato: FormatoRelatorio): void {
+    if (!this.dados || this.exportando) return;
+    this.exportando = formato;
+    this.erroExportacao = '';
+
+    this.relatorioService.baixar('painel', formato, { ano: this.dados.anoReferencia }).subscribe({
+      next: () => {
+        this.exportando = null;
+        this.cdr.markForCheck();
+      },
+      error: erro => {
+        this.exportando = null;
+        this.erroExportacao = interpretarErro(erro, 'Não foi possível exportar o painel.').mensagem;
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
   ngOnInit(): void { this.carregar(); }
 

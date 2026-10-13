@@ -2,11 +2,13 @@ package ac.gov.br.sigei_backend.service;
 
 import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardInfraestruturaDTO;
 import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO;
+import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardProfessoresDTO;
 import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardResponseDTO;
 import ac.gov.br.sigei_backend.models.AnoReferencia;
 import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.DashboardRepository;
 import ac.gov.br.sigei_backend.repository.projection.DashboardInfraestruturaProjection;
+import ac.gov.br.sigei_backend.repository.projection.DashboardProfessoresProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +45,20 @@ public class DashboardService {
                 dashboardRepository.buscarMatriculasPorNivel(anoSelecionado),
                 montarInfraestrutura(dashboardRepository.buscarInfraestrutura(anoSelecionado)),
                 dashboardRepository.buscarEscolasPorMunicipio(anoSelecionado),
-                normalizarSituacoes(dashboardRepository.buscarSituacaoEscolas(anoSelecionado))
+                normalizarSituacoes(dashboardRepository.buscarSituacaoEscolas(anoSelecionado)),
+                montarProfessores(anoSelecionado)
+        );
+    }
+
+    private DashboardProfessoresDTO montarProfessores(Integer ano) {
+        DashboardProfessoresProjection resumo = dashboardRepository.buscarProfessores(ano);
+
+        return new DashboardProfessoresDTO(
+                valorLong(resumo.getTotalProfessores()),
+                valorLong(resumo.getTotalLotacoes()),
+                valorLong(resumo.getVagasEmAberto()),
+                valorLong(resumo.getLotacoesNoNucleo()),
+                dashboardRepository.buscarLotacoesPorTipoContrato(ano)
         );
     }
 

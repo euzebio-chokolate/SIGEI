@@ -3,8 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 
-import type { DashboardResumo, DashboardEvolucao, DashboardItem, DashboardInfraestrutura, DashboardResponse } from '../models/dashboard.models';
-export type { DashboardResumo, DashboardEvolucao, DashboardItem, DashboardInfraestrutura, DashboardResponse } from '../models/dashboard.models';
+import type { DashboardResumo, DashboardEvolucao, DashboardItem, DashboardInfraestrutura, DashboardProfessores, DashboardResponse } from '../models/dashboard.models';
+export type { DashboardResumo, DashboardEvolucao, DashboardItem, DashboardInfraestrutura, DashboardProfessores, DashboardResponse } from '../models/dashboard.models';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardService {

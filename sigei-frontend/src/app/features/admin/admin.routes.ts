@@ -14,6 +14,11 @@ export const ADMIN_ROUTES: Routes = [
         title: 'SIGEI - Dashboard'
       },
       {
+        path: 'relatorios',
+        loadComponent: () => import('./relatorios/pages/relatorios/relatorios.component').then(module => module.RelatoriosComponent),
+        title: 'SIGEI - Relatórios'
+      },
+      {
         path: 'municipios',
         loadComponent: () => import('./municipios/pages/municipios-lista/municipios-lista.component').then(module => module.MunicipiosListaComponent),
         title: 'SIGEI - Municípios'

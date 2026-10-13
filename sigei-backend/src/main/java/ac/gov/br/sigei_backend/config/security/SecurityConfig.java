@@ -1,5 +1,6 @@
 package ac.gov.br.sigei_backend.config.security;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +44,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
+                        // Encaminhamento interno para /error: a requisição original já foi
+                        // autorizada, mas o JwtFilter não roda nele. Sem esta liberação, um 404
+                        // ou 500 de usuário autenticado virava 401 e o frontend encerrava a sessão
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/auth/login", "/auth/refresh", "/auth/logout").permitAll()

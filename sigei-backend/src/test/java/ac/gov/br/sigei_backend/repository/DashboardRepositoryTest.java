@@ -5,6 +5,7 @@ import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO;
 import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardResumoDTO;
 import ac.gov.br.sigei_backend.models.*;
 import ac.gov.br.sigei_backend.repository.projection.DashboardInfraestruturaProjection;
+import ac.gov.br.sigei_backend.repository.projection.DashboardProfessoresProjection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,15 +50,24 @@ public class DashboardRepositoryTest {
  @Autowired
  InfraestruturaEscolaRepository infraestruturaEscolaRepository;
 
+ @Autowired
+ ProfessorRepository professorRepository;
+
+ @Autowired
+ LotacaoProfessorRepository lotacaoProfessorRepository;
+
  private Integer anoAtual = 2026;
+ private AnoReferencia anoReferencia;
+ private Municipio municipio;
+ private Escola escola;
 
  @BeforeEach
  public void prepararCenario() {
-  AnoReferencia anoReferencia = new AnoReferencia();
+  anoReferencia = new AnoReferencia();
   anoReferencia.setAno(anoAtual);
   anoReferenciaRepository.save(anoReferencia);
 
-  Municipio municipio = new Municipio();
+  municipio = new Municipio();
   municipio.setNome("Tarauacá");
   municipioRepository.save(municipio);
 
@@ -76,7 +86,7 @@ public class DashboardRepositoryTest {
   aldeia.setPovo(povo);
   aldeiaRepository.save(aldeia);
 
-  Escola escola = new Escola();
+  escola = new Escola();
   escola.setCodigo("123456");
   escola.setNome("Escola Yawanawá");
   escola.setAldeia(aldeia);
@@ -168,5 +178,37 @@ public class DashboardRepositoryTest {
   assertFalse(situacaoEscolas.isEmpty());
   assertEquals("Em funcionamento", situacaoEscolas.get(0).descricao());
   assertEquals(1L, situacaoEscolas.get(0).total());
+ }
+
+ @Test
+ public void deveBuscarProfessores() {
+  Professor professor = new Professor();
+  professor.setNome("Maria Yawanawá");
+  professorRepository.save(professor);
+
+  lotacao(professor, escola, "EFETIVO");
+  lotacao(professor, null, "PSS");
+  lotacao(null, escola, "PSS");
+
+  DashboardProfessoresProjection resumo = dashboardRepository.buscarProfessores(anoAtual);
+
+  assertEquals(1L, resumo.getTotalProfessores());
+  assertEquals(3L, resumo.getTotalLotacoes());
+  assertEquals(1L, resumo.getVagasEmAberto());
+  assertEquals(1L, resumo.getLotacoesNoNucleo());
+
+  List<DashboardItemDTO> porContrato = dashboardRepository.buscarLotacoesPorTipoContrato(anoAtual);
+  assertEquals("PSS", porContrato.get(0).descricao());
+  assertEquals(2L, porContrato.get(0).total());
+ }
+
+ private void lotacao(Professor professor, Escola escolaLotacao, String tipoContrato) {
+  LotacaoProfessor lotacao = new LotacaoProfessor();
+  lotacao.setAnoReferencia(anoReferencia);
+  lotacao.setProfessor(professor);
+  lotacao.setEscola(escolaLotacao);
+  lotacao.setMunicipio(municipio);
+  lotacao.setTipoContrato(tipoContrato);
+  lotacaoProfessorRepository.save(lotacao);
  }
 }

@@ -10,6 +10,7 @@ public record DashboardResponseDTO(
         List<DashboardItemDTO> matriculasPorNivel,
         DashboardInfraestruturaDTO infraestrutura,
         List<DashboardItemDTO> escolasPorMunicipio,
-        List<DashboardItemDTO> situacaoEscolas
+        List<DashboardItemDTO> situacaoEscolas,
+        DashboardProfessoresDTO professores
 ) {
 }

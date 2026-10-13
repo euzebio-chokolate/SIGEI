@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 
 import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
 import { validarArquivo } from '@core/forms/validadores';
+import { salvarArquivo } from '@core/http/download';
 import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
 import { ImportacaoService } from '@domains/importacoes/data-access/importacao.service';
 import {
@@ -183,12 +184,7 @@ export class ImportacoesComponent implements OnInit {
     this.importacaoService.baixarModelo(tipo).subscribe({
       next: planilha => {
         this.baixandoModelo.set(false);
-        const url = URL.createObjectURL(planilha);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `modelo-importacao-${tipo}.xlsx`;
-        link.click();
-        URL.revokeObjectURL(url);
+        salvarArquivo(planilha, `modelo-importacao-${tipo}.xlsx`);
       },
       error: erro => {
         this.baixandoModelo.set(false);

@@ -5,6 +5,7 @@ import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO;
 import ac.gov.br.sigei_backend.dto.response.dashboard.DashboardResumoDTO;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.projection.DashboardInfraestruturaProjection;
+import ac.gov.br.sigei_backend.repository.projection.DashboardProfessoresProjection;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.data.repository.query.Param;
@@ -103,4 +104,29 @@ public interface DashboardRepository extends Repository<RegistroAnual, Long> {
             order by count(i) desc
             """)
     List<DashboardItemDTO> buscarSituacaoEscolas(@Param("ano") Integer ano);
+
+    @Query("""
+            select
+                count(distinct p.id) as totalProfessores,
+                count(l) as totalLotacoes,
+                coalesce(sum(case when p.id is null then 1 else 0 end), 0) as vagasEmAberto,
+                coalesce(sum(case when e.id is null then 1 else 0 end), 0) as lotacoesNoNucleo
+            from LotacaoProfessor l
+            left join l.professor p
+            left join l.escola e
+            where l.anoReferencia.ano = :ano
+            """)
+    DashboardProfessoresProjection buscarProfessores(@Param("ano") Integer ano);
+
+    @Query("""
+            select new ac.gov.br.sigei_backend.dto.response.dashboard.DashboardItemDTO(
+                l.tipoContrato,
+                count(l)
+            )
+            from LotacaoProfessor l
+            where l.anoReferencia.ano = :ano
+            group by l.tipoContrato
+            order by count(l) desc
+            """)
+    List<DashboardItemDTO> buscarLotacoesPorTipoContrato(@Param("ano") Integer ano);
 }

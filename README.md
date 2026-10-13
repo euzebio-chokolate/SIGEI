@@ -31,6 +31,7 @@ Projeto desenvolvido como Trabalho de Conclusão de Curso no IFAC.
 - Quadro de professores: cadastro dos professores, lotação anual em escolas ou no núcleo de educação do município, vagas em aberto. CPF, matrícula e número do contrato são gravados com criptografia e exibidos apenas a administradores.
 - Gestão de usuários com os perfis `ADMIN` (leitura e escrita) e `USUARIO` (somente leitura).
 - Troca de senha obrigatória no primeiro acesso.
+- Relatórios exportáveis em PDF e planilha (indicadores consolidados, escolas e infraestrutura, matrículas por etapa, professores e lotações), filtrados por ano e município. O painel mostra também o quadro de professores do ano.
 
 ## Arquitetura
 
