@@ -43,6 +43,8 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
     private final Resource planilhaInfraestrutura;
     private final Resource planilhaMatriculas;
     private final Resource planilhaProfessores;
+    private final int anoEscolas;
+    private final int anoProfessores;
 
     public DadosIniciaisInitializer(
             RegistroAnualRepository registroAnualRepository,
@@ -55,7 +57,9 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
             @Value("${sigei.dados-iniciais.enabled:true}") boolean habilitado,
             @Value("${sigei.dados-iniciais.infraestrutura}") Resource planilhaInfraestrutura,
             @Value("${sigei.dados-iniciais.matriculas}") Resource planilhaMatriculas,
-            @Value("${sigei.dados-iniciais.professores}") Resource planilhaProfessores
+            @Value("${sigei.dados-iniciais.professores}") Resource planilhaProfessores,
+            @Value("${sigei.dados-iniciais.ano-escolas:2025}") int anoEscolas,
+            @Value("${sigei.dados-iniciais.ano-professores:2026}") int anoProfessores
     ) {
         this.registroAnualRepository = registroAnualRepository;
         this.anoReferenciaRepository = anoReferenciaRepository;
@@ -68,6 +72,8 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
         this.planilhaInfraestrutura = planilhaInfraestrutura;
         this.planilhaMatriculas = planilhaMatriculas;
         this.planilhaProfessores = planilhaProfessores;
+        this.anoEscolas = anoEscolas;
+        this.anoProfessores = anoProfessores;
     }
 
     @Override
@@ -95,7 +101,8 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
         LOGGER.info("Banco vazio detectado; iniciando carga automática das planilhas");
 
         ImportacaoResultadoDTO infraestrutura = importacaoExcelService.importarInfraestrutura(
-                new ResourceMultipartFile("arquivo", planilhaInfraestrutura)
+                new ResourceMultipartFile("arquivo", planilhaInfraestrutura),
+                anoEscolas
         );
 
         LOGGER.info(
@@ -105,7 +112,8 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
         );
 
         ImportacaoMatriculasResultadoDTO matriculas = importacaoMatriculasService.importar(
-                new ResourceMultipartFile("arquivo", planilhaMatriculas)
+                new ResourceMultipartFile("arquivo", planilhaMatriculas),
+                anoEscolas
         );
 
         LOGGER.info(
@@ -116,7 +124,8 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
     }
 
     /**
-     * Executada enquanto não houver professores cadastrados. O quadro é de 2026: num
+     * Executada enquanto não houver professores cadastrados. O quadro é do ano
+     * {@code sigei.dados-iniciais.ano-professores} (padrão 2026): num
      * banco novo, que acabou de receber os dados de 2025, o ano seguinte é iniciado
      * (com a cópia usual dos dados) antes da importação. Num banco em uso, o ano não
      * é iniciado automaticamente; a carga fica para a próxima subida após a abertura.
@@ -136,7 +145,7 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
             return;
         }
 
-        int ano = ImportacaoProfessoresService.ANO_REFERENCIA;
+        int ano = anoProfessores;
 
         if (anoReferenciaRepository.findByAno(ano).isEmpty()) {
             boolean anoAnteriorEhOUltimo = anoReferenciaRepository.findTopByOrderByAnoDesc()
@@ -158,7 +167,8 @@ public class DadosIniciaisInitializer implements ApplicationRunner {
 
         try {
             ImportacaoProfessoresResultadoDTO professores = importacaoProfessoresService.importar(
-                    new ResourceMultipartFile("arquivo", planilhaProfessores)
+                    new ResourceMultipartFile("arquivo", planilhaProfessores),
+                    anoProfessores
             );
 
             LOGGER.info(

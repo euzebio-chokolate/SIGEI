@@ -92,7 +92,7 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/dashboard` | `GET`, com parâmetro opcional `ano`. |
 | `/auditoria` | `GET`, só `ADMIN`: alterações de todas as entidades auditadas, paginadas (`pagina` a partir de 0, `tamanho` até 100) e filtráveis por `entidade`, `operacao`, `usuarioId`, `sistema`, `de` e `ate` (datas do Acre). Responde `PaginaAuditoriaDTO`. |
 | `/atualizacao-anual` | `POST /iniciar`, sem corpo. |
-| `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo`. |
+| `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo` e parâmetro opcional `ano` (sem ele, o mais recente); `GET /layouts` (colunas aceitas por tipo) e `GET /modelos/{tipo}` (planilha modelo `.xlsx`). |
 
 Os DTOs são a fonte dos nomes de campos, tipos e validações. Não suponha paginação, um envelope único de resposta ou CRUD completo em todos os controllers. Criações normalmente retornam `201`; consultas e edições, `200`. Exclusões variam entre `200` e `204`; preserve o contrato de cada controller.
 
@@ -191,17 +191,27 @@ As duas trilhas usam `service/auditoria/VersoesAuditadas` para ler e comparar ve
 
 ### Importação de Excel
 
-`ImportacaoExcelService` lê a aba `Planilha4`; `ImportacaoMatriculasService` lê `Censo_2025`. Ambos possuem ano fixo `2025` no código. Não são importadores genéricos de qualquer layout ou ano.
+As três importações recebem o ano (`ano`) e localizam as colunas pelo cabeçalho, e não pela posição. Cada service declara um enum `Coluna` (implementa `utils/ColunaPlanilha`: título, obrigatoriedade, descrição e sinônimos) e um `LayoutPlanilha` estático (`LAYOUT`), também usado pela tela (`GET /importacoes/layouts`) e pelo modelo (`GET /importacoes/modelos/{tipo}`).
 
-Preserve os índices de colunas, a normalização de nomes, o tratamento de coordenadas e as regras de identificação de escolas. Os retornos `ImportacaoResultadoDTO`, `ImportacaoMatriculasResultadoDTO` e `ImportacaoProfessoresResultadoDTO` incluem contadores e erros; uma resposta `200` não significa que todas as linhas foram importadas. Consulte os services e os utilitários antes de modificar esses fluxos.
+- `LayoutPlanilha.localizar` procura, nas 10 primeiras linhas de cada aba, a primeira linha com todas as colunas obrigatórias; aba e ordem das colunas são livres e colunas extras são ignoradas. Sem elas, `400` listando as que faltam.
+- A comparação ignora acentos, maiúsculas e pontuação (`Nº DE SALAS` = `N DE SALAS`). Títulos exatos têm prioridade; depois vale um título que começa pelo nome conhecido (`Nº DE ALUNOS 2025`).
+- Cabeçalho em duas linhas: onde a primeira está vazia ou tem um título desconhecido (grupo mesclado, como `Matrículas`), vale a linha seguinte, e os dados começam depois dela.
+- Coluna opcional ausente tem posição -1, que `ExcelUtils` lê como célula vazia. Na importação de escolas, colunas opcionais ausentes não alteram os valores gravados.
+- Ao acrescentar uma coluna, inclua-a no enum (com sinônimos das planilhas reais) e no teste do service. As planilhas de `planilhas/` precisam continuar sendo lidas com o mesmo resultado.
 
-`ImportacaoProfessoresService` lê a aba `Planilha1` do quadro de escolas e professores indígenas, com ano fixo `2026`, que precisa estar iniciado (senão, `400`). O cabeçalho é conferido (`LOTACAO` na coluna C, `NOME` na I, `CPF` na O). Cada linha é uma lotação:
+`ImportacaoExcelService` (escolas, infraestrutura e equipe) cria o ano informado se ainda não existir (de 2000 ao ano atual + 1), sem copiar dados de outro ano. O anexo vem da coluna `TIPO DE UNIDADE` ou, no formato antigo, de `ANEXO` na coluna de ordem; sem `LATITUDE`/`LONGITUDE`, aceita `COORDENADAS` com a longitude na coluna seguinte. Coordenadas podem estar em graus decimais ou em graus, minutos e segundos. `ImportacaoMatriculasService` exige o ano cadastrado e o registro anual de cada escola nele; `EJA` e `AEE` são opcionais (zero).
+
+Preserve a normalização de nomes, o tratamento de coordenadas e as regras de identificação de escolas. Os retornos `ImportacaoResultadoDTO`, `ImportacaoMatriculasResultadoDTO` e `ImportacaoProfessoresResultadoDTO` incluem contadores e erros; uma resposta `200` não significa que todas as linhas foram importadas. Consulte os services e os utilitários antes de modificar esses fluxos.
+
+`ImportacaoProfessoresService` lê o quadro de escolas e professores indígenas para o ano informado, que precisa estar iniciado (senão, `400`). As colunas obrigatórias são `MUNICÍPIO`, `LOTAÇÃO` e `NOME`. Cada linha é uma lotação:
 
 - `NECESSIDADE` no nome ou no tipo de contrato vira vaga em aberto; lotação iniciada por `NEE` (`NEE SEE`, `NEE CRUZEIRO DO SUL`) vira lotação no núcleo do município.
 - A planilha não tem código INEP. A escola é procurada no município, entre unidades do mesmo tipo (sede/anexo; o anexo é reconhecido pelo nome ou pelo `tipoUnidade`), nesta ordem: nome completo, nome sem o sufixo de anexo, mesma aldeia com alguma palavra em comum, e nome mais semelhante. Prefixos (`ESC.`, `IND.`), preposições e pontuação são ignorados, `DR` equivale a `DOUTOR`, e palavras com uma letra de diferença contam como iguais. Empates são decididos pela aldeia; se persistirem, a linha vai para os erros, em vez de arriscar a escola errada.
 - Professores são localizados pelo CPF (índice cego) ou pelo nome normalizado, desempatado pela etnia; lotações, pelo professor, escola/município e segmento. Por isso a importação pode ser repetida sem duplicar.
 - Células vazias nunca apagam valores gravados: CPF, matrícula e número do contrato vêm em branco na planilha e são preenchidos depois pelo sistema. CPF numérico tem os zeros à esquerda restaurados e é validado.
 - Com a planilha de 2026 e a base de 2025, 595 das 607 linhas são importadas; as 12 restantes são de escolas que não estão cadastradas.
+
+No frontend, a tela `/admin/importacoes` (só `ADMIN`) faz as três importações para qualquer ano, mostra as colunas aceitas e baixa o modelo. A tela de professores não tem mais importação própria.
 
 ### Dashboard
 
@@ -231,6 +241,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Armazenamento de imagens. |
 | `SIGEI_DADOS_INICIAIS_ENABLED` | Carga automática de planilhas; padrão `true`. |
 | `SIGEI_PLANILHA_INFRAESTRUTURA`, `SIGEI_PLANILHA_MATRICULAS`, `SIGEI_PLANILHA_PROFESSORES` | Resources das planilhas; padrões apontam para `planilhas/`. |
+| `SIGEI_ANO_PLANILHAS_ESCOLAS`, `SIGEI_ANO_PLANILHA_PROFESSORES` | Anos de referência das planilhas da carga inicial; padrões 2025 e 2026. |
 | `PORT` | Porta local da API; padrão 8080. No Compose, controla a porta publicada, com a API interna em 8080. |
 
 `spring.jpa.open-in-view=false`: mantenha o acesso a relacionamentos necessários ao DTO dentro do contexto transacional. O esquema é versionado pelo Flyway em `src/main/resources/db/migration`, e o Hibernate apenas o valida (`ddl-auto=validate`):
@@ -249,7 +260,7 @@ Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL Po
 Na inicialização:
 
 - `MunicipioInitializer` (`@Order(1)`) cadastra os municípios do Acre ausentes, comparando nomes normalizados.
-- `DadosIniciaisInitializer` (`@Order(2)`) só executa quando habilitado. Sem nenhum registro anual, valida os dois arquivos de escolas e importa infraestrutura antes de matrículas; esses arquivos indisponíveis impedem a inicialização. Depois, se não houver professores, importa o quadro de professores de 2026: num banco novo, inicia antes o ano 2026 (`AtualizacaoAnualService`, com a cópia usual de 2025); num banco em uso sem o ano 2026, apenas registra um aviso. Falhas e planilha ausente nesta etapa só geram log, sem impedir a subida.
+- `DadosIniciaisInitializer` (`@Order(2)`) só executa quando habilitado. Sem nenhum registro anual, valida os dois arquivos de escolas e importa infraestrutura antes de matrículas; esses arquivos indisponíveis impedem a inicialização. Depois, se não houver professores, importa o quadro de professores do ano configurado (padrão 2026): num banco novo, inicia antes esse ano (`AtualizacaoAnualService`, com a cópia usual de 2025); num banco em uso sem esse ano, apenas registra um aviso. Falhas e planilha ausente nesta etapa só geram log, sem impedir a subida.
 - `AdminInitializer` cria o administrador apenas se o e-mail ainda não existir, com troca de senha obrigatória. Sem senha configurada, gera uma temporária e a registra no log. Configurar novas credenciais não altera automaticamente um usuário já existente.
 
 Actuator expõe `health` e `info`; apenas health tem liberação pública explícita. O Dockerfile faz build em Java 21, pula os testes e executa o JAR com usuário sem privilégios. O Compose inclui PostgreSQL 17 e volume persistente.

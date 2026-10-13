@@ -94,9 +94,6 @@ export const OPCOES_SEXO: { valor: Sexo; rotulo: string }[] = [
   { valor: 'M', rotulo: 'Masculino' }
 ];
 
-/** O ano do quadro de professores importado pela planilha. */
-export const ANO_QUADRO_PROFESSORES = 2026;
-
 export function rotuloTipoContrato(valor: string | null | undefined): string {
   return OPCOES_TIPO_CONTRATO.find(opcao => opcao.valor === valor)?.rotulo ?? 'Não informado';
 }

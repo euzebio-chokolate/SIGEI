@@ -4,18 +4,12 @@ import { RouterLink } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
 import { interpretarErro } from '@core/http/erro-http';
-import { validarArquivo } from '@core/forms/validadores';
 import { SeAdminDirective } from '@core/auth/se-admin.directive';
 import { SkeletonLinhaComponent } from '@shared/ui/skeleton/skeleton-linha.component';
 import { AnoReferencia, AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
 import { ProfessorResponse, ProfessorService } from '@domains/professores/data-access/professor.service';
+import { LotacaoProfessorResponse, LotacaoProfessorService } from '@domains/professores/data-access/lotacao-professor.service';
 import {
-  ImportacaoProfessoresResultado,
-  LotacaoProfessorResponse,
-  LotacaoProfessorService
-} from '@domains/professores/data-access/lotacao-professor.service';
-import {
-  ANO_QUADRO_PROFESSORES,
   OPCOES_TIPO_CONTRATO,
   formatarData,
   mascararCpf,
@@ -44,7 +38,6 @@ export class ProfessoresListaComponent implements OnInit {
 
   readonly ehAdmin = this.authService.ehAdmin();
   readonly opcoesTipoContrato = OPCOES_TIPO_CONTRATO;
-  readonly anoQuadro = ANO_QUADRO_PROFESSORES;
   readonly rotuloTipoContrato = rotuloTipoContrato;
   readonly rotuloSexo = rotuloSexo;
   readonly formatarData = formatarData;
@@ -79,10 +72,6 @@ export class ProfessoresListaComponent implements OnInit {
   professorParaExcluir: ProfessorResponse | null = null;
   excluindo = false;
 
-  importando = false;
-  resultadoImportacao: ImportacaoProfessoresResultado | null = null;
-  erroImportacao = '';
-
   modalSucessoAberto = false;
   tituloSucesso = '';
   mensagemSucesso = '';
@@ -98,9 +87,7 @@ export class ProfessoresListaComponent implements OnInit {
     this.anoReferenciaService.listar().subscribe({
       next: anos => {
         this.anos = [...(anos ?? [])].sort((a, b) => b.ano - a.ano);
-        // Abre no ano do quadro de professores, se já iniciado; senão, no mais recente
-        const padrao = this.anos.find(item => item.ano === this.anoQuadro) ?? this.anos[0];
-        this.anoSelecionado = padrao?.ano ?? null;
+        this.anoSelecionado = this.anos[0]?.ano ?? null;
         this.carregarLotacoes();
       },
       error: erro => this.registrarErro('Não foi possível carregar os anos de referência.', erro)
@@ -296,47 +283,6 @@ export class ProfessoresListaComponent implements OnInit {
     if (this.excluindo) return;
     this.lotacaoParaExcluir = null;
     this.professorParaExcluir = null;
-  }
-
-  // ---------------------------------------------------------- Importação
-
-  importarPlanilha(evento: Event): void {
-    const campo = evento.target as HTMLInputElement;
-    const arquivo = campo.files?.[0];
-    campo.value = '';
-
-    if (!arquivo || this.importando) return;
-
-    const problema = validarArquivo(arquivo, { extensoes: ['.xlsx'] });
-    if (problema) {
-      this.resultadoImportacao = null;
-      this.erroImportacao = problema;
-      return;
-    }
-
-    this.importando = true;
-    this.erroImportacao = '';
-    this.resultadoImportacao = null;
-
-    this.lotacaoService.importarPlanilha(arquivo).subscribe({
-      next: resultado => {
-        this.importando = false;
-        this.resultadoImportacao = resultado;
-        this.carregarProfessores();
-        this.carregarLotacoes();
-      },
-      error: erro => {
-        this.importando = false;
-        // As falhas de leitura da planilha voltam como 400 com o motivo em texto
-        this.erroImportacao = interpretarErro(erro, 'Não foi possível importar a planilha.').mensagem;
-        this.cdr.markForCheck();
-      }
-    });
-  }
-
-  fecharImportacao(): void {
-    this.resultadoImportacao = null;
-    this.erroImportacao = '';
   }
 
   // ---------------------------------------------------------------- Apoio

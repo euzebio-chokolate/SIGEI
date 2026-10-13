@@ -12,7 +12,6 @@ import {
   LotacaoProfessorService
 } from '@domains/professores/data-access/lotacao-professor.service';
 import {
-  ANO_QUADRO_PROFESSORES,
   OPCOES_TIPO_CONTRATO,
   TipoContrato
 } from '@domains/professores/models/professor.models';
@@ -112,8 +111,8 @@ export class LotacaoFormComponent implements OnInit {
         if (this.editando && this.lotacaoId) {
           this.carregarLotacao(this.lotacaoId);
         } else {
-          const padrao = this.anos.find(item => item.ano === ANO_QUADRO_PROFESSORES) ?? this.anos[0];
-          this.form.controls.anoReferenciaId.setValue(padrao?.id ?? null);
+          // Nova lotação no ano mais recente
+          this.form.controls.anoReferenciaId.setValue(this.anos[0]?.id ?? null);
           this.carregando = false;
           this.cdr.markForCheck();
         }

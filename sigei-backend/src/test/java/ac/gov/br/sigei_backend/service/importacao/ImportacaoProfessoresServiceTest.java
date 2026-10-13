@@ -214,7 +214,7 @@ class ImportacaoProfessoresServiceTest {
             MockMultipartFile arquivo = new MockMultipartFile("arquivo", "quadro.csv", null, new byte[]{1});
 
             IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,
-                    () -> importacao.importar(arquivo));
+                    () -> importacao.importar(arquivo, 2026));
             assertEquals("O arquivo deve estar no formato .xlsx.", erro.getMessage());
         }
     }
@@ -244,7 +244,7 @@ class ImportacaoProfessoresServiceTest {
             }
 
             workbook.write(saida);
-            return importacao.importar(new MockMultipartFile("arquivo", "quadro.xlsx", null, saida.toByteArray()));
+            return importacao.importar(new MockMultipartFile("arquivo", "quadro.xlsx", null, saida.toByteArray()), 2026);
         }
     }
 

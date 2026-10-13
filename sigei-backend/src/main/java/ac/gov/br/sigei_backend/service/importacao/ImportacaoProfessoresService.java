@@ -6,9 +6,12 @@ import ac.gov.br.sigei_backend.models.*;
 import ac.gov.br.sigei_backend.repository.*;
 import ac.gov.br.sigei_backend.service.LotacaoProfessorService;
 import ac.gov.br.sigei_backend.service.ProfessorService;
+import ac.gov.br.sigei_backend.utils.ColunaPlanilha;
 import ac.gov.br.sigei_backend.utils.CpfUtils;
 import ac.gov.br.sigei_backend.utils.ExcelUtils;
 import ac.gov.br.sigei_backend.utils.ImportacaoProfessoresContador;
+import ac.gov.br.sigei_backend.utils.LayoutPlanilha;
+import ac.gov.br.sigei_backend.utils.LayoutPlanilha.PlanilhaLocalizada;
 import ac.gov.br.sigei_backend.utils.OpcoesProfessor;
 import org.apache.poi.ss.usermodel.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +27,8 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
- * Importa o quadro de escolas e professores indígenas de 2026 (aba Planilha1).
+ * Importa o quadro de escolas e professores indígenas de um ano já iniciado. As
+ * colunas são localizadas pelo cabeçalho ({@link Coluna}), em qualquer aba.
  * Cada linha é a lotação de um professor em uma escola; "NECESSIDADE" no nome ou no
  * tipo de contrato indica vaga em aberto, e "NEE SEE" na lotação indica o núcleo
  * de educação do município.
@@ -41,25 +45,59 @@ import java.util.function.Predicate;
 @Service
 public class ImportacaoProfessoresService {
 
-    public static final int ANO_REFERENCIA = 2026;
+    public enum Coluna implements ColunaPlanilha {
+        MUNICIPIO("MUNICÍPIO", true, "Município da lotação."),
+        LOTACAO("LOTAÇÃO", true,
+                "Nome da escola. NEE SEE ou NEE <município> indica lotação no núcleo de educação do município.",
+                "ESCOLA", "NOME DA ESCOLA"),
+        ALDEIA("ALDEIA", false, "Aldeia da escola; desempata escolas de nome parecido."),
+        MATRICULA("MATRÍCULA", false, "Matrícula do professor. Dado protegido."),
+        CONTRATO("Nº DO CONTRATO", false, "Número do contrato. Dado protegido.",
+                "CONT", "NÚMERO DO CONTRATO", "CONTRATO"),
+        NOME("NOME", true, "Nome do professor. Vazio ou NECESSIDADE indica vaga em aberto.",
+                "NOME DO PROFESSOR"),
+        ETNIA("ETNIA", false, "Etnia do professor (texto livre, inclusive NÃO INDÍGENA).", "ETNIA DO PROFESSOR"),
+        SEXO("SEXO", false, "M ou F."),
+        CARGO("CARGO", false, "Cargo do professor.", "CARGO ATUAL"),
+        FORMACAO("FORMAÇÃO", false, "Formação do professor.", "FORMAÇÃO PROFESSOR", "FORMAÇÃO DO PROFESSOR"),
+        SEGMENTO("SEGMENTO", false, "Segmento ofertado; distingue lotações do mesmo professor na mesma escola.",
+                "SEGMENTO OFERTADO"),
+        CPF("CPF", false, "CPF do professor, com ou sem pontuação. Dado protegido."),
+        INICIO_CONTRATO("INÍCIO DO CONTRATO", false, "Data no formato dd/mm/aaaa.", "INÍCIO", "DATA DE INÍCIO"),
+        AMPARO_LEGAL("AMPARO LEGAL", false, "Amparo legal da lotação.", "AMPARO"),
+        TIPO_CONTRATO("TIPO DE CONTRATO", false,
+                "EFETIVO, PSS, CONTRATO DIRETO ou PERMUTA. NECESSIDADE indica vaga em aberto.",
+                "TIPO CONTRATO", "VÍNCULO");
 
-    private static final String ABA = "Planilha1";
+        private final String titulo;
+        private final boolean obrigatoria;
+        private final String descricao;
+        private final List<String> sinonimos;
 
-    private static final int COL_MUNICIPIO = 1;
-    private static final int COL_LOTACAO = 2;
-    private static final int COL_ALDEIA = 5;
-    private static final int COL_MATRICULA = 6;
-    private static final int COL_CONTRATO = 7;
-    private static final int COL_NOME = 8;
-    private static final int COL_ETNIA = 9;
-    private static final int COL_SEXO = 10;
-    private static final int COL_CARGO = 11;
-    private static final int COL_FORMACAO = 12;
-    private static final int COL_SEGMENTO = 13;
-    private static final int COL_CPF = 14;
-    private static final int COL_INICIO_CONTRATO = 15;
-    private static final int COL_AMPARO_LEGAL = 16;
-    private static final int COL_TIPO_CONTRATO = 17;
+        Coluna(String titulo, boolean obrigatoria, String descricao, String... sinonimos) {
+            this.titulo = titulo;
+            this.obrigatoria = obrigatoria;
+            this.descricao = descricao;
+            this.sinonimos = List.of(sinonimos);
+        }
+
+        @Override public String titulo() { return titulo; }
+        @Override public boolean obrigatoria() { return obrigatoria; }
+        @Override public String descricao() { return descricao; }
+        @Override public List<String> sinonimos() { return sinonimos; }
+    }
+
+    public static final LayoutPlanilha<Coluna> LAYOUT = new LayoutPlanilha<>(
+            Coluna.class,
+            "Quadro de professores",
+            "do quadro de professores",
+            List.of(
+                    "Cada linha é uma lotação no ano escolhido na importação, que precisa estar iniciado.",
+                    "As colunas podem estar em qualquer ordem e a aba pode ter qualquer nome. Colunas extras são ignoradas.",
+                    "A escola é identificada pelo município, pelo nome e, se preciso, pela aldeia; linhas de escolas não cadastradas não são importadas.",
+                    "A importação pode ser repetida: células vazias não apagam dados já gravados, como CPF, matrícula e número do contrato."
+            )
+    );
 
     private static final String NECESSIDADE = "NECESSIDADE";
 
@@ -95,14 +133,19 @@ public class ImportacaoProfessoresService {
     @Autowired
     CriptografiaDadosSensiveis criptografia;
 
+    /**
+     * @param ano ano das lotações, que precisa estar iniciado; nulo usa o ano mais
+     *            recente cadastrado
+     */
     @Transactional
-    public ImportacaoProfessoresResultadoDTO importar(MultipartFile arquivo) {
+    public ImportacaoProfessoresResultadoDTO importar(MultipartFile arquivo, Integer ano) {
         validarArquivo(arquivo);
 
-        AnoReferencia anoReferencia = anoReferenciaRepository
-                .findByAno(ANO_REFERENCIA)
+        AnoReferencia anoReferencia = (ano == null
+                ? anoReferenciaRepository.findTopByOrderByAnoDesc()
+                : anoReferenciaRepository.findByAno(ano))
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "O ano " + ANO_REFERENCIA + " ainda não foi iniciado. " +
+                        (ano == null ? "Nenhum ano de referência foi iniciado. " : "O ano " + ano + " ainda não foi iniciado. ") +
                                 "Inicie o ano antes de importar o quadro de professores."
                 ));
 
@@ -112,20 +155,10 @@ public class ImportacaoProfessoresService {
                 InputStream inputStream = arquivo.getInputStream();
                 Workbook workbook = WorkbookFactory.create(inputStream)
         ) {
-            Sheet planilha = workbook.getSheet(ABA);
+            Contexto contexto = new Contexto(anoReferencia, LAYOUT.localizar(workbook));
 
-            if (planilha == null) {
-                throw new IllegalArgumentException("A aba " + ABA + " não foi encontrada.");
-            }
-
-            validarCabecalho(planilha.getRow(0));
-
-            Contexto contexto = new Contexto(anoReferencia);
-
-            for (int indice = 1; indice <= planilha.getLastRowNum(); indice++) {
-                Row linha = planilha.getRow(indice);
-
-                if (ExcelUtils.linhaVazia(linha) || semConteudo(linha)) {
+            for (Row linha : contexto.planilha.linhas()) {
+                if (semConteudo(linha, contexto)) {
                     continue;
                 }
 
@@ -160,14 +193,14 @@ public class ImportacaoProfessoresService {
     }
 
     private DadosLinha lerLinha(Row linha, Contexto contexto) {
-        String nomeMunicipio = obrigatorio(ExcelUtils.lerTexto(linha, COL_MUNICIPIO), "Município");
+        String nomeMunicipio = obrigatorio(ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.MUNICIPIO)), "Município");
         Municipio municipio = contexto.municipiosPorNome.get(ExcelUtils.normalizar(nomeMunicipio));
 
         if (municipio == null) {
             throw new IllegalArgumentException("Município não cadastrado: " + nomeMunicipio);
         }
 
-        String lotacao = obrigatorio(ExcelUtils.lerTexto(linha, COL_LOTACAO), "Lotação");
+        String lotacao = obrigatorio(ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.LOTACAO)), "Lotação");
         boolean nucleo = ehNucleo(lotacao);
 
         Escola escola = nucleo
@@ -176,11 +209,11 @@ public class ImportacaoProfessoresService {
                         contexto.escolasPorMunicipio.getOrDefault(municipio.getId(), List.of()),
                         municipio,
                         lotacao,
-                        ExcelUtils.lerTexto(linha, COL_ALDEIA)
+                        ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.ALDEIA))
                 );
 
-        String nome = ExcelUtils.lerTexto(linha, COL_NOME);
-        String tipoContrato = ExcelUtils.lerTexto(linha, COL_TIPO_CONTRATO);
+        String nome = ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.NOME));
+        String tipoContrato = ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.TIPO_CONTRATO));
 
         boolean vaga = nome == null
                 || NECESSIDADE.equals(ExcelUtils.normalizar(nome))
@@ -191,16 +224,16 @@ public class ImportacaoProfessoresService {
                 escola,
                 vaga,
                 vaga ? null : nome,
-                CpfUtils.normalizar(lerCpf(linha)),
-                ExcelUtils.lerCodigo(linha, COL_MATRICULA),
-                ExcelUtils.lerCodigo(linha, COL_CONTRATO),
-                ExcelUtils.lerTexto(linha, COL_ETNIA),
-                OpcoesProfessor.sexoImportado(ExcelUtils.lerTexto(linha, COL_SEXO)),
-                ExcelUtils.lerTexto(linha, COL_FORMACAO),
-                ExcelUtils.lerTexto(linha, COL_CARGO),
-                ExcelUtils.lerTexto(linha, COL_SEGMENTO),
-                ExcelUtils.lerData(linha, COL_INICIO_CONTRATO),
-                ExcelUtils.lerTexto(linha, COL_AMPARO_LEGAL),
+                CpfUtils.normalizar(lerCpf(linha, contexto.coluna(Coluna.CPF))),
+                ExcelUtils.lerCodigo(linha, contexto.coluna(Coluna.MATRICULA)),
+                ExcelUtils.lerCodigo(linha, contexto.coluna(Coluna.CONTRATO)),
+                ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.ETNIA)),
+                OpcoesProfessor.sexoImportado(ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.SEXO))),
+                ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.FORMACAO)),
+                ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.CARGO)),
+                ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.SEGMENTO)),
+                ExcelUtils.lerData(linha, contexto.coluna(Coluna.INICIO_CONTRATO)),
+                ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.AMPARO_LEGAL)),
                 OpcoesProfessor.tipoContratoImportado(tipoContrato)
         );
     }
@@ -563,14 +596,14 @@ public class ImportacaoProfessoresService {
     }
 
     /** CPF gravado como número perde os zeros à esquerda; aqui eles são restaurados. */
-    private static String lerCpf(Row linha) {
-        Cell celula = linha.getCell(COL_CPF, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+    private static String lerCpf(Row linha, int coluna) {
+        Cell celula = coluna < 0 ? null : linha.getCell(coluna, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
 
         if (celula != null && celula.getCellType() == CellType.NUMERIC) {
             return String.format("%011d", (long) celula.getNumericCellValue());
         }
 
-        return ExcelUtils.lerTexto(linha, COL_CPF);
+        return ExcelUtils.lerTexto(linha, coluna);
     }
 
     private static <T> void atualizarSePreenchido(T valor, Consumer<T> atribuir) {
@@ -580,24 +613,10 @@ public class ImportacaoProfessoresService {
     }
 
     /** Linhas só com o número de ordem (sem município, lotação e nome) são ignoradas. */
-    private static boolean semConteudo(Row linha) {
-        return ExcelUtils.lerTexto(linha, COL_MUNICIPIO) == null
-                && ExcelUtils.lerTexto(linha, COL_LOTACAO) == null
-                && ExcelUtils.lerTexto(linha, COL_NOME) == null;
-    }
-
-    private static void validarCabecalho(Row cabecalho) {
-        boolean layoutEsperado =
-                "LOTACAO".equals(normalizarNome(ExcelUtils.lerTexto(cabecalho, COL_LOTACAO)))
-                        && "NOME".equals(normalizarNome(ExcelUtils.lerTexto(cabecalho, COL_NOME)))
-                        && "CPF".equals(normalizarNome(ExcelUtils.lerTexto(cabecalho, COL_CPF)));
-
-        if (!layoutEsperado) {
-            throw new IllegalArgumentException(
-                    "A planilha não está no layout do quadro de professores: " +
-                            "a linha 1 deve ter LOTACAO na coluna C, NOME na coluna I e CPF na coluna O."
-            );
-        }
+    private static boolean semConteudo(Row linha, Contexto contexto) {
+        return ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.MUNICIPIO)) == null
+                && ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.LOTACAO)) == null
+                && ExcelUtils.lerTexto(linha, contexto.coluna(Coluna.NOME)) == null;
     }
 
     private static String obrigatorio(String valor, String campo) {
@@ -643,6 +662,7 @@ public class ImportacaoProfessoresService {
     private final class Contexto {
 
         final AnoReferencia anoReferencia;
+        final PlanilhaLocalizada<Coluna> planilha;
         final Map<String, Municipio> municipiosPorNome = new HashMap<>();
         final Map<Long, List<Escola>> escolasPorMunicipio = new HashMap<>();
         final Map<String, List<Professor>> professoresPorNome = new HashMap<>();
@@ -651,8 +671,9 @@ public class ImportacaoProfessoresService {
         final Set<Professor> professoresCriados = Collections.newSetFromMap(new IdentityHashMap<>());
         final Set<Professor> professoresAtualizados = Collections.newSetFromMap(new IdentityHashMap<>());
 
-        Contexto(AnoReferencia anoReferencia) {
+        Contexto(AnoReferencia anoReferencia, PlanilhaLocalizada<Coluna> planilha) {
             this.anoReferencia = anoReferencia;
+            this.planilha = planilha;
 
             for (Municipio municipio : municipioRepository.findAll()) {
                 municipiosPorNome.put(ExcelUtils.normalizar(municipio.getNome()), municipio);
@@ -673,6 +694,10 @@ public class ImportacaoProfessoresService {
             }
 
             lotacoesExistentes = lotacaoRepository.buscarPorAno(anoReferencia.getAno());
+        }
+
+        int coluna(Coluna coluna) {
+            return planilha.coluna(coluna);
         }
     }
 }

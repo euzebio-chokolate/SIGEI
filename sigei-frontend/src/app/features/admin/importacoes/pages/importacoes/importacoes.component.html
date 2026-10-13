@@ -1,0 +1,265 @@
+<div class="space-y-5 font-sans pb-10">
+  <!-- Breadcrumb -->
+  <nav class="flex items-center gap-2 text-xs font-semibold text-slate-500">
+    <a routerLink="/admin/dashboard" class="hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+      <i class="fa-solid fa-house text-slate-400"></i>
+      Início
+    </a>
+    <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+    <span class="text-slate-800">Importação de planilhas</span>
+  </nav>
+
+  <!-- Cabeçalho -->
+  <div>
+    <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Importação de planilhas</h1>
+    <p class="text-sm text-slate-500 mt-1">
+      Carregue escolas, matrículas e o quadro de professores de qualquer ano. As colunas são reconhecidas pelo título no cabeçalho, em qualquer ordem.
+    </p>
+  </div>
+
+  @if (carregando()) {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-10 flex items-center justify-center gap-3 text-sm text-slate-500">
+      <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i>
+      Carregando...
+    </div>
+  } @else if (erroCarregamento()) {
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+      <app-estado-erro [mensagem]="erroCarregamento()" (tentarNovamente)="carregar()" />
+    </div>
+  } @else {
+    <!-- 1. Tipo -->
+    <section class="space-y-3">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">1. O que importar</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3" role="radiogroup" aria-label="Tipo de importação">
+        @for (item of opcoes; track item.tipo; let indice = $index) {
+          <button
+            type="button"
+            role="radio"
+            [attr.aria-checked]="tipo() === item.tipo"
+            (click)="selecionarTipo(item.tipo)"
+            [disabled]="importando()"
+            class="text-left bg-white p-4 rounded-2xl border shadow-sm flex items-start gap-3 transition-all disabled:cursor-not-allowed"
+            [class.border-emerald-400]="tipo() === item.tipo"
+            [class.ring-2]="tipo() === item.tipo"
+            [class.ring-emerald-100]="tipo() === item.tipo"
+            [class.border-slate-200]="tipo() !== item.tipo"
+            [class.hover:border-emerald-200]="tipo() !== item.tipo"
+          >
+            <span
+              class="w-10 h-10 rounded-xl grid place-items-center shrink-0"
+              [class.bg-emerald-600]="tipo() === item.tipo"
+              [class.text-white]="tipo() === item.tipo"
+              [class.bg-emerald-50]="tipo() !== item.tipo"
+              [class.text-emerald-600]="tipo() !== item.tipo"
+            >
+              <i class="fa-solid {{ item.icone }}"></i>
+            </span>
+            <span class="min-w-0">
+              <span class="block text-sm font-bold text-slate-800">{{ indice + 1 }}. {{ tituloDe(item.tipo) }}</span>
+              <span class="block text-xs text-slate-500 mt-1">{{ item.resumo }}</span>
+            </span>
+          </button>
+        }
+      </div>
+      <p class="text-xs text-slate-500">
+        <i class="fa-solid fa-circle-info text-slate-400 mr-1"></i>
+        Num ano novo, importe primeiro as escolas, depois as matrículas. O quadro de professores exige o ano iniciado (pela importação de escolas ou pela abertura do ano).
+      </p>
+    </section>
+
+    <div class="grid grid-cols-1 xl:grid-cols-5 gap-5">
+      <!-- 2 e 3. Ano e arquivo -->
+      <section class="xl:col-span-2 bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-5 self-start">
+        <div class="space-y-2">
+          <label for="ano-importacao" class="text-xs font-bold uppercase tracking-wider text-slate-400">2. Ano de referência</label>
+          @if (opcao().criaAno) {
+            <input
+              id="ano-importacao"
+              type="number"
+              list="anos-cadastrados"
+              [min]="anoMinimo"
+              [max]="anoMaximo"
+              [(ngModel)]="ano"
+              [disabled]="importando()"
+              class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none"
+            />
+            <datalist id="anos-cadastrados">
+              @for (item of anos(); track item.id) {
+                <option [value]="item.ano"></option>
+              }
+            </datalist>
+            @if (ano !== null && !anoExiste(ano)) {
+              <p class="text-xs text-amber-700">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                O ano {{ ano }} ainda não existe e será criado com os dados desta planilha, sem copiar os do ano anterior. Para copiar, use a abertura de ano.
+              </p>
+            } @else {
+              <p class="text-xs text-slate-500">Escolha um ano cadastrado ou digite um novo.</p>
+            }
+          } @else {
+            <select
+              id="ano-importacao"
+              [(ngModel)]="ano"
+              [disabled]="importando() || anos().length === 0"
+              class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm bg-white focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none"
+            >
+              @for (item of anos(); track item.id) {
+                <option [ngValue]="item.ano">{{ item.ano }}</option>
+              }
+            </select>
+            @if (anos().length === 0) {
+              <p class="text-xs text-amber-700">Nenhum ano cadastrado. Importe antes as escolas.</p>
+            }
+          }
+        </div>
+
+        <div class="space-y-2">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">3. Planilha</span>
+          <label
+            class="flex items-center gap-3 rounded-xl border-2 border-dashed px-4 py-4 cursor-pointer transition-colors"
+            [class.border-emerald-300]="arquivo"
+            [class.bg-emerald-50]="arquivo"
+            [class.border-slate-200]="!arquivo"
+            [class.hover:border-emerald-300]="!arquivo"
+            [class.pointer-events-none]="importando()"
+            [class.opacity-60]="importando()"
+          >
+            <i class="fa-solid fa-file-excel text-xl" [class.text-emerald-600]="arquivo" [class.text-slate-400]="!arquivo"></i>
+            <span class="min-w-0 flex-1">
+              @if (arquivo) {
+                <span class="block text-sm font-semibold text-slate-800 truncate">{{ arquivo.name }}</span>
+                <span class="block text-xs text-slate-500">Clique para trocar o arquivo</span>
+              } @else {
+                <span class="block text-sm font-semibold text-slate-700">Selecionar arquivo .xlsx</span>
+                <span class="block text-xs text-slate-500">Até 20 MB</span>
+              }
+            </span>
+            <input type="file" accept=".xlsx" class="hidden" (change)="selecionarArquivo($event)" />
+          </label>
+        </div>
+
+        <div class="space-y-2">
+          <button
+            type="button"
+            (click)="importar()"
+            [disabled]="importando() || pendencia() !== ''"
+            class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded-xl text-sm font-semibold shadow-sm flex items-center justify-center gap-2 transition-all"
+          >
+            @if (importando()) {
+              <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
+              Importando...
+            } @else {
+              <i class="fa-solid fa-file-import text-xs"></i>
+              Importar {{ tituloDe(tipo()).toLowerCase() }}
+            }
+          </button>
+          @if (!importando() && pendencia()) {
+            <p class="text-xs text-slate-500 text-center">{{ pendencia() }}</p>
+          }
+        </div>
+
+        @if (erroImportacao()) {
+          <div class="rounded-xl border border-rose-100 bg-rose-50 p-4 flex gap-3" role="alert">
+            <i class="fa-solid fa-file-circle-xmark text-rose-600 mt-0.5"></i>
+            <div>
+              <p class="text-sm font-semibold text-rose-800">Importação não realizada</p>
+              <p class="text-xs text-rose-700 mt-1">{{ erroImportacao() }}</p>
+            </div>
+          </div>
+        }
+
+        @if (resultado(); as r) {
+          <div class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4 space-y-4" role="status">
+            <div class="flex gap-3">
+              <i class="fa-solid fa-file-circle-check text-emerald-600 mt-0.5"></i>
+              <div class="min-w-0">
+                <p class="text-sm font-semibold text-emerald-900">Importação concluída</p>
+                <p class="text-xs text-emerald-800 mt-1 truncate">{{ tituloDe(r.tipo) }} de {{ r.ano }} · {{ r.arquivo }}</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+              @for (indicador of r.indicadores; track indicador.rotulo) {
+                <div class="rounded-lg bg-white p-2.5 text-center border border-emerald-100">
+                  <p class="text-lg font-bold text-slate-800">{{ indicador.valor }}</p>
+                  <p class="text-[10px] text-slate-500 uppercase tracking-wider">{{ indicador.rotulo }}</p>
+                </div>
+              }
+            </div>
+
+            @if (r.erros.length > 0) {
+              <div class="rounded-lg border border-amber-100 bg-amber-50 p-3">
+                <p class="text-sm font-semibold text-amber-800">{{ r.linhasIgnoradas }} linha(s) não importada(s)</p>
+                <p class="text-xs text-amber-700 mt-1">Corrija as linhas na planilha e importe de novo; as linhas já importadas são atualizadas, sem duplicar.</p>
+                <ul class="mt-2 space-y-1 text-xs text-amber-900 max-h-64 overflow-y-auto">
+                  @for (erro of r.erros; track $index) {
+                    <li>{{ erro }}</li>
+                  }
+                </ul>
+              </div>
+            } @else {
+              <p class="text-xs text-emerald-800">Todas as linhas foram importadas.</p>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Colunas aceitas -->
+      <section class="xl:col-span-3 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-800">Colunas da planilha</h2>
+            <p class="text-xs text-slate-500 mt-0.5">{{ tituloDe(tipo()) }}: {{ obrigatorias().length }} obrigatória(s) e {{ opcionais().length }} opcional(is).</p>
+          </div>
+          <button
+            type="button"
+            (click)="baixarModelo()"
+            [disabled]="baixandoModelo()"
+            class="bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 transition-all disabled:opacity-60 shrink-0"
+          >
+            @if (baixandoModelo()) {
+              <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
+            } @else {
+              <i class="fa-solid fa-download text-xs"></i>
+            }
+            Baixar modelo
+          </button>
+        </div>
+
+        @if (layout(); as l) {
+          <ul class="px-5 py-4 space-y-1.5 text-xs text-slate-600 bg-slate-50/60 border-b border-slate-100">
+            @for (instrucao of l.instrucoes; track $index) {
+              <li class="flex gap-2"><i class="fa-solid fa-check text-emerald-500 mt-0.5"></i><span>{{ instrucao }}</span></li>
+            }
+          </ul>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="text-left text-[11px] uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                  <th class="px-5 py-3 font-semibold">Coluna</th>
+                  <th class="px-3 py-3 font-semibold">Conteúdo</th>
+                  <th class="px-5 py-3 font-semibold">Também aceito como</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (coluna of l.colunas; track coluna.titulo) {
+                  <tr class="align-top">
+                    <td class="px-5 py-3 whitespace-nowrap">
+                      <span class="font-semibold text-slate-800">{{ coluna.titulo }}</span>
+                      @if (coluna.obrigatoria) {
+                        <span class="ml-2 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold uppercase text-emerald-700">Obrigatória</span>
+                      }
+                    </td>
+                    <td class="px-3 py-3 text-xs text-slate-600 min-w-[16rem]">{{ coluna.descricao }}</td>
+                    <td class="px-5 py-3 text-xs text-slate-500">{{ coluna.sinonimos.join(', ') || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>

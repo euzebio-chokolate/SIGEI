@@ -84,6 +84,7 @@ JavaScript separado, baixado somente quando acessado.
 | `/admin/escolas` | Lista de escolas e abertura de novo ano | herda |
 | `/admin/escolas/novo`, `/editar/:id` | Cadastro em etapas | `adminGuard` |
 | `/admin/historico-escolas` | Histórico anual | herda |
+| `/admin/importacoes` | Importação de planilhas de escolas, matrículas e professores | `adminGuard` |
 | `/admin/usuarios` | Lista de usuários | herda |
 | `/admin/usuarios/novo`, `/editar/:id` | Formulário | `adminGuard` |
 | `/admin/configuracoes` | Preferências locais | herda |
@@ -261,6 +262,17 @@ Na lista de escolas, o administrador confirma um modal que chama
 `HistoricoEscolaModalComponent` (`domains/escolas/ui`) mostra o detalhe de um
 registro. O total de alunos usa `totalAlunos` e, se ele estiver vazio, o nível
 `TOTAL_GERAL` das matrículas.
+
+### Importação de planilhas
+
+A tela `/admin/importacoes` (menu "Importação de planilhas", só administradores) envia as
+planilhas de escolas e infraestrutura, de matrículas e do quadro de professores para o ano
+escolhido (`POST /importacoes/{tipo}?ano=`). Ela lista as colunas aceitas de cada tipo
+(`GET /importacoes/layouts`), com os títulos alternativos, e baixa um modelo `.xlsx`
+(`GET /importacoes/modelos/{tipo}`). A importação de escolas aceita um ano novo, que o
+backend cria; as demais só oferecem anos cadastrados. O resultado mostra os contadores e
+as linhas não importadas. A tela de professores não importa mais planilhas; a lista vazia
+aponta para esta tela. Serviço e modelos ficam em `domains/importacoes`.
 
 ### Usuários
 

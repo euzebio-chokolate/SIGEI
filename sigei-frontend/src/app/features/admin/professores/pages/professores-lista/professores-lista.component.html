@@ -18,22 +18,6 @@
 
     @if (ehAdmin) {
     <div class="flex flex-wrap items-center gap-2">
-      <label
-        title="Importar a planilha do quadro de professores de {{ anoQuadro }}"
-        class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 transition-all cursor-pointer"
-        [class.opacity-60]="importando"
-        [class.pointer-events-none]="importando"
-      >
-        @if (importando) {
-          <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
-          Importando...
-        } @else {
-          <i class="fa-solid fa-file-excel text-xs text-emerald-600"></i>
-          Importar planilha
-        }
-        <input type="file" accept=".xlsx" class="hidden" (change)="importarPlanilha($event)" />
-      </label>
-
       <a
         routerLink="/admin/professores/lotacoes/novo"
         class="bg-white border border-emerald-200 hover:bg-emerald-50 text-emerald-700 px-4 py-2.5 rounded-xl text-sm font-semibold shadow-sm flex items-center gap-2 transition-all"
@@ -304,8 +288,8 @@
                   <td [attr.colspan]="ehAdmin ? 6 : 4" class="px-6 py-10 text-center text-slate-400">
                     @if (lotacoes.length === 0 && anoSelecionado !== null) {
                       Nenhuma lotação cadastrada em {{ anoSelecionado }}.
-                      @if (ehAdmin && anoSelecionado === anoQuadro) {
-                        <span class="block mt-1">Use <strong>Importar planilha</strong> para carregar o quadro de professores.</span>
+                      @if (ehAdmin) {
+                        <span class="block mt-1">Use <a routerLink="/admin/importacoes" class="text-emerald-600 font-semibold hover:underline">Importação de planilhas</a> para carregar o quadro de professores.</span>
                       }
                     } @else {
                       Nenhuma lotação encontrada com os filtros informados.
@@ -451,85 +435,6 @@
     </div>
   }
 </div>
-
-<!-- Resultado da importação -->
-@if (resultadoImportacao || erroImportacao) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4">
-    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden" role="dialog" aria-modal="true" aria-labelledby="titulo-importacao">
-      <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-        <div class="flex items-start gap-4">
-          <div
-            class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg"
-            [class.bg-emerald-50]="resultadoImportacao"
-            [class.text-emerald-600]="resultadoImportacao"
-            [class.bg-rose-50]="!resultadoImportacao"
-            [class.text-rose-600]="!resultadoImportacao"
-          >
-            <i class="fa-solid" [class.fa-file-circle-check]="resultadoImportacao" [class.fa-file-circle-xmark]="!resultadoImportacao"></i>
-          </div>
-          <div>
-            <h2 id="titulo-importacao" class="text-lg font-bold text-slate-800">
-              {{ resultadoImportacao ? 'Importação concluída' : 'Importação não realizada' }}
-            </h2>
-            <p class="text-sm text-slate-500 mt-1">
-              @if (resultadoImportacao) {
-                Quadro de professores de {{ anoQuadro }}. CPF, matrícula e número do contrato já preenchidos no sistema são mantidos.
-              } @else {
-                {{ erroImportacao }}
-              }
-            </p>
-          </div>
-        </div>
-
-        @if (resultadoImportacao; as resultado) {
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
-            <div class="p-3 rounded-xl bg-slate-50">
-              <p class="text-xl font-bold text-slate-800">{{ resultado.linhasLidas }}</p>
-              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Linhas lidas</p>
-            </div>
-            <div class="p-3 rounded-xl bg-slate-50">
-              <p class="text-xl font-bold text-slate-800">{{ resultado.professoresCriados }}</p>
-              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Professores novos</p>
-            </div>
-            <div class="p-3 rounded-xl bg-slate-50">
-              <p class="text-xl font-bold text-slate-800">{{ resultado.lotacoesCriadas }}</p>
-              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Lotações novas</p>
-            </div>
-            <div class="p-3 rounded-xl bg-slate-50">
-              <p class="text-xl font-bold text-slate-800">{{ resultado.lotacoesAtualizadas }}</p>
-              <p class="text-[11px] text-slate-500 uppercase tracking-wider">Lotações atualizadas</p>
-            </div>
-          </div>
-
-          <p class="text-sm text-slate-600">
-            {{ resultado.vagasEmAberto }} vaga(s) em aberto e {{ resultado.lotacoesNoNucleo }} lotação(ões) no núcleo de educação.
-          </p>
-
-          @if (resultado.erros.length > 0) {
-            <div class="rounded-xl border border-amber-100 bg-amber-50 p-4">
-              <p class="text-sm font-semibold text-amber-800">
-                {{ resultado.linhasIgnoradas }} linha(s) não importada(s)
-              </p>
-              <p class="text-xs text-amber-700 mt-1">
-                Escolas não identificadas precisam ser cadastradas (ou ter o nome corrigido) antes de importar novamente.
-              </p>
-              <ul class="mt-3 space-y-1 text-xs text-amber-900 max-h-56 overflow-y-auto">
-                @for (erro of resultado.erros; track $index) {
-                  <li>{{ erro }}</li>
-                }
-              </ul>
-            </div>
-          }
-        }
-      </div>
-      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-        <button type="button" (click)="fecharImportacao()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold">
-          Concluir
-        </button>
-      </div>
-    </div>
-  </div>
-}
 
 <app-confirm-modal
   [aberto]="lotacaoParaExcluir !== null"

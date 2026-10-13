@@ -139,6 +139,12 @@ export const ADMIN_ROUTES: Routes = [
         title: 'SIGEI - Editar Usuário'
       },
       {
+        path: 'importacoes',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./importacoes/pages/importacoes/importacoes.component').then(module => module.ImportacoesComponent),
+        title: 'SIGEI - Importação de planilhas'
+      },
+      {
         path: 'auditoria',
         canActivate: [adminGuard],
         loadComponent: () => import('./auditoria/pages/auditoria/auditoria.component').then(module => module.AuditoriaComponent),

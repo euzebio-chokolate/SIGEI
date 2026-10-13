@@ -16,6 +16,11 @@ public final class CoordenadaUtils {
             Pattern.CASE_INSENSITIVE
     );
 
+    /** Graus decimais, como -9.9747 ou -9,9747 (sul e oeste negativos). */
+    private static final Pattern PADRAO_DECIMAL = Pattern.compile(
+            "^-?\\d{1,3}(?:[.,]\\d+)?$"
+    );
+
     private CoordenadaUtils() {
         // Impede a criação de objetos dessa classe.
     }
@@ -46,6 +51,10 @@ public final class CoordenadaUtils {
 
         if (valor.isBlank() || valor.equals("-")) {
             return null;
+        }
+
+        if (PADRAO_DECIMAL.matcher(valor).matches()) {
+            return converterDecimal(valor, tipo);
         }
 
         valor = valor
@@ -97,6 +106,28 @@ public final class CoordenadaUtils {
                 direcao == 'W') {
 
             decimal = -decimal;
+        }
+
+        return BigDecimal.valueOf(decimal)
+                .setScale(7, RoundingMode.HALF_UP)
+                .doubleValue();
+    }
+
+    private static Double converterDecimal(
+            String valor,
+            TipoCoordenada tipo
+    ) {
+        double decimal = Double.parseDouble(
+                valor.replace(",", ".")
+        );
+
+        double limite = tipo == TipoCoordenada.LATITUDE ? 90 : 180;
+
+        if (Math.abs(decimal) > limite) {
+            throw new IllegalArgumentException(
+                    (tipo == TipoCoordenada.LATITUDE ? "A latitude" : "A longitude") +
+                            " não pode ultrapassar " + (int) limite + " graus."
+            );
         }
 
         return BigDecimal.valueOf(decimal)

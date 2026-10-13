@@ -27,8 +27,8 @@ Projeto desenvolvido como Trabalho de Conclusão de Curso no IFAC.
 - Distinção entre escola-sede e anexo.
 - Histórico anual por ano ou por escola, incluindo o cadastro retroativo de anos anteriores.
 - Abertura de um novo ano letivo, copiando o último registro de cada escola.
-- Importação das planilhas de infraestrutura e de matrículas do censo (apenas pela API).
-- Quadro de professores: cadastro dos professores, lotação anual em escolas ou no núcleo de educação do município, vagas em aberto e importação da planilha do quadro pela tela. CPF, matrícula e número do contrato são gravados com criptografia e exibidos apenas a administradores.
+- Importação de planilhas de escolas e infraestrutura, matrículas e quadro de professores pela tela, para qualquer ano. As colunas são reconhecidas pelo cabeçalho, em qualquer ordem e aba, e a tela oferece um modelo para preencher.
+- Quadro de professores: cadastro dos professores, lotação anual em escolas ou no núcleo de educação do município, vagas em aberto. CPF, matrícula e número do contrato são gravados com criptografia e exibidos apenas a administradores.
 - Gestão de usuários com os perfis `ADMIN` (leitura e escrita) e `USUARIO` (somente leitura).
 - Troca de senha obrigatória no primeiro acesso.
 
@@ -156,7 +156,7 @@ O frontend tem o Vitest configurado (`npm test`), mas ainda não possui testes.
 
 ## Limitações conhecidas
 
-- A importação de planilhas lê abas e colunas fixas e o ano 2025; não é um importador genérico.
+- A importação reconhece colunas pelo título do cabeçalho (com sinônimos), mas cada tipo tem seu conjunto de colunas; planilhas com outra estrutura, como uma linha por etapa em vez de uma por escola, não são aceitas.
 - Não há renovação de token: após 24 horas é preciso entrar de novo.
 - O cadastro de uma escola é gravado em várias requisições, não em uma transação única.
 - Divergências entre frontend e backend estão listadas em [sigei-frontend/docs/FRONTEND.md](sigei-frontend/docs/FRONTEND.md#divergências-conhecidas).

@@ -3,12 +3,14 @@ package ac.gov.br.sigei_backend.service.importacao;
 import ac.gov.br.sigei_backend.dto.response.ImportacaoResultadoDTO;
 import ac.gov.br.sigei_backend.models.*;
 import ac.gov.br.sigei_backend.repository.*;
+import ac.gov.br.sigei_backend.utils.ColunaPlanilha;
 import ac.gov.br.sigei_backend.utils.CoordenadaUtils;
 import ac.gov.br.sigei_backend.utils.ExcelUtils;
 import ac.gov.br.sigei_backend.utils.ImportacaoContador;
+import ac.gov.br.sigei_backend.utils.LayoutPlanilha;
+import ac.gov.br.sigei_backend.utils.LayoutPlanilha.PlanilhaLocalizada;
 import ac.gov.br.sigei_backend.utils.OpcoesInfraestrutura;
 import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,41 +19,101 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.time.Year;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
+/**
+ * Importa o cadastro das escolas com infraestrutura e equipe de um ano. Cada linha é
+ * uma escola; município, terra indígena, povo e aldeia ausentes são criados.
+ *
+ * <p>As colunas são localizadas pelo cabeçalho ({@link Coluna}). Colunas opcionais
+ * ausentes não alteram os dados já gravados. O anexo é indicado pela coluna
+ * {@code TIPO DE UNIDADE} ou, no formato antigo, por {@code ANEXO} na coluna de ordem;
+ * as sedes são processadas antes, para que os anexos encontrem a sede pelo código.
+ */
 @Service
 public class ImportacaoExcelService {
 
-    private static final int ANO_PLANILHA = 2025;
+    private static final int ANO_MINIMO = 2000;
 
-    private static final int COL_ORDEM = 0;
-    private static final int COL_MUNICIPIO = 1;
-    private static final int COL_CODIGO = 2;
-    private static final int COL_ESCOLA = 3;
-    private static final int COL_TERRA_INDIGENA = 4;
-    private static final int COL_ALDEIA = 5;
-    private static final int COL_POVO = 6;
-    private static final int COL_SITUACAO = 7;
-    private static final int COL_TEM_PREDIO = 8;
-    private static final int COL_ANO_CONSTRUCAO = 9;
-    private static final int COL_NUM_SALAS = 10;
-    private static final int COL_TOTAL_ALUNOS = 11;
-    private static final int COL_LATITUDE = 12;
-    private static final int COL_LONGITUDE = 13;
-    private static final int COL_ACESSO = 14;
-    private static final int COL_INTERNET = 15;
-    private static final int COL_AGUA = 16;
-    private static final int COL_ENERGIA = 17;
-    private static final int COL_FOTOGRAFICO = 18;
-    private static final int COL_PROFESSOR = 19;
-    private static final int COL_EQUIPE_GESTORA = 20;
-    private static final int COL_MERENDEIRA = 21;
-    private static final int COL_ZELADORA = 22;
-    private static final int COL_BARQUEIRO = 23;
-    private static final int COL_TRANSPORTE = 24;
+    private static final ZoneId FUSO = ZoneId.of("America/Rio_Branco");
+
+    public enum Coluna implements ColunaPlanilha {
+        ORDEM("ORD.", false,
+                "Número de ordem. O valor ANEXO indica um anexo quando não há a coluna TIPO DE UNIDADE.",
+                "ORDEM"),
+        TIPO_UNIDADE("TIPO DE UNIDADE", false,
+                "SEDE ou ANEXO. O anexo é vinculado à sede de mesmo código.",
+                "TIPO UNIDADE"),
+        MUNICIPIO("MUNICÍPIO", true, "Nome do município."),
+        CODIGO("CÓDIGO", true, "Código INEP da escola.", "CÓDIGO INEP", "INEP"),
+        ESCOLA("NOME DA ESCOLA", true, "Nome da escola.", "ESCOLA"),
+        TERRA_INDIGENA("TERRA INDÍGENA", true, "Nome da terra indígena."),
+        ALDEIA("ALDEIA", true, "Nome da aldeia."),
+        POVO("POVO", true, "Nome do povo indígena.", "POVOS"),
+        SITUACAO("SITUAÇÃO", false, "FUNCIONANDO, PARALISADA ou DESATIVADA."),
+        TEM_PREDIO("TEM PRÉDIO", false, "SIM ou NÃO.", "PRÉDIO"),
+        ANO_CONSTRUCAO("ANO CONSTRUÇÃO", false, "Ano da construção do prédio.", "ANO DE CONSTRUÇÃO"),
+        NUM_SALAS("Nº DE SALAS", false, "Quantidade de salas.", "NÚMERO DE SALAS", "SALAS"),
+        TOTAL_ALUNOS("Nº DE ALUNOS", false, "Total de alunos do ano.",
+                "NÚMERO DE ALUNOS", "TOTAL DE ALUNOS", "ALUNOS"),
+        LATITUDE("LATITUDE", false, "Em graus decimais (-9.97) ou graus, minutos e segundos (9°58'29\"S)."),
+        LONGITUDE("LONGITUDE", false, "Em graus decimais (-67.81) ou graus, minutos e segundos (67°48'36\"O)."),
+        COORDENADAS("COORDENADAS", false,
+                "Formato antigo: latitude nesta coluna e longitude na seguinte. Prefira LATITUDE e LONGITUDE.",
+                "COORDENADA"),
+        ACESSO("ACESSO", false, "TERRESTRE, FLUVIAL ou MISTO.", "TIPO DE ACESSO"),
+        INTERNET("INTERNET", false, "SIM ou NÃO.", "TEM INTERNET"),
+        AGUA("ÁGUA", false,
+                "REDE PÚBLICA, POÇO, CACIMBA, RIO, IGARAPÉ, VERTENTE, RIO/VERTENTE, OUTRO ou NÃO.",
+                "TIPO DE ÁGUA"),
+        ENERGIA("ENERGIA", false,
+                "REDE PÚBLICA (ou REDE ELÉTRICA), GERADOR, SOLAR, OUTRO ou NÃO.",
+                "TIPO DE ENERGIA"),
+        FOTOGRAFICO("RELATÓRIO FOTOGRÁFICO", false, "SIM ou NÃO.", "REGISTRO FOTOGRÁFICO"),
+        PROFESSOR("TEM PROFESSOR RESPONSÁVEL", false, "SIM ou NÃO.", "PROFESSOR RESPONSÁVEL"),
+        EQUIPE_GESTORA("TEM EQUIPE GESTORA", false, "SIM ou NÃO.", "EQUIPE GESTORA"),
+        MERENDEIRA("TEM MERENDEIRA", false, "SIM ou NÃO.", "MERENDEIRA"),
+        ZELADORA("TEM ZELADORA", false, "SIM ou NÃO.", "ZELADORA"),
+        BARQUEIRO("TEM BARQUEIRO", false, "SIM ou NÃO.", "BARQUEIRO"),
+        TRANSPORTE("TEM NECESSIDADE DE TRANSPORTE ESCOLAR", false, "SIM ou NÃO.",
+                "NECESSIDADE DE TRANSPORTE ESCOLAR", "TRANSPORTE ESCOLAR");
+
+        private final String titulo;
+        private final boolean obrigatoria;
+        private final String descricao;
+        private final List<String> sinonimos;
+
+        Coluna(String titulo, boolean obrigatoria, String descricao, String... sinonimos) {
+            this.titulo = titulo;
+            this.obrigatoria = obrigatoria;
+            this.descricao = descricao;
+            this.sinonimos = List.of(sinonimos);
+        }
+
+        @Override public String titulo() { return titulo; }
+        @Override public boolean obrigatoria() { return obrigatoria; }
+        @Override public String descricao() { return descricao; }
+        @Override public List<String> sinonimos() { return sinonimos; }
+    }
+
+    public static final LayoutPlanilha<Coluna> LAYOUT = new LayoutPlanilha<>(
+            Coluna.class,
+            "Escolas e infraestrutura",
+            "de escolas e infraestrutura",
+            List.of(
+                    "Cada linha é uma escola. Os dados são gravados no ano escolhido na importação; o ano é criado se ainda não existir.",
+                    "As colunas podem estar em qualquer ordem e a aba pode ter qualquer nome. Colunas extras são ignoradas.",
+                    "Município, terra indígena, povo e aldeia ainda não cadastrados são criados.",
+                    "Colunas opcionais ausentes não alteram os dados já gravados; células vazias gravam o campo como não informado.",
+                    "Valores fora das opções de situação, acesso, água e energia são gravados como não informados."
+            )
+    );
 
     @Autowired
     MunicipioRepository municipioRepository;
@@ -80,8 +142,12 @@ public class ImportacaoExcelService {
     @Autowired
     EquipeEscolaRepository equipeEscolaRepository;
 
+    /**
+     * @param ano ano de referência dos dados; nulo usa o ano mais recente cadastrado
+     */
     public ImportacaoResultadoDTO importarInfraestrutura(
-            MultipartFile arquivo
+            MultipartFile arquivo,
+            Integer ano
     ) {
         validarArquivo(arquivo);
 
@@ -95,29 +161,22 @@ public class ImportacaoExcelService {
                 Workbook workbook =
                         WorkbookFactory.create(inputStream)
         ) {
-            Sheet planilha = workbook.getSheet("Planilha4");
+            PlanilhaLocalizada<Coluna> planilha =
+                    localizarPlanilha(workbook);
 
-            if (planilha == null) {
-                throw new IllegalArgumentException(
-                        "A aba Planilha4 não foi encontrada."
-                );
-            }
-
-            List<Row> linhas = carregarLinhas(
-                    planilha,
-                    contador
-            );
+            List<Row> linhas = planilha.linhas();
+            linhas.forEach(linha -> contador.incrementarLinhasLidas());
 
             AnoReferencia anoReferencia =
-                    buscarOuCriarAno(ANO_PLANILHA);
+                    resolverAno(ano);
 
             Map<String, Municipio> municipiosPorNome =
                     carregarMunicipiosPorNome();
 
             for (Row linha : linhas) {
-                if (!isAnexo(linha)) {
+                if (!isAnexo(planilha, linha)) {
                     processarLinha(
-                            linha,
+                            new Linha(planilha, linha),
                             anoReferencia,
                             municipiosPorNome,
                             contador
@@ -126,9 +185,9 @@ public class ImportacaoExcelService {
             }
 
             for (Row linha : linhas) {
-                if (isAnexo(linha)) {
+                if (isAnexo(planilha, linha)) {
                     processarLinha(
-                            linha,
+                            new Linha(planilha, linha),
                             anoReferencia,
                             municipiosPorNome,
                             contador
@@ -146,52 +205,47 @@ public class ImportacaoExcelService {
         }
     }
 
-    private List<Row> carregarLinhas(
-            Sheet planilha,
-            ImportacaoContador contador
+    /**
+     * Sem LATITUDE e LONGITUDE, aceita o formato antigo: COORDENADAS com a latitude
+     * e a longitude na coluna seguinte, sem título.
+     */
+    private PlanilhaLocalizada<Coluna> localizarPlanilha(
+            Workbook workbook
     ) {
-        List<Row> linhas = new ArrayList<>();
+        PlanilhaLocalizada<Coluna> planilha =
+                LAYOUT.localizar(workbook);
 
-        for (int indice = 1;
-             indice <= planilha.getLastRowNum();
-             indice++) {
+        if (planilha.possui(Coluna.COORDENADAS)
+                && !planilha.possui(Coluna.LATITUDE)
+                && !planilha.possui(Coluna.LONGITUDE)) {
 
-            Row linha = planilha.getRow(indice);
+            int posicao = planilha.coluna(Coluna.COORDENADAS);
 
-            if (ExcelUtils.linhaVazia(linha)) {
-                continue;
-            }
-
-            linhas.add(linha);
-            contador.incrementarLinhasLidas();
+            planilha = planilha
+                    .comColuna(Coluna.LATITUDE, posicao)
+                    .comColuna(Coluna.LONGITUDE, posicao + 1);
         }
 
-        return linhas;
+        return planilha;
     }
 
     private void processarLinha(
-            Row linha,
+            Linha linha,
             AnoReferencia anoReferencia,
             Map<String, Municipio> municipiosPorNome,
             ImportacaoContador contador
     ) {
         int numeroLinhaExcel =
-                linha.getRowNum() + 1;
+                linha.row().getRowNum() + 1;
 
         try {
             String codigo = obrigatorio(
-                    ExcelUtils.lerCodigo(
-                            linha,
-                            COL_CODIGO
-                    ),
+                    linha.codigo(Coluna.CODIGO),
                     "Código da escola"
             );
 
             String nomeEscola = obrigatorio(
-                    ExcelUtils.lerTexto(
-                            linha,
-                            COL_ESCOLA
-                    ),
+                    linha.texto(Coluna.ESCOLA),
                     "Nome da escola"
             );
 
@@ -258,14 +312,11 @@ public class ImportacaoExcelService {
     }
 
     private Municipio buscarMunicipio(
-            Row linha,
+            Linha linha,
             Map<String, Municipio> municipiosPorNome
     ) {
         String nome = obrigatorio(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_MUNICIPIO
-                ),
+                linha.texto(Coluna.MUNICIPIO),
                 "Município"
         );
 
@@ -328,15 +379,12 @@ public class ImportacaoExcelService {
     }
 
     private TerraIndigena buscarOuCriarTerraIndigena(
-            Row linha,
+            Linha linha,
             Municipio municipio,
             ImportacaoContador contador
     ) {
         String nome = obrigatorio(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_TERRA_INDIGENA
-                ),
+                linha.texto(Coluna.TERRA_INDIGENA),
                 "Terra indígena"
         );
 
@@ -366,14 +414,11 @@ public class ImportacaoExcelService {
     }
 
     private Povo buscarOuCriarPovo(
-            Row linha,
+            Linha linha,
             ImportacaoContador contador
     ) {
         String nome = obrigatorio(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_POVO
-                ),
+                linha.texto(Coluna.POVO),
                 "Povo"
         );
 
@@ -394,16 +439,13 @@ public class ImportacaoExcelService {
     }
 
     private Aldeia buscarOuCriarAldeia(
-            Row linha,
+            Linha linha,
             TerraIndigena terraIndigena,
             Povo povo,
             ImportacaoContador contador
     ) {
         String nome = obrigatorio(
-                ExcelUtils.lerTexto(
-                        linha,
-                        COL_ALDEIA
-                ),
+                linha.texto(Coluna.ALDEIA),
                 "Aldeia"
         );
 
@@ -431,14 +473,14 @@ public class ImportacaoExcelService {
     }
 
     private Escola buscarOuCriarEscola(
-            Row linha,
+            Linha linha,
             String codigo,
             String nome,
             Aldeia aldeia,
             ImportacaoContador contador
     ) {
         String tipoUnidade =
-                isAnexo(linha) ? "ANEXO" : "SEDE";
+                isAnexo(linha.planilha(), linha.row()) ? "ANEXO" : "SEDE";
 
         Escola escola = escolaRepository
                 .findFirstByCodigoAndAldeia_NomeIgnoreCase(
@@ -490,7 +532,7 @@ public class ImportacaoExcelService {
     }
 
     private RegistroAnual buscarOuCriarRegistroAnual(
-            Row linha,
+            Linha linha,
             Escola escola,
             AnoReferencia anoReferencia,
             ImportacaoContador contador
@@ -517,11 +559,10 @@ public class ImportacaoExcelService {
         registroAnual.setRede("ESTADUAL");
         registroAnual.setLocalFuncionamento("RURAL");
 
-        registroAnual.setTotalAlunos(
-                ExcelUtils.lerInteiro(
-                        linha,
-                        COL_TOTAL_ALUNOS
-                )
+        linha.seExistir(
+                Coluna.TOTAL_ALUNOS,
+                linha::inteiro,
+                registroAnual::setTotalAlunos
         );
 
         registroAnual =
@@ -539,7 +580,7 @@ public class ImportacaoExcelService {
     }
 
     private void salvarInfraestrutura(
-            Row linha,
+            Linha linha,
             RegistroAnual registroAnual,
             ImportacaoContador contador
     ) {
@@ -562,96 +603,51 @@ public class ImportacaoExcelService {
             );
         }
 
-        infraestrutura.setAnoConstrucao(
-                ExcelUtils.lerInteiro(
-                        linha,
-                        COL_ANO_CONSTRUCAO
-                )
+        linha.seExistir(Coluna.ANO_CONSTRUCAO, linha::inteiro, infraestrutura::setAnoConstrucao);
+        linha.seExistir(Coluna.NUM_SALAS, linha::inteiro, infraestrutura::setNumSalas);
+
+        linha.seExistir(
+                Coluna.LATITUDE,
+                coluna -> CoordenadaUtils.converterLatitude(linha.texto(coluna)),
+                infraestrutura::setLatitude
         );
 
-        infraestrutura.setNumSalas(
-                ExcelUtils.lerInteiro(
-                        linha,
-                        COL_NUM_SALAS
-                )
-        );
-
-        infraestrutura.setLatitude(
-                CoordenadaUtils.converterLatitude(
-                        ExcelUtils.lerTexto(
-                                linha,
-                                COL_LATITUDE
-                        )
-                )
-        );
-
-        infraestrutura.setLongitude(
-                CoordenadaUtils.converterLongitude(
-                        ExcelUtils.lerTexto(
-                                linha,
-                                COL_LONGITUDE
-                        )
-                )
+        linha.seExistir(
+                Coluna.LONGITUDE,
+                coluna -> CoordenadaUtils.converterLongitude(linha.texto(coluna)),
+                infraestrutura::setLongitude
         );
 
         // Valores fora das opções do sistema (ex.: "DESATIVADA" na coluna de
         // acesso das escolas paralisadas) são gravados como não informados
-        infraestrutura.setSituacao(
-                OpcoesInfraestrutura.situacaoImportada(
-                        ExcelUtils.lerTexto(
-                                linha,
-                                COL_SITUACAO
-                        )
-                )
+        linha.seExistir(
+                Coluna.SITUACAO,
+                coluna -> OpcoesInfraestrutura.situacaoImportada(linha.texto(coluna)),
+                infraestrutura::setSituacao
         );
 
-        infraestrutura.setTipoAcesso(
-                OpcoesInfraestrutura.tipoAcessoImportado(
-                        ExcelUtils.lerTexto(
-                                linha,
-                                COL_ACESSO
-                        )
-                )
+        linha.seExistir(
+                Coluna.ACESSO,
+                coluna -> OpcoesInfraestrutura.tipoAcessoImportado(linha.texto(coluna)),
+                infraestrutura::setTipoAcesso
         );
 
-        infraestrutura.setTemPredio(
-                ExcelUtils.lerBooleano(
-                        linha,
-                        COL_TEM_PREDIO
-                )
+        linha.seExistir(Coluna.TEM_PREDIO, linha::booleano, infraestrutura::setTemPredio);
+        linha.seExistir(Coluna.INTERNET, linha::booleano, infraestrutura::setTemInternet);
+
+        linha.seExistir(
+                Coluna.AGUA,
+                coluna -> OpcoesInfraestrutura.tipoAguaImportado(linha.texto(coluna)),
+                infraestrutura::setTipoAgua
         );
 
-        infraestrutura.setTemInternet(
-                ExcelUtils.lerBooleano(
-                        linha,
-                        COL_INTERNET
-                )
+        linha.seExistir(
+                Coluna.ENERGIA,
+                coluna -> OpcoesInfraestrutura.tipoEnergiaImportado(linha.texto(coluna)),
+                infraestrutura::setTipoEnergia
         );
 
-        infraestrutura.setTipoAgua(
-                OpcoesInfraestrutura.tipoAguaImportado(
-                        ExcelUtils.lerTexto(
-                                linha,
-                                COL_AGUA
-                        )
-                )
-        );
-
-        infraestrutura.setTipoEnergia(
-                OpcoesInfraestrutura.tipoEnergiaImportado(
-                        ExcelUtils.lerTexto(
-                                linha,
-                                COL_ENERGIA
-                        )
-                )
-        );
-
-        infraestrutura.setTemRegistroFotografico(
-                ExcelUtils.lerBooleano(
-                        linha,
-                        COL_FOTOGRAFICO
-                )
-        );
+        linha.seExistir(Coluna.FOTOGRAFICO, linha::booleano, infraestrutura::setTemRegistroFotografico);
 
         infraestruturaRepository.save(infraestrutura);
 
@@ -663,7 +659,7 @@ public class ImportacaoExcelService {
     }
 
     private void salvarEquipe(
-            Row linha,
+            Linha linha,
             RegistroAnual registroAnual,
             AnoReferencia anoReferencia,
             ImportacaoContador contador
@@ -678,64 +674,16 @@ public class ImportacaoExcelService {
 
         if (novaEquipe) {
             equipe = new EquipeEscola();
-            equipe.setRegistroAnual(registroAnual);
-        }
+            equipe.setRegistroAnual(registroAnual);        }
 
         equipe.setAnoReferencia(anoReferencia);
 
-        equipe.setTemProfessorResponsavel(
-                Boolean.TRUE.equals(
-                        ExcelUtils.lerBooleano(
-                                linha,
-                                COL_PROFESSOR
-                        )
-                )
-        );
-
-        equipe.setTemEquipeGestora(
-                Boolean.TRUE.equals(
-                        ExcelUtils.lerBooleano(
-                                linha,
-                                COL_EQUIPE_GESTORA
-                        )
-                )
-        );
-
-        equipe.setTemMerendeira(
-                Boolean.TRUE.equals(
-                        ExcelUtils.lerBooleano(
-                                linha,
-                                COL_MERENDEIRA
-                        )
-                )
-        );
-
-        equipe.setTemZeladora(
-                Boolean.TRUE.equals(
-                        ExcelUtils.lerBooleano(
-                                linha,
-                                COL_ZELADORA
-                        )
-                )
-        );
-
-        equipe.setTemBarqueiro(
-                Boolean.TRUE.equals(
-                        ExcelUtils.lerBooleano(
-                                linha,
-                                COL_BARQUEIRO
-                        )
-                )
-        );
-
-        equipe.setNecessitaTransporte(
-                Boolean.TRUE.equals(
-                        ExcelUtils.lerBooleano(
-                                linha,
-                                COL_TRANSPORTE
-                        )
-                )
-        );
+        linha.seExistir(Coluna.PROFESSOR, linha::sim, equipe::setTemProfessorResponsavel);
+        linha.seExistir(Coluna.EQUIPE_GESTORA, linha::sim, equipe::setTemEquipeGestora);
+        linha.seExistir(Coluna.MERENDEIRA, linha::sim, equipe::setTemMerendeira);
+        linha.seExistir(Coluna.ZELADORA, linha::sim, equipe::setTemZeladora);
+        linha.seExistir(Coluna.BARQUEIRO, linha::sim, equipe::setTemBarqueiro);
+        linha.seExistir(Coluna.TRANSPORTE, linha::sim, equipe::setNecessitaTransporte);
 
         equipeEscolaRepository.save(equipe);
 
@@ -744,6 +692,32 @@ public class ImportacaoExcelService {
         } else {
             contador.incrementarRegistrosAtualizados();
         }
+    }
+
+    /**
+     * O ano informado é criado se ainda não existir, dentro de um intervalo
+     * plausível; sem ano, usa o mais recente cadastrado.
+     */
+    private AnoReferencia resolverAno(Integer ano) {
+        if (ano == null) {
+            return anoReferenciaRepository
+                    .findTopByOrderByAnoDesc()
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Informe o ano de referência da planilha."
+                    ));
+        }
+
+        int anoMaximo = Year.now(FUSO).getValue() + 1;
+
+        if (ano < ANO_MINIMO || ano > anoMaximo) {
+            throw new IllegalArgumentException(
+                    "Ano de referência inválido: " + ano +
+                            ". Informe um ano entre " + ANO_MINIMO +
+                            " e " + anoMaximo + "."
+            );
+        }
+
+        return buscarOuCriarAno(ano);
     }
 
     private AnoReferencia buscarOuCriarAno(
@@ -767,16 +741,15 @@ public class ImportacaoExcelService {
         return anoReferencia;
     }
 
-    private boolean isAnexo(Row linha) {
-        String ordem = ExcelUtils.lerTexto(
-                linha,
-                COL_ORDEM
-        );
-
-        return ordem != null &&
-                "ANEXO".equals(
-                        ExcelUtils.normalizar(ordem)
-                );
+    private static boolean isAnexo(
+            PlanilhaLocalizada<Coluna> planilha,
+            Row linha
+    ) {
+        return "ANEXO".equals(ExcelUtils.normalizar(
+                ExcelUtils.lerTexto(linha, planilha.coluna(Coluna.TIPO_UNIDADE))
+        )) || "ANEXO".equals(ExcelUtils.normalizar(
+                ExcelUtils.lerTexto(linha, planilha.coluna(Coluna.ORDEM))
+        ));
     }
 
     private String obrigatorio(
@@ -820,6 +793,38 @@ public class ImportacaoExcelService {
             throw new IllegalArgumentException(
                     "O arquivo deve estar no formato .xlsx."
             );
+        }
+    }
+
+    /** Uma linha de dados com as posições das colunas encontradas no cabeçalho. */
+    private record Linha(PlanilhaLocalizada<Coluna> planilha, Row row) {
+
+        String texto(Coluna coluna) {
+            return ExcelUtils.lerTexto(row, planilha.coluna(coluna));
+        }
+
+        String codigo(Coluna coluna) {
+            return ExcelUtils.lerCodigo(row, planilha.coluna(coluna));
+        }
+
+        Integer inteiro(Coluna coluna) {
+            return ExcelUtils.lerInteiro(row, planilha.coluna(coluna));
+        }
+
+        Boolean booleano(Coluna coluna) {
+            return ExcelUtils.lerBooleano(row, planilha.coluna(coluna));
+        }
+
+        /** Célula vazia conta como "não", como nos indicadores da equipe. */
+        Boolean sim(Coluna coluna) {
+            return Boolean.TRUE.equals(booleano(coluna));
+        }
+
+        /** Atribui o valor lido só quando a coluna existe na planilha. */
+        <T> void seExistir(Coluna coluna, Function<Coluna, T> ler, Consumer<T> atribuir) {
+            if (planilha.possui(coluna)) {
+                atribuir.accept(ler.apply(coluna));
+            }
         }
     }
 }

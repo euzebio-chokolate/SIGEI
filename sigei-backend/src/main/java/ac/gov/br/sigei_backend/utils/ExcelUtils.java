@@ -13,6 +13,10 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
+/**
+ * Leitura de células. Coluna negativa (coluna opcional ausente no layout) é lida
+ * como célula vazia.
+ */
 public final class ExcelUtils {
 
     private ExcelUtils() {
@@ -22,7 +26,7 @@ public final class ExcelUtils {
             Row linha,
             int numeroColuna
     ) {
-        if (linha == null) {
+        if (linha == null || numeroColuna < 0) {
             return null;
         }
 
@@ -52,7 +56,7 @@ public final class ExcelUtils {
             Row linha,
             int numeroColuna
     ) {
-        if (linha == null) {
+        if (linha == null || numeroColuna < 0) {
             return null;
         }
 
@@ -165,7 +169,7 @@ public final class ExcelUtils {
             Row linha,
             int numeroColuna
     ) {
-        if (linha == null) {
+        if (linha == null || numeroColuna < 0) {
             return null;
         }
 
