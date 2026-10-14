@@ -263,7 +263,7 @@ class CadastroEscolaServiceTest {
                 escola,
                 ano.getId(),
                 "Estadual",
-                "Prédio próprio",
+                "URBANA",
                 totalAlunos,
                 new CadastroEscolaRequestDTO.EquipeDTO(true, false, true, false, false, true),
                 new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, 3, -8.1, -70.5, "FUNCIONANDO", "FLUVIAL",

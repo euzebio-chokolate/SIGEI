@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
+import { TAMANHO_MAXIMO_SENHA, TAMANHO_MINIMO_SENHA } from '@core/forms/validadores';
 import { mensagemErroFormulario } from '@core/http/erros-formulario';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
 
@@ -25,7 +26,7 @@ export class AlterarSenhaComponent {
 
   form = this.fb.nonNullable.group({
     senhaAtual: [this.authService.consumirSenhaTemporaria(), Validators.required],
-    novaSenha: ['', [Validators.required, Validators.minLength(8)]],
+    novaSenha: ['', [Validators.required, Validators.minLength(TAMANHO_MINIMO_SENHA), Validators.maxLength(TAMANHO_MAXIMO_SENHA)]],
     confirmacaoSenha: ['', Validators.required]
   });
 

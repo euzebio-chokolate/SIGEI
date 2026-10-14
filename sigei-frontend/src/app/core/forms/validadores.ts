@@ -3,6 +3,10 @@ import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@ang
 /** Tamanho das colunas de texto sem @Column(length): o varchar(255) padrão do JPA. */
 export const TAMANHO_TEXTO = 255;
 
+/** Senhas: de 8 a 72 caracteres, como no backend (o BCrypt não aceita mais de 72 bytes). */
+export const TAMANHO_MINIMO_SENHA = 8;
+export const TAMANHO_MAXIMO_SENHA = 72;
+
 /** Limite de upload do backend (spring.servlet.multipart.max-file-size). */
 export const TAMANHO_MAXIMO_UPLOAD_MB = 20;
 

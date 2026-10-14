@@ -13,6 +13,7 @@ import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import ac.gov.br.sigei_backend.service.armazenamento.CloudinaryService;
 import ac.gov.br.sigei_backend.utils.OpcoesInfraestrutura;
+import ac.gov.br.sigei_backend.utils.OpcoesRegistroAnual;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,8 +118,8 @@ public class CadastroEscolaService {
                 .findByEscolaAndAnoReferencia(escola, anoReferencia)
                 .orElseGet(() -> novoRegistro(escola, anoReferencia));
 
-        registro.setRede(dto.rede());
-        registro.setLocalFuncionamento(dto.localFuncionamento());
+        registro.setRede(OpcoesRegistroAnual.rede(dto.rede()));
+        registro.setLocalFuncionamento(OpcoesRegistroAnual.localFuncionamento(dto.localFuncionamento()));
         if (dto.totalAlunos() != null) {
             registro.setTotalAlunos(dto.totalAlunos());
         }

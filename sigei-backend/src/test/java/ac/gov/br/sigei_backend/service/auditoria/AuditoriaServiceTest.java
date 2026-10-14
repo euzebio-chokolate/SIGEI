@@ -248,7 +248,7 @@ class AuditoriaServiceTest {
                 new EscolaRequestDTO(escolaId, "COD-A", nome, "SEDE", null, aldeia.getId()),
                 ano2025.getId(),
                 "Estadual",
-                "Prédio próprio",
+                "URBANA",
                 totalAlunos,
                 new CadastroEscolaRequestDTO.EquipeDTO(true, false, true, false, false, true),
                 new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, 3, -8.1, -70.5, "FUNCIONANDO", "FLUVIAL",

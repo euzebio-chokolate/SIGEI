@@ -9,6 +9,7 @@ import ac.gov.br.sigei_backend.models.RegistroAnual;
 import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
+import ac.gov.br.sigei_backend.utils.OpcoesRegistroAnual;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class RegistroAnualService {
         }
 
         RegistroAnual registro = registroAnualMapper.converter(dto);
+        aplicarOpcoes(registro);
 
         registro.setEscola(escola);
         registro.setAnoReferencia(anoReferencia);
@@ -116,6 +118,7 @@ public class RegistroAnualService {
                 .orElseThrow(() -> new NoSuchElementException("Ano de referência não encontrado"));
 
         registroAnualMapper.atualizar(dto, registro);
+        aplicarOpcoes(registro);
 
         registro.setEscola(escola);
         registro.setAnoReferencia(anoReferencia);
@@ -123,6 +126,11 @@ public class RegistroAnualService {
         RegistroAnual registroSalvo = registroAnualRepository.save(registro);
 
         return registroAnualMapper.converter(registroSalvo);
+    }
+
+    private void aplicarOpcoes(RegistroAnual registro) {
+        registro.setRede(OpcoesRegistroAnual.rede(registro.getRede()));
+        registro.setLocalFuncionamento(OpcoesRegistroAnual.localFuncionamento(registro.getLocalFuncionamento()));
     }
 
     @Transactional

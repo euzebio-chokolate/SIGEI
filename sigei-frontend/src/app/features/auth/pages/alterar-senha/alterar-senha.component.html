@@ -25,7 +25,7 @@
         <input id="novaSenha" [type]="mostrarSenhas ? 'text' : 'password'" formControlName="novaSenha" autocomplete="new-password" class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20" />
         <app-erro-campo
           [controle]="form.controls.novaSenha"
-          [mensagens]="{ required: 'Informe a nova senha.', minlength: 'A nova senha deve ter pelo menos 8 caracteres.', igualAtual: 'A nova senha deve ser diferente da senha atual.' }"
+          [mensagens]="{ required: 'Informe a nova senha.', minlength: 'A nova senha deve ter pelo menos 8 caracteres.', maxlength: 'A nova senha deve ter no máximo 72 caracteres.', igualAtual: 'A nova senha deve ser diferente da senha atual.' }"
         />
       </div>
       <div>

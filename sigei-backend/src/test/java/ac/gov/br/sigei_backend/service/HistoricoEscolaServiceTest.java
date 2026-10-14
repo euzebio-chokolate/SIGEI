@@ -181,7 +181,7 @@ class HistoricoEscolaServiceTest {
                 new EscolaRequestDTO(escolaId, "COD-H", nome, "SEDE", null, aldeia.getId()),
                 ano2025.getId(),
                 "Estadual",
-                "Prédio próprio",
+                "URBANA",
                 totalAlunos,
                 new CadastroEscolaRequestDTO.EquipeDTO(true, false, true, false, false, true),
                 new CadastroEscolaRequestDTO.InfraestruturaDTO(2010, numSalas, -8.1, -70.5, "FUNCIONANDO", "FLUVIAL",

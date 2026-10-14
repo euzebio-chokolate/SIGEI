@@ -9,7 +9,8 @@ public record AlterarSenhaRequestDTO(
         String senhaAtual,
 
         @NotBlank(message = "Nova senha não pode ser vazia")
-        @Size(min = 8, message = "Nova senha deve ter pelo menos 8 caracteres")
+        // O BCrypt não aceita mais de 72 bytes
+        @Size(min = 8, max = 72, message = "Nova senha deve ter entre 8 e 72 caracteres")
         String novaSenha,
 
         @NotBlank(message = "Confirmação da senha não pode ser vazia")

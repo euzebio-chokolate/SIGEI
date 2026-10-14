@@ -77,6 +77,50 @@ class RegistroAnualServiceTest {
         }
 
         @Test
+        void deveGravarRedeELocalPeloNomeDaOpcao() {
+            RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 1L, 2L, " estadual ", "Urbana", null);
+            RegistroAnual registroConvertido = registroComOpcoes(requestDTO);
+
+            registroAnualService.salvar(requestDTO);
+
+            assertEquals("ESTADUAL", registroConvertido.getRede());
+            assertEquals("URBANA", registroConvertido.getLocalFuncionamento());
+        }
+
+        @Test
+        void deveRecusarRedeOuLocalForaDasOpcoes() {
+            RegistroAnualRequestDTO redeInvalida = new RegistroAnualRequestDTO(null, 1L, 2L, "Particular", "Rural", null);
+            registroComOpcoes(redeInvalida);
+
+            IllegalArgumentException erro = assertThrows(IllegalArgumentException.class,
+                    () -> registroAnualService.salvar(redeInvalida));
+
+            assertEquals("Rede inválida: use ESTADUAL, MUNICIPAL.", erro.getMessage());
+            verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
+
+            RegistroAnualRequestDTO localInvalido = new RegistroAnualRequestDTO(null, 1L, 2L, "Municipal", "Prédio próprio", null);
+            registroComOpcoes(localInvalido);
+
+            assertThrows(IllegalArgumentException.class, () -> registroAnualService.salvar(localInvalido));
+            verify(registroAnualRepository, never()).save(any(RegistroAnual.class));
+        }
+
+        /** Prepara os mocks do salvar; o mapper devolve a entidade com rede e local do DTO. */
+        private RegistroAnual registroComOpcoes(RegistroAnualRequestDTO dto) {
+            Escola escola = new Escola();
+            AnoReferencia anoReferencia = new AnoReferencia();
+            RegistroAnual registro = new RegistroAnual();
+            registro.setRede(dto.rede());
+            registro.setLocalFuncionamento(dto.localFuncionamento());
+
+            when(escolaRepository.findById(dto.escolaId())).thenReturn(Optional.of(escola));
+            when(anoReferenciaRepository.findById(dto.anoReferenciaId())).thenReturn(Optional.of(anoReferencia));
+            when(registroAnualMapper.converter(dto)).thenReturn(registro);
+            lenient().when(registroAnualRepository.save(registro)).thenReturn(registro);
+            return registro;
+        }
+
+        @Test
         void deveLancarExcecaoAoSalvarComEscolaInvalida() {
             RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(null, 99L, 2L, "Estadual", "Urbana", null);
 
