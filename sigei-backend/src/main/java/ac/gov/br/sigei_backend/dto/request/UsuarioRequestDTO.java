@@ -4,16 +4,19 @@ import ac.gov.br.sigei_backend.models.enums.PerfilUsuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public record UsuarioRequestDTO(
 
         Long id,
 
         @NotBlank(message = "Nome não pode ser vazio")
+        @Size(max = 255, message = "Nome deve ter no máximo 255 caracteres")
         String nome,
 
         @NotBlank(message = "E-mail não pode ser vazio")
         @Email(message = "E-mail inválido")
+        @Size(max = 255, message = "E-mail deve ter no máximo 255 caracteres")
         String email,
 
         String senha,
