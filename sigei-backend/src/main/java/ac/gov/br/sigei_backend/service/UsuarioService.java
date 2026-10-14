@@ -5,6 +5,7 @@ import ac.gov.br.sigei_backend.dto.response.UsuarioResponseDTO;
 import ac.gov.br.sigei_backend.mappers.UsuarioMapper;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.repository.UsuarioRepository;
+import ac.gov.br.sigei_backend.utils.EmailUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +27,7 @@ public class UsuarioService {
     PasswordEncoder passwordEncoder;
 
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto) {
-        if (usuarioRepository.existsByEmail(dto.email())) {
+        if (usuarioRepository.existsByEmail(EmailUtils.normalizar(dto.email()))) {
             throw new DataIntegrityViolationException("Já existe um usuário cadastrado com esse e-mail");
         }
         if (dto.senha() == null || dto.senha().isBlank()) {
@@ -66,7 +67,8 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(dto.id())
                 .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
 
-        if (!usuario.getEmail().equals(dto.email()) && usuarioRepository.existsByEmail(dto.email())) {
+        String email = EmailUtils.normalizar(dto.email());
+        if (!usuario.getEmail().equals(email) && usuarioRepository.existsByEmail(email)) {
             throw new DataIntegrityViolationException("Já existe um usuário cadastrado com esse e-mail");
         }
 

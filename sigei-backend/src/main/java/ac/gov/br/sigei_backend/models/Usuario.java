@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.models;
 
 import ac.gov.br.sigei_backend.models.enums.PerfilUsuario;
+import ac.gov.br.sigei_backend.utils.EmailUtils;
 import jakarta.persistence.*;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
@@ -57,8 +58,9 @@ public class Usuario {
         return email;
     }
 
+    // Gravado sempre normalizado; as buscas por e-mail também normalizam o valor
     public void setEmail(String email) {
-        this.email = email;
+        this.email = EmailUtils.normalizar(email);
     }
 
     public String getSenha() {

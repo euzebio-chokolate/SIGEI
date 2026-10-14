@@ -3,6 +3,7 @@ package ac.gov.br.sigei_backend.config.security;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.repository.UsuarioRepository;
 import ac.gov.br.sigei_backend.service.auth.JwtService;
+import ac.gov.br.sigei_backend.utils.EmailUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 jwtService.extrairEmail(token);
 
         Usuario usuario = usuarioRepository
-                .findByEmail(email)
+                .findByEmail(EmailUtils.normalizar(email))
                 .orElse(null);
 
         if (usuario != null &&

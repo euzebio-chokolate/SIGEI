@@ -8,6 +8,7 @@ import ac.gov.br.sigei_backend.exceptions.TokenInvalidoException;
 import ac.gov.br.sigei_backend.exceptions.UsuarioDesativadoException;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.repository.UsuarioRepository;
+import ac.gov.br.sigei_backend.utils.EmailUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class AuthService {
     public SessaoAutenticada login(LoginRequestDTO dto) {
 
         Usuario usuario = usuarioRepository
-                .findByEmail(dto.email())
+                .findByEmail(EmailUtils.normalizar(dto.email()))
                 .orElse(null);
 
         boolean senhaValida = passwordEncoder.matches(

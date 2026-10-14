@@ -3,6 +3,7 @@ package ac.gov.br.sigei_backend.config.initializer;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.models.enums.PerfilUsuario;
 import ac.gov.br.sigei_backend.repository.UsuarioRepository;
+import ac.gov.br.sigei_backend.utils.EmailUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class AdminInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (usuarioRepository.existsByEmail(adminEmail)) {
+        if (usuarioRepository.existsByEmail(EmailUtils.normalizar(adminEmail))) {
             LOGGER.info("Usuário administrador inicial já existe: {}", adminEmail);
             return;
         }

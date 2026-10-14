@@ -49,7 +49,24 @@ class FlywayMigracoesTest {
         List<String> versoes = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7"), versoes);
+        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8"), versoes);
+    }
+
+    @Test
+    void excluirUsuarioDeveApagarSeusRefreshTokens() {
+        Long usuarioId = jdbc.queryForObject("""
+                insert into usuario (nome, email, senha, perfil, ativo, alterar_senha)
+                values ('Teste', 'exclusao-refresh@sigei.ac.gov.br', 'x', 'USUARIO', true, false) returning id
+                """, Long.class);
+        jdbc.update("""
+                insert into refresh_token (usuario_id, token_hash, criado_em, expira_em, revogado)
+                values (?, repeat('a', 64), now(), now() + interval '1 day', false)
+                """, usuarioId);
+
+        jdbc.update("delete from usuario where id = ?", usuarioId);
+
+        assertEquals(0, jdbc.queryForObject(
+                "select count(*) from refresh_token where usuario_id = ?", Integer.class, usuarioId));
     }
 
     @Test
@@ -59,8 +76,8 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(6, resultado.migrationsExecuted);
-        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7"), historico(schema));
+        assertEquals(7, resultado.migrationsExecuted);
+        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7", "SQL:8"), historico(schema));
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -83,7 +100,7 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(6, resultado.migrationsExecuted);
+        assertEquals(7, resultado.migrationsExecuted);
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -168,6 +185,27 @@ class FlywayMigracoesTest {
         // Linhas já válidas (4 e 6) não entram na revisão do ajuste
         assertEquals(List.of(1L, 2L, 3L, 5L), jdbc.queryForList(
                 "select id from " + schema + ".infraestrutura_escola_aud where revtype = 1 order by id", Long.class));
+    }
+
+    @Test
+    void emailsDeUsuarioDevemSerNormalizadosSemQuebrarDuplicados() throws Exception {
+        String schema = "legado_com_emails";
+        criarSchema(schema, script("V1__esquema_inicial.sql") + """
+                insert into usuario (id, nome, email, senha, perfil, ativo, alterar_senha) values
+                    (1, 'Já normalizado', 'ana@x.com', 's', 'USUARIO', true, false),
+                    (2, 'Com maiúsculas', ' Joao@X.com ', 's', 'USUARIO', true, false),
+                    (3, 'Duplicado A', 'maria@x.com', 's', 'USUARIO', true, false),
+                    (4, 'Duplicado B', 'Maria@X.com', 's', 'USUARIO', true, false);
+                """);
+
+        flyway(schema).migrate();
+
+        assertEquals(List.of("1:ana@x.com", "2:joao@x.com", "3:maria@x.com", "4:Maria@X.com"),
+                jdbc.queryForList("select id || ':' || email from " + schema + ".usuario order by id", String.class));
+
+        // Só o usuário 2 entra na revisão do ajuste
+        assertEquals(List.of("2:joao@x.com"), jdbc.queryForList(
+                "select id || ':' || email from " + schema + ".usuario_aud where revtype = 1", String.class));
     }
 
     private Flyway flyway(String schema) {

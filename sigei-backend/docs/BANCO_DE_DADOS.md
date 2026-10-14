@@ -311,7 +311,7 @@ Entidade [Usuario.java](../src/main/java/ac/gov/br/sigei_backend/models/Usuario.
 | Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
 | --- | --- | --- | --- |
 | `nome` | `varchar(255)` | Não | Nome do usuário. |
-| `email` | `varchar(255)` | Não | E-mail de autenticação; UK. |
+| `email` | `varchar(255)` | Não | E-mail de autenticação; UK. Gravado sem espaços nas pontas e em minúsculas. |
 | `senha` | `varchar(255)` | Não | Hash BCrypt; não é senha em texto puro. |
 | `perfil` | Representação textual de enum | Não | `@Enumerated(EnumType.STRING)`: `ADMIN` ou `USUARIO`; tipo/constraint SQL final depende do Hibernate/dialeto. |
 | `ativo` | `boolean` | Não | Inicializado em `true` no Java, sem default SQL explícito. |
