@@ -112,7 +112,7 @@ public class EscolaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<EscolaResponseDTO> editar(@RequestBody EscolaRequestDTO escolaDTO){
+    public ResponseEntity<EscolaResponseDTO> editar(@Valid @RequestBody EscolaRequestDTO escolaDTO){
         EscolaResponseDTO escolaResponseDTO = escolaService.editar(escolaDTO);
         return new ResponseEntity<EscolaResponseDTO>(escolaResponseDTO, HttpStatus.OK);
     }

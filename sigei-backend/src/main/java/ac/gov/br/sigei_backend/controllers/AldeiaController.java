@@ -82,7 +82,7 @@ public class AldeiaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<AldeiaResponseDTO> editar(@RequestBody AldeiaRequestDTO aldeiaDTO){
+    public ResponseEntity<AldeiaResponseDTO> editar(@Valid @RequestBody AldeiaRequestDTO aldeiaDTO){
         AldeiaResponseDTO aldeiaResponseDTO = aldeiaService.editar(aldeiaDTO);
         return new ResponseEntity<AldeiaResponseDTO>(aldeiaResponseDTO, HttpStatus.OK);
     }

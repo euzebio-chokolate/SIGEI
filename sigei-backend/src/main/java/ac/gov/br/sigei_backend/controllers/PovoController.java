@@ -80,7 +80,7 @@ public class PovoController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<PovoResponseDTO> editar(@RequestBody PovoRequestDTO povoDTO){
+    public ResponseEntity<PovoResponseDTO> editar(@Valid @RequestBody PovoRequestDTO povoDTO){
         PovoResponseDTO povoResponseDTO = povoService.editar(povoDTO);
         return new ResponseEntity<PovoResponseDTO>(povoResponseDTO, HttpStatus.OK);
     }

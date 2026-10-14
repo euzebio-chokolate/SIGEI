@@ -85,7 +85,7 @@ public class MunicipioController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<MunicipioResponseDTO> editar(@RequestBody MunicipioRequestDTO municipioDTO){
+    public ResponseEntity<MunicipioResponseDTO> editar(@Valid @RequestBody MunicipioRequestDTO municipioDTO){
         MunicipioResponseDTO municipioResponseDTO = municipioService.editar(municipioDTO);
         return new ResponseEntity<MunicipioResponseDTO>(municipioResponseDTO, HttpStatus.OK);
     }

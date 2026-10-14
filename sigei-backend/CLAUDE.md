@@ -336,7 +336,7 @@ Não existe um formato universal de erro. Exceções sem tratamento no advice e 
 
 Ao trabalhar no projeto:
 
-- Preserve contratos usados pelo frontend: rotas, DTOs, nomes JSON e códigos HTTP. Algumas edições não têm `@Valid`; não presuma validação uniforme.
+- Preserve contratos usados pelo frontend: rotas, DTOs, nomes JSON e códigos HTTP. Cadastros e edições validam o corpo com `@Valid` (`EdicaoValidacaoHttpTest`); mantenha isso em novos endpoints. Nem todo DTO tem restrições (`EquipeEscolaRequestDTO` e `MatriculaSerieRequestDTO` não têm nenhuma), então não presuma validação uniforme.
 - Mantenha regras de negócio nos services e consultas nos repositories. Retorne DTOs e use os mappers existentes.
 - Use imports `jakarta.*` para JPA/validação. Não introduza Lombok ou outra estrutura sem necessidade: as entidades atuais têm métodos explícitos.
 - Não edite implementações MapStruct geradas em `target/`; altere as interfaces em `mappers`.

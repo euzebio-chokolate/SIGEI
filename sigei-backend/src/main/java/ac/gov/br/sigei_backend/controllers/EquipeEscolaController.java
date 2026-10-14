@@ -50,7 +50,7 @@ public class EquipeEscolaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<EquipeEscolaResponseDTO> editar(@RequestBody EquipeEscolaRequestDTO equipeDTO){
+    public ResponseEntity<EquipeEscolaResponseDTO> editar(@Valid @RequestBody EquipeEscolaRequestDTO equipeDTO){
         EquipeEscolaResponseDTO equipeEscolaResponseDTO = equipeEscolaService.editar(equipeDTO);
         return new ResponseEntity<EquipeEscolaResponseDTO>(equipeEscolaResponseDTO, HttpStatus.OK);
     }

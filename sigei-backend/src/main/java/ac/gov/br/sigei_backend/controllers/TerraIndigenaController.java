@@ -102,7 +102,7 @@ public class TerraIndigenaController {
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
 
-    public ResponseEntity<TerraIndigenaResponseDTO> editar(@RequestBody TerraIndigenaRequestDTO terraIndigenaDTO) {
+    public ResponseEntity<TerraIndigenaResponseDTO> editar(@Valid @RequestBody TerraIndigenaRequestDTO terraIndigenaDTO) {
         TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.editar(terraIndigenaDTO);
         return new ResponseEntity<>(terraIndigenaResponseDTO, HttpStatus.OK);
     }

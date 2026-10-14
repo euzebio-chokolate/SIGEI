@@ -66,7 +66,7 @@ public class MatriculaSerieController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<MatriculaSerieResponseDTO> editar(@RequestBody MatriculaSerieRequestDTO matriculaDTO){
+    public ResponseEntity<MatriculaSerieResponseDTO> editar(@Valid @RequestBody MatriculaSerieRequestDTO matriculaDTO){
         MatriculaSerieResponseDTO matriculaSerieResponseDTO = matriculaService.editar(matriculaDTO);
         return new ResponseEntity<MatriculaSerieResponseDTO>(matriculaSerieResponseDTO, HttpStatus.OK);
     }
