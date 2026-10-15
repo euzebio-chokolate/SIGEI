@@ -176,12 +176,7 @@ export class EscolasListaComponent implements OnInit {
     },
     error: erro => {
       console.error('Erro ao excluir escola:', erro);
-      const mensagem = mensagemErroExclusao(
-        erro,
-        'Não foi possível excluir a escola.',
-        // Registros anuais e lotações saem junto com a escola; o que bloqueia a exclusão são os anexos
-        'Não é possível excluir a escola: existem escolas anexas vinculadas a ela.'
-      );
+      const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a escola.');
       if (mensagem) this.toast.erro(mensagem);
       this.escolaParaExcluir = null;
       this.excluindoId = null;

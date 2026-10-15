@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ProblemDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,9 @@ public class AtualizacaoAnualController {
             description = "Cria o ano seguinte ao maior ano cadastrado e copia os últimos registros das escolas, incluindo equipe, infraestrutura e matrículas. Escolas sem registro anterior são ignoradas. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Operação realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "O novo ano já foi iniciado", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Nenhum ano de referência cadastrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "409", description = "Conflito de integridade ao criar o novo ano", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "O novo ano já foi iniciado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Nenhum ano de referência cadastrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito de integridade ao criar o novo ano", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })

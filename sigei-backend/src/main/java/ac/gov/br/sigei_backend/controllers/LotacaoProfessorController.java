@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ProblemDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +33,8 @@ public class LotacaoProfessorController {
             description = "Cadastra uma lotação. Sem professorId, é uma vaga em aberto; sem escolaId, é uma lotação no núcleo e exige municipioId. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Operação realizada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = LotacaoProfessorResponseDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos ou tipo de contrato fora das opções", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Professor, ano, escola ou município não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos ou tipo de contrato fora das opções", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Professor, ano, escola ou município não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -70,7 +71,7 @@ public class LotacaoProfessorController {
             description = "Retorna as lotações do professor em todos os anos, da mais recente à mais antiga. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = LotacaoProfessorResponseDTO.class)))),
-            @ApiResponse(responseCode = "404", description = "Professor não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Professor não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -82,7 +83,7 @@ public class LotacaoProfessorController {
     @Operation(summary = "Buscar lotação por ID", description = "Retorna a lotação. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -95,8 +96,8 @@ public class LotacaoProfessorController {
             description = "Atualiza a lotação identificada pelo campo id do corpo. O número do contrato informado substitui o gravado; vazio limpa o campo. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos ou tipo de contrato fora das opções", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Registro ou relacionamento não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos ou tipo de contrato fora das opções", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Registro ou relacionamento não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -108,7 +109,7 @@ public class LotacaoProfessorController {
     @Operation(summary = "Excluir lotação", description = "Remove a lotação. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Operação realizada com sucesso", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })

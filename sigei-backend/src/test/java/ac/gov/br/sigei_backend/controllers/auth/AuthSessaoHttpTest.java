@@ -150,7 +150,7 @@ class AuthSessaoHttpTest {
         mvc.perform(post("/auth/refresh").cookie(renovacao)).andExpect(status().isForbidden());
         mvc.perform(comCsrf(post("/auth/refresh")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string(containsString("Sessão não encontrada")));
+                .andExpect(jsonPath("$.detail", containsString("Sessão não encontrada")));
     }
 
     @Test
@@ -170,7 +170,7 @@ class AuthSessaoHttpTest {
     void emailInexistenteESenhaIncorretaDevemTerAMesmaResposta401() throws Exception {
         MockHttpServletResponse senhaIncorreta = tentarLogin(EMAIL, "senha-errada")
                 .andExpect(status().isUnauthorized())
-                .andExpect(content().string(containsString("E-mail ou senha")))
+                .andExpect(jsonPath("$.detail", containsString("E-mail ou senha")))
                 .andReturn().getResponse();
         MockHttpServletResponse emailInexistente = tentarLogin("naoexiste@sigei.com", SENHA)
                 .andExpect(status().isUnauthorized())
@@ -188,7 +188,7 @@ class AuthSessaoHttpTest {
 
         tentarLogin(EMAIL, SENHA)
                 .andExpect(status().isForbidden())
-                .andExpect(content().string(containsString("desativado")));
+                .andExpect(jsonPath("$.detail", containsString("desativado")));
         tentarLogin(EMAIL, "senha-errada")
                 .andExpect(status().isUnauthorized());
     }

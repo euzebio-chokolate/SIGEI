@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.ProblemDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class ProfessorController {
             description = "Cadastra um professor. O CPF é opcional, aceita pontuação e precisa ser válido e único. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Operação realizada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ProfessorResponseDTO.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos, CPF inválido ou já cadastrado", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos, CPF inválido ou já cadastrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -57,7 +58,7 @@ public class ProfessorController {
             description = "Retorna o professor. CPF e matrícula vêm nulos para quem não é ADMIN. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -70,8 +71,8 @@ public class ProfessorController {
             description = "Atualiza o professor identificado pelo campo id do corpo. CPF e matrícula informados substituem os gravados; vazios limpam o campo. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos, CPF inválido ou já cadastrado", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos, CPF inválido ou já cadastrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -84,7 +85,7 @@ public class ProfessorController {
             description = "Remove o professor e as suas lotações. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Operação realizada com sucesso", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })

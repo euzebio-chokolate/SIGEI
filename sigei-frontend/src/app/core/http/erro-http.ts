@@ -1,12 +1,22 @@
 import { HttpContext, HttpContextToken, HttpErrorResponse } from '@angular/common/http';
 
 /**
- * Erro de uma requisição já interpretado. O backend responde em formatos
- * diferentes conforme a exceção (ver ManipuladorGlobalException):
- * - 400 de validação (@Valid): objeto { campo: [mensagens] };
- * - 400, 401, 403, 404, 409 e 503: texto puro com a mensagem;
- * - demais falhas: corpo padrão do Spring ou nenhum corpo.
+ * Corpo de erro da API: ProblemDetail (RFC 9457), em todas as respostas de erro
+ * (ver ManipuladorGlobalException e ErroController no backend).
  */
+interface ProblemDetail {
+  status?: number;
+  /** Tipo do erro ("Conflito", "Requisição inválida"). */
+  title?: string;
+  /** Mensagem para o usuário. */
+  detail?: string;
+  /** Rota da requisição. */
+  instance?: string;
+  /** Validação: mensagens por campo. */
+  errors?: Record<string, string[]>;
+}
+
+/** Erro de uma requisição já interpretado. */
 export interface ErroHttp {
   status: number;
   /** Mensagem pronta para exibir ao usuário. */
@@ -46,40 +56,11 @@ export function ehErroGlobal(status: number): boolean {
 }
 
 /**
- * Mensagens que expõem detalhes internos (SQL, classes Java, Optional vazio)
- * e não devem chegar à tela.
+ * O corpo, se for um ProblemDetail. Respostas que não vêm da API (proxy fora do
+ * ar, página HTML de erro) e downloads em blob não têm um.
  */
-const PADRAO_MENSAGEM_TECNICA =
-  /No value present|could not execute|constraint|SQL|java\.|org\.|jakarta\.|Exception|\bat [\w$.]+\(/i;
-
-function mensagemExibivel(texto: unknown): string | null {
-  if (typeof texto !== 'string') return null;
-  const limpa = texto.trim();
-  if (!limpa || limpa.length > 300 || limpa.startsWith('<') || PADRAO_MENSAGEM_TECNICA.test(limpa)) return null;
-  return limpa;
-}
-
-function extrairCampos(corpo: unknown): Record<string, string[]> {
-  if (!corpo || typeof corpo !== 'object' || Array.isArray(corpo)) return {};
-
-  const campos: Record<string, string[]> = {};
-  for (const [campo, valor] of Object.entries(corpo)) {
-    if (!Array.isArray(valor)) return {};
-    const mensagens = valor.filter((item): item is string => typeof item === 'string');
-    if (mensagens.length) campos[campo] = mensagens;
-  }
-  return campos;
-}
-
-function mensagemDoCorpo(corpo: unknown): string | null {
-  const texto = mensagemExibivel(corpo);
-  if (texto) return texto;
-
-  // Corpo de erro padrão do Spring: { timestamp, status, error, message, path }
-  if (corpo && typeof corpo === 'object' && 'message' in corpo) {
-    return mensagemExibivel((corpo as { message: unknown }).message);
-  }
-  return null;
+function lerProblema(corpo: unknown): ProblemDetail | null {
+  return corpo && typeof corpo === 'object' && !(corpo instanceof Blob) ? (corpo as ProblemDetail) : null;
 }
 
 /**
@@ -94,12 +75,11 @@ export function mensagemErroCarregamento(erro: unknown, padrao: string, naoEncon
 
 /**
  * Mensagem para uma exclusão recusada, ou null se o interceptador já avisou.
- * O backend responde 409 quando o registro ainda tem vínculos (chave estrangeira),
- * com uma mensagem do banco que não serve para a tela: nesse caso vale `emUso`.
+ * Quando o registro ainda tem vínculos, o backend responde 409 dizendo quais
+ * ("Não é possível excluir o povo: ele tem 2 aldeias vinculadas.").
  */
-export function mensagemErroExclusao(erro: unknown, padrao: string, emUso: string): string | null {
-  const status = erro instanceof HttpErrorResponse ? erro.status : -1;
-  const falha = interpretarErro(erro, status === 409 ? emUso : padrao);
+export function mensagemErroExclusao(erro: unknown, padrao: string): string | null {
+  const falha = interpretarErro(erro, padrao);
   return falha.global ? null : falha.mensagem;
 }
 
@@ -113,17 +93,17 @@ export function interpretarErro(erro: unknown, padrao?: string): ErroHttp {
   }
 
   const status = erro.status;
-  const campos = status === 400 ? extrairCampos(erro.error) : {};
-  const primeiraDoCampo = Object.values(campos)[0]?.[0];
-  const doServidor = status === 0 || status >= 500 ? null : mensagemDoCorpo(erro.error);
+  const global = ehErroGlobal(status);
+  const problema = lerProblema(erro.error);
+  // Falhas de conexão e do servidor ficam com a mensagem genérica, mais útil ao usuário
+  const detalhe = status === 0 || status >= 500 ? null : problema?.detail?.trim() || null;
 
   const mensagem =
-    (Object.keys(campos).length > 1 ? 'Alguns campos precisam de correção.' : primeiraDoCampo) ??
-    doServidor ??
-    (ehErroGlobal(status) ? MENSAGENS_POR_STATUS[status] ?? MENSAGEM_SERVIDOR : null) ??
+    detalhe ??
+    (global ? MENSAGENS_POR_STATUS[status] ?? MENSAGEM_SERVIDOR : null) ??
     padrao ??
     MENSAGENS_POR_STATUS[status] ??
     MENSAGEM_SERVIDOR;
 
-  return { status, mensagem, campos, global: ehErroGlobal(status) };
+  return { status, mensagem, campos: problema?.errors ?? {}, global };
 }

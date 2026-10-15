@@ -144,14 +144,14 @@ class ProfessorHttpTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Outra\",\"cpf\":\"529.982.247-25\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("CPF já cadastrado para outro professor."));
+                .andExpect(jsonPath("$.detail").value("CPF já cadastrado para outro professor."));
 
         mvc.perform(post("/professor/salvar")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Outra\",\"cpf\":\"123.456.789-00\"}"))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("CPF inválido."));
+                .andExpect(jsonPath("$.detail").value("CPF inválido."));
     }
 
     @Test
@@ -161,7 +161,7 @@ class ProfessorHttpTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"anoReferenciaId\":%d,\"segmento\":\"1º AO 5º ANO\"}".formatted(ano.getId())))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Informe a escola ou, para lotação no núcleo, o município"));
+                .andExpect(jsonPath("$.detail").value("Informe a escola ou, para lotação no núcleo, o município"));
 
         mvc.perform(post("/lotacao/salvar")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
@@ -169,7 +169,7 @@ class ProfessorHttpTest {
                         .content("{\"anoReferenciaId\":%d,\"municipioId\":%d,\"tipoContrato\":\"temporario\"}"
                                 .formatted(ano.getId(), municipio.getId())))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Tipo de contrato inválido")));
+                .andExpect(jsonPath("$.detail", containsString("Tipo de contrato inválido")));
 
         mvc.perform(post("/lotacao/salvar")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))

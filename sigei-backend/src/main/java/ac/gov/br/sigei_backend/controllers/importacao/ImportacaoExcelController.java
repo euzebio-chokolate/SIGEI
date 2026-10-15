@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.media.SchemaProperty;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ProblemDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -74,7 +75,7 @@ public class ImportacaoExcelController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Planilha modelo", content = @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Tipo de importação inexistente", content = @Content(schema = @Schema()))
+            @ApiResponse(responseCode = "404", description = "Tipo de importação inexistente", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
     })
     public ResponseEntity<byte[]> baixarModelo(@Parameter(description = "infraestrutura, matriculas ou professores", required = true) @PathVariable String tipo) {
         LayoutPlanilha<?> layout = LAYOUTS.get(tipo);
@@ -103,7 +104,7 @@ public class ImportacaoExcelController {
                             schema = @Schema(type = "string", format = "binary"))))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Arquivo vazio, formato inválido, colunas obrigatórias ausentes ou ano não iniciado", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "400", description = "Arquivo vazio, formato inválido, colunas obrigatórias ausentes ou ano não iniciado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -124,7 +125,7 @@ public class ImportacaoExcelController {
                             schema = @Schema(type = "string", format = "binary"))))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Arquivo vazio, formato inválido, colunas obrigatórias ausentes, ano inválido ou falha na leitura", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "400", description = "Arquivo vazio, formato inválido, colunas obrigatórias ausentes, ano inválido ou falha na leitura", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
@@ -146,7 +147,7 @@ public class ImportacaoExcelController {
                             schema = @Schema(type = "string", format = "binary"))))
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Arquivo vazio, formato inválido, colunas obrigatórias ausentes, ano não cadastrado ou falha na leitura", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "400", description = "Arquivo vazio, formato inválido, colunas obrigatórias ausentes, ano não cadastrado ou falha na leitura", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })

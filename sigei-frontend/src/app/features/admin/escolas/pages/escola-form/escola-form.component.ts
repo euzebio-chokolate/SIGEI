@@ -426,10 +426,8 @@ export class EscolaFormComponent implements OnInit {
       error: erro => {
         console.error('Erro ao adicionar ano de referência:', erro);
         this.salvandoAno = false;
-        const falha = interpretarErro(erro, 'Não foi possível adicionar o ano.');
-        this.erroNovoAno = falha.status === 409
-          ? 'Este ano já está cadastrado. Atualize a lista e selecione-o.'
-          : falha.mensagem;
+        // Ano repetido: 409 com "O ano 2027 já está cadastrado."
+        this.erroNovoAno = interpretarErro(erro, 'Não foi possível adicionar o ano.').mensagem;
         this.cdr.markForCheck();
       }
     });

@@ -7,7 +7,7 @@ import ac.gov.br.sigei_backend.mappers.*;
 import ac.gov.br.sigei_backend.models.*;
 import ac.gov.br.sigei_backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
+import ac.gov.br.sigei_backend.utils.Vinculos;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,9 +61,10 @@ public class EscolaService {
     RegistroAnualMapper registroAnualMapper;
 
     @Transactional
-    public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) throws DataIntegrityViolationException{;
+    public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) {
         Aldeia aldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
+        vinculoSedeService.verificarAldeiaLivre(aldeia.getId(), null);
 
         Escola escola = escolaMapper.converter(escolaRequestDTO);
 
@@ -129,6 +130,7 @@ public class EscolaService {
 
         Aldeia aldeia = aldeiaRepository.findById(escolaDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
+        vinculoSedeService.verificarAldeiaLivre(aldeia.getId(), escola.getId());
 
         escolaMapper.atualizar(escolaDTO, escola);
 
@@ -144,6 +146,10 @@ public class EscolaService {
     public void excluir(Long id){
         escolaRepository.findById(id)
                         .orElseThrow(() -> new NoSuchElementException("Id de escola inválido ou não encontrado"));
+
+        Vinculos.para("Não é possível excluir a escola: ela tem")
+                .com(escolaRepository.countByEscolaSede_Id(id), "escola anexa vinculada", "escolas anexas vinculadas")
+                .verificar();
 
         // As lotações de professores na escola saem junto; os professores continuam cadastrados
         lotacaoProfessorRepository.deleteAll(lotacaoProfessorRepository.findByEscola_Id(id));

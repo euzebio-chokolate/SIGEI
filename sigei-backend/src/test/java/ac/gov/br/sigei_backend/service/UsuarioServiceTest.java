@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
+import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,7 +50,7 @@ class UsuarioServiceTest {
         void naoDeveCadastrarEmailQueSoDifereNaCaixa() {
             usuarioService.salvar(requisicao(null, "joao@sigei.ac.gov.br"));
 
-            assertThrows(DataIntegrityViolationException.class,
+            assertThrows(RegraNegocioException.class,
                     () -> usuarioService.salvar(requisicao(null, "Joao@SIGEI.ac.gov.br")));
         }
 
@@ -59,7 +59,7 @@ class UsuarioServiceTest {
             usuarioService.salvar(requisicao(null, "ana@sigei.ac.gov.br"));
             UsuarioResponseDTO outro = usuarioService.salvar(requisicao(null, "pedro@sigei.ac.gov.br"));
 
-            assertThrows(DataIntegrityViolationException.class,
+            assertThrows(RegraNegocioException.class,
                     () -> usuarioService.editar(requisicao(outro.id(), "ANA@sigei.ac.gov.br")));
         }
 

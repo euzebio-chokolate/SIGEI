@@ -14,6 +14,7 @@ public interface EquipeEscolaRepository extends JpaRepository<EquipeEscola, Long
     Optional<EquipeEscola> findTopByRegistroAnualEscolaOrderByRegistroAnualAnoReferenciaAnoDesc(Escola escola);
     Optional<EquipeEscola> findByRegistroAnual_Id(Long registroAnualId);
     boolean existsByRegistroAnual_Id(Long registroAnualId);
+    boolean existsByRegistroAnual_IdAndIdNot(Long registroAnualId, Long id);
     Optional<EquipeEscola> findTopByRegistroAnual_EscolaOrderByRegistroAnual_AnoReferencia_AnoDesc(Escola escola);
     List<EquipeEscola> findByRegistroAnual_AnoReferencia_Ano(Integer ano);
 }

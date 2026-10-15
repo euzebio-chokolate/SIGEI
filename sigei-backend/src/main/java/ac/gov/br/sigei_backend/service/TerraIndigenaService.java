@@ -11,6 +11,7 @@ import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
 import ac.gov.br.sigei_backend.mappers.TerraIndigenaMapper;
+import ac.gov.br.sigei_backend.utils.Vinculos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -126,6 +127,11 @@ public class TerraIndigenaService {
     public void excluir(Long id){
         terraIndigenaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Id de terra indígena inválido ou não encontrado"));
+
+        Vinculos.para("Não é possível excluir a terra indígena: ela tem")
+                .com(aldeiaRepository.countByTerraIndigena_Id(id), "aldeia vinculada", "aldeias vinculadas")
+                .verificar();
+
         terraIndigenaRepository.deleteById(id);
     }
 }

@@ -4,6 +4,7 @@ import ac.gov.br.sigei_backend.dto.request.PovoRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.PovoResponseDTO;
 import ac.gov.br.sigei_backend.mappers.PovoMapper;
 import ac.gov.br.sigei_backend.models.Povo;
+import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.PovoRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,6 +28,9 @@ public class PovoServiceTest {
 
     @Mock
     PovoMapper povoMapper;
+
+    @Mock
+    AldeiaRepository aldeiaRepository;
 
     @InjectMocks
     PovoService povoService;

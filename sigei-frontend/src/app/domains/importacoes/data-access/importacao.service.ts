@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
 
+import { lerErroDoDownload } from '@core/http/download';
+
 import type {
   ImportacaoEscolasResultado,
   ImportacaoMatriculasResultado,
@@ -32,7 +34,7 @@ export class ImportacaoService {
 
   /** Planilha modelo (.xlsx) com o cabeçalho e uma aba de instruções. */
   baixarModelo(tipo: TipoImportacao): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/modelos/${tipo}`, { responseType: 'blob' });
+    return this.http.get(`${this.apiUrl}/modelos/${tipo}`, { responseType: 'blob' }).pipe(lerErroDoDownload());
   }
 
   /**

@@ -26,4 +26,8 @@ public interface LotacaoProfessorRepository extends JpaRepository<LotacaoProfess
     List<LotacaoProfessor> findByEscola_Id(Long escolaId);
 
     boolean existsByAnoReferencia_Ano(Integer ano);
+
+    long countByAnoReferencia_Id(Long anoReferenciaId);
+
+    long countByMunicipio_Id(Long municipioId);
 }

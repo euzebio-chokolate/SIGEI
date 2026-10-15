@@ -16,6 +16,7 @@ public interface InfraestruturaEscolaRepository extends JpaRepository<Infraestru
     Optional<InfraestruturaEscola> findTopByRegistroAnualEscolaOrderByRegistroAnualAnoReferenciaAnoDesc(Escola escola);
     Optional<InfraestruturaEscola> findByRegistroAnual_Id(Long registroAnualId);
     boolean existsByRegistroAnual_Id(Long registroAnualId);
+    boolean existsByRegistroAnual_IdAndIdNot(Long registroAnualId, Long id);
     Optional<InfraestruturaEscola> findTopByRegistroAnual_EscolaOrderByRegistroAnual_AnoReferencia_AnoDesc(Escola escola);
     List<InfraestruturaEscola> findByRegistroAnual_AnoReferencia_Ano(Integer ano);
 

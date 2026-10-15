@@ -1,5 +1,6 @@
 package ac.gov.br.sigei_backend.service;
 
+import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.models.enums.TipoUnidade;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
@@ -12,7 +13,8 @@ import java.util.NoSuchElementException;
  * Aplica o tipo de unidade e o vínculo com a escola-sede, que é representado
  * apenas por {@code Escola.escolaSede}. Regras: um ANEXO precisa de uma sede do
  * tipo SEDE, diferente de si mesmo; uma SEDE não tem sede; uma escola com anexos
- * vinculados não pode passar a ser ANEXO.
+ * vinculados não pode passar a ser ANEXO. Também confere que a aldeia não é de
+ * outra escola.
  */
 @Service
 public class VinculoSedeService {
@@ -32,6 +34,19 @@ public class VinculoSedeService {
 
         escola.setTipoUnidade(tipo.name());
         escola.setEscolaSede(escolaSede);
+    }
+
+    /**
+     * Cada aldeia tem no máximo uma escola (coluna {@code escola.aldeia_id} única).
+     * @param escolaId a escola em edição, ou null num cadastro novo
+     */
+    public void verificarAldeiaLivre(Long aldeiaId, Long escolaId) {
+        boolean ocupada = escolaId == null
+                ? escolaRepository.existsByAldeia_Id(aldeiaId)
+                : escolaRepository.existsByAldeia_IdAndIdNot(aldeiaId, escolaId);
+        if (ocupada) {
+            throw new RegraNegocioException("A aldeia selecionada já está vinculada a outra escola.");
+        }
     }
 
     private TipoUnidade converterTipo(String tipoUnidade) {

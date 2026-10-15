@@ -3,8 +3,8 @@ import { AbstractControl, FormGroup } from '@angular/forms';
 import { ErroHttp, interpretarErro } from './erro-http';
 
 /**
- * Associa a um campo uma mensagem de regra de negócio que o backend devolve
- * como texto (ex.: 409 "Já existe um usuário cadastrado com esse e-mail").
+ * Associa a um campo uma mensagem de regra de negócio, que o backend devolve no
+ * `detail` sem indicar o campo (ex.: 409 "Já existe um usuário cadastrado com esse e-mail").
  */
 export interface RegraErroCampo {
   campo: string;

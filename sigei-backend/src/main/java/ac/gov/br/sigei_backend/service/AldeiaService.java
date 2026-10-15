@@ -5,7 +5,9 @@ import ac.gov.br.sigei_backend.dto.response.AldeiaResponseDTO;
 import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Povo;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
+import ac.gov.br.sigei_backend.exceptions.RegistroEmUsoException;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
+import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.PovoRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
 import ac.gov.br.sigei_backend.mappers.AldeiaMapper;
@@ -30,6 +32,9 @@ public class AldeiaService {
 
     @Autowired
     PovoRepository povoRepository;
+
+    @Autowired
+    EscolaRepository escolaRepository;
 
     public AldeiaResponseDTO salvar(AldeiaRequestDTO dto) throws DataIntegrityViolationException {
 
@@ -91,6 +96,10 @@ public class AldeiaService {
     public void excluir(Long id) {
         aldeiaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Id de aldeia inválido ou não encontrado"));
+
+        if (escolaRepository.existsByAldeia_Id(id)) {
+            throw new RegistroEmUsoException("Não é possível excluir a aldeia: ela tem uma escola vinculada.");
+        }
 
         aldeiaRepository.deleteById(id);
     }

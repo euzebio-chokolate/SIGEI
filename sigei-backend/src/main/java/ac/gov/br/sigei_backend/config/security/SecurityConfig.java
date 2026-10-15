@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -42,7 +41,10 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .httpBasic(basic -> basic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+                // sendError encaminha a /error, onde o ErroController responde com ProblemDetail;
+                // o 403 padrão (AccessDeniedHandlerImpl) já faz o mesmo
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(
+                        (request, response, erro) -> response.sendError(HttpStatus.UNAUTHORIZED.value())))
                 .authorizeHttpRequests(auth -> auth
                         // Encaminhamento interno para /error: a requisição original já foi
                         // autorizada, mas o JwtFilter não roda nele. Sem esta liberação, um 404

@@ -137,12 +137,7 @@ export class UsuariosListaComponent implements OnInit {
       },
       error: erro => {
         console.error('Erro ao excluir usuário:', erro);
-        const mensagem = mensagemErroExclusao(
-          erro,
-          'Não foi possível excluir o usuário.',
-          // As sessões (refresh_token) do usuário impedem a exclusão no backend
-          'Não é possível excluir este usuário porque ele já acessou o sistema. Desative-o em vez de excluir.'
-        );
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir o usuário.');
         if (mensagem) this.toast.erro(mensagem);
         this.usuarioParaExcluir = null;
         this.excluindoId = null;

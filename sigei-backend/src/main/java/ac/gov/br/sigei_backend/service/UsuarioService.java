@@ -2,12 +2,12 @@ package ac.gov.br.sigei_backend.service;
 
 import ac.gov.br.sigei_backend.dto.request.UsuarioRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.UsuarioResponseDTO;
+import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 import ac.gov.br.sigei_backend.mappers.UsuarioMapper;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.repository.UsuarioRepository;
 import ac.gov.br.sigei_backend.utils.EmailUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +28,7 @@ public class UsuarioService {
 
     public UsuarioResponseDTO salvar(UsuarioRequestDTO dto) {
         if (usuarioRepository.existsByEmail(EmailUtils.normalizar(dto.email()))) {
-            throw new DataIntegrityViolationException("Já existe um usuário cadastrado com esse e-mail");
+            throw new RegraNegocioException("Já existe um usuário cadastrado com esse e-mail");
         }
         if (dto.senha() == null || dto.senha().isBlank()) {
             throw new IllegalArgumentException("Senha não pode ser vazia");
@@ -69,7 +69,7 @@ public class UsuarioService {
 
         String email = EmailUtils.normalizar(dto.email());
         if (!usuario.getEmail().equals(email) && usuarioRepository.existsByEmail(email)) {
-            throw new DataIntegrityViolationException("Já existe um usuário cadastrado com esse e-mail");
+            throw new RegraNegocioException("Já existe um usuário cadastrado com esse e-mail");
         }
 
         usuarioMapper.atualizar(dto, usuario);

@@ -7,6 +7,7 @@ import ac.gov.br.sigei_backend.models.Aldeia;
 import ac.gov.br.sigei_backend.models.Povo;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
+import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.PovoRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ public class AldeiaServiceTest {
 
     @Mock
     PovoRepository povoRepository;
+
+    @Mock
+    EscolaRepository escolaRepository;
 
     @Mock
     AldeiaMapper aldeiaMapper;

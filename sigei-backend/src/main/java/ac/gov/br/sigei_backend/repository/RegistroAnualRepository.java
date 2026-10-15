@@ -15,6 +15,8 @@ import java.util.Optional;
 public interface RegistroAnualRepository extends JpaRepository<RegistroAnual, Long> {
     Optional<RegistroAnual> findById(Long id);
     boolean existsByEscolaAndAnoReferencia(Escola escola, AnoReferencia anoReferencia);
+    boolean existsByEscolaAndAnoReferenciaAndIdNot(Escola escola, AnoReferencia anoReferencia, Long id);
+    long countByAnoReferencia_Id(Long anoReferenciaId);
     Optional<RegistroAnual> findTopByEscolaOrderByAnoReferencia_AnoDesc(Escola escola);
     Optional<RegistroAnual> findByEscolaAndAnoReferencia(Escola escola, AnoReferencia anoReferencia);
     Optional<RegistroAnual> findByEscolaAndAnoReferencia_Ano(Escola escola, Integer ano);

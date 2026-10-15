@@ -4,6 +4,6 @@ package ac.gov.br.sigei_backend.exceptions;
 public class UsuarioDesativadoException extends RuntimeException {
 
     public UsuarioDesativadoException() {
-        super("Usuário desativado");
+        super("Usuário desativado. Procure o administrador do sistema.");
     }
 }

@@ -4,6 +4,7 @@ import ac.gov.br.sigei_backend.dto.request.TerraIndigenaRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.TerraIndigenaResponseDTO;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.models.TerraIndigena;
+import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
 import ac.gov.br.sigei_backend.mappers.TerraIndigenaMapper;
@@ -29,6 +30,9 @@ public class TerraIndigenaServiceTest {
 
     @Mock
     MunicipioRepository municipioRepository;
+
+    @Mock
+    AldeiaRepository aldeiaRepository;
 
     @Mock
     TerraIndigenaMapper terraIndigenaMapper;

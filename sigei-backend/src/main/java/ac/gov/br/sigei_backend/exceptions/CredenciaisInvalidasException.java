@@ -4,6 +4,6 @@ package ac.gov.br.sigei_backend.exceptions;
 public class CredenciaisInvalidasException extends RuntimeException {
 
     public CredenciaisInvalidasException() {
-        super("E-mail ou senha inválidos");
+        super("E-mail ou senha inválidos.");
     }
 }

@@ -396,7 +396,7 @@ export class PovosListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao excluir povo:', erro);
-        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir o povo.', 'Não é possível excluir o povo: existem aldeias vinculadas a ele.');
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir o povo.');
         if (mensagem) this.toast.erro(mensagem);
         this.excluindoId = null;
         this.povoParaExcluir = null;

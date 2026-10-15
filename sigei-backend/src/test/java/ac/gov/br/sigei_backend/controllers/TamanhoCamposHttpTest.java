@@ -87,7 +87,7 @@ class TamanhoCamposHttpTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(corpo.replace("LONGO", LONGO)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$." + campo).isArray());
+                .andExpect(jsonPath("$.errors." + campo).isArray());
     }
 
     @Test

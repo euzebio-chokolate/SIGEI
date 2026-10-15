@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -36,9 +37,9 @@ public class RelatorioController {
             @ApiResponse(responseCode = "200", description = "Arquivo do relatório", content = {
                     @Content(mediaType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
                     @Content(mediaType = "application/pdf")}),
-            @ApiResponse(responseCode = "400", description = "Formato inválido", content = @Content(schema = @Schema())),
+            @ApiResponse(responseCode = "400", description = "Formato inválido", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
-            @ApiResponse(responseCode = "404", description = "Relatório, ano ou município inexistente", content = @Content(schema = @Schema()))
+            @ApiResponse(responseCode = "404", description = "Relatório, ano ou município inexistente", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
     })
     public ResponseEntity<byte[]> gerar(
             @Parameter(description = "painel, escolas, matriculas ou professores", required = true) @PathVariable String tipo,

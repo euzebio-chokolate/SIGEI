@@ -374,7 +374,7 @@ export class AldeiasListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao excluir aldeia:', erro);
-        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a aldeia.', 'Não é possível excluir a aldeia: existem escolas vinculadas a ela.');
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a aldeia.');
         if (mensagem) this.toast.erro(mensagem);
         this.excluindoId = null;
         this.aldeiaParaExcluir = null;

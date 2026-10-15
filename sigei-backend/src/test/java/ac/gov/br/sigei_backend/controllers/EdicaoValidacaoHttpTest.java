@@ -69,6 +69,6 @@ class EdicaoValidacaoHttpTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(corpo))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$." + campo).isArray());
+                .andExpect(jsonPath("$.errors." + campo).isArray());
     }
 }

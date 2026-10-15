@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,8 +32,8 @@ public class DashboardController {
             description = "Retorna os indicadores do ano selecionado e as séries históricas de escolas e matrículas. Sem o parâmetro ano, utiliza o maior ano de referência cadastrado. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Ano informado em formato inválido", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Ano de referência não encontrado ou nenhum ano cadastrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Ano informado em formato inválido", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Ano de referência não encontrado ou nenhum ano cadastrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })

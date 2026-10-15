@@ -5,6 +5,7 @@ import ac.gov.br.sigei_backend.dto.request.AlterarSenhaRequestDTO;
 import ac.gov.br.sigei_backend.dto.request.LoginRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.LoginResponseDTO;
 import ac.gov.br.sigei_backend.exceptions.TokenInvalidoException;
+import ac.gov.br.sigei_backend.exceptions.handler.Problemas;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.service.auth.AuthService;
 import ac.gov.br.sigei_backend.service.auth.SessaoAutenticada;
@@ -17,8 +18,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.ProblemDetail;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -40,9 +43,9 @@ public class AuthController {
                     + "(sigei_acesso e sigei_renovacao), inacessíveis a scripts da página; os tokens não seguem no corpo da resposta.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso; cookies de sessão gravados"),
-            @ApiResponse(responseCode = "400", description = "Dados de autenticação inválidos", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos (mesma resposta para e-mail inexistente e senha incorreta)", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "403", description = "Senha correta, mas usuário desativado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class)))
+            @ApiResponse(responseCode = "400", description = "Dados de autenticação inválidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos (mesma resposta para e-mail inexistente e senha incorreta)", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "403", description = "Senha correta, mas usuário desativado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
     })
     public ResponseEntity<LoginResponseDTO> login(
             @Valid @RequestBody LoginRequestDTO dto,
@@ -61,7 +64,7 @@ public class AuthController {
                     + "Exige o cabeçalho X-XSRF-TOKEN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso; cookies de sessão renovados"),
-            @ApiResponse(responseCode = "401", description = "Cookie ausente, token inválido, expirado, já utilizado ou de usuário desativado; os cookies de sessão são removidos", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "401", description = "Cookie ausente, token inválido, expirado, já utilizado ou de usuário desativado; os cookies de sessão são removidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "403", description = "Token CSRF ausente ou inválido", content = @Content)
     })
     public ResponseEntity<?> renovar(
@@ -73,7 +76,9 @@ public class AuthController {
             return ResponseEntity.ok(sessao.usuario());
         } catch (TokenInvalidoException erro) {
             cookiesSessao.limpar(response);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(erro.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+                    .body(Problemas.criar(HttpStatus.UNAUTHORIZED, erro.getMessage()));
         }
     }
 
@@ -98,8 +103,8 @@ public class AuthController {
             description = "Altera a senha do usuário autenticado após validar a senha atual e a confirmação da nova senha. Encerra todas as sessões do usuário e remove os cookies de sessão. Requer autenticação e o cabeçalho X-XSRF-TOKEN.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Operação realizada com sucesso", content = @Content),
-            @ApiResponse(responseCode = "400", description = "Senha atual inválida, confirmação divergente ou nova senha igual à atual", content = @Content(schema = @Schema())),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "text/plain", schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "400", description = "Senha atual inválida, confirmação divergente ou nova senha igual à atual", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content)
     })
     public ResponseEntity<Void> alterarSenha(

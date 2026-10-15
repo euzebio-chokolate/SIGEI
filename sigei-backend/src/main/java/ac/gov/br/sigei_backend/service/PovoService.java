@@ -4,7 +4,9 @@ import ac.gov.br.sigei_backend.dto.request.PovoRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.PovoResponseDTO;
 import ac.gov.br.sigei_backend.mappers.PovoMapper;
 import ac.gov.br.sigei_backend.models.Povo;
+import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.PovoRepository;
+import ac.gov.br.sigei_backend.utils.Vinculos;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,9 @@ public class PovoService {
 
     @Autowired
     PovoMapper povoMapper;
+
+    @Autowired
+    AldeiaRepository aldeiaRepository;
 
     public PovoResponseDTO salvar(PovoRequestDTO povoDTO) throws DataIntegrityViolationException {
         Povo povo = povoMapper.converter(povoDTO);
@@ -60,6 +65,10 @@ public class PovoService {
     public void excluir(Long id) {
         povoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Id de povo inválido ou não encontrado"));
+
+        Vinculos.para("Não é possível excluir o povo: ele tem")
+                .com(aldeiaRepository.countByPovo_Id(id), "aldeia vinculada", "aldeias vinculadas")
+                .verificar();
 
         povoRepository.deleteById(id);
     }

@@ -6,6 +6,8 @@ import ac.gov.br.sigei_backend.dto.response.MunicipioResponseDTO;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.repository.AldeiaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
+import ac.gov.br.sigei_backend.repository.LotacaoProfessorRepository;
+import ac.gov.br.sigei_backend.utils.Vinculos;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
 import ac.gov.br.sigei_backend.mappers.MunicipioMapper;
 import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
@@ -30,6 +32,9 @@ public class MunicipioService {
 
     @Autowired
     EscolaRepository escolaRepository;
+
+    @Autowired
+    LotacaoProfessorRepository lotacaoProfessorRepository;
 
     @Autowired
     MunicipioMapper municipioMapper;
@@ -104,6 +109,14 @@ public class MunicipioService {
     public void excluir(Long id){
         Municipio municipio = municipioRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Id de municipio inválido ou não encontrado"));
+
+        Vinculos.para("Não é possível excluir o município: ele tem")
+                .com(terraIndigenaRepository.countByMunicipio_Id(id),
+                        "terra indígena vinculada", "terras indígenas vinculadas")
+                .com(lotacaoProfessorRepository.countByMunicipio_Id(id),
+                        "lotação de professor", "lotações de professores")
+                .verificar();
+
         municipioRepository.deleteById(id);
     }
 

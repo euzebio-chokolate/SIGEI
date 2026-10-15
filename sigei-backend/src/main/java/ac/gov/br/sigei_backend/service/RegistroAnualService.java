@@ -2,6 +2,7 @@ package ac.gov.br.sigei_backend.service;
 
 import ac.gov.br.sigei_backend.dto.request.RegistroAnualRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.RegistroAnualResponseDTO;
+import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 import ac.gov.br.sigei_backend.mappers.RegistroAnualMapper;
 import ac.gov.br.sigei_backend.models.AnoReferencia;
 import ac.gov.br.sigei_backend.models.Escola;
@@ -11,7 +12,6 @@ import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import ac.gov.br.sigei_backend.utils.OpcoesRegistroAnual;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +21,8 @@ import java.util.NoSuchElementException;
 @Service
 @Transactional(readOnly = true)
 public class RegistroAnualService {
+
+    private static final String REGISTRO_DUPLICADO = "Já existe um registro anual para essa escola neste ano.";
 
     @Autowired
     EscolaRepository escolaRepository;
@@ -35,7 +37,7 @@ public class RegistroAnualService {
     RegistroAnualMapper registroAnualMapper;
 
     @Transactional
-    public RegistroAnualResponseDTO salvar(RegistroAnualRequestDTO dto) throws DataIntegrityViolationException {
+    public RegistroAnualResponseDTO salvar(RegistroAnualRequestDTO dto) {
 
         Escola escola = escolaRepository.findById(dto.escolaId())
                 .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
@@ -44,7 +46,7 @@ public class RegistroAnualService {
                 .orElseThrow(() -> new NoSuchElementException("Ano de referência não encontrado"));
 
         if (registroAnualRepository.existsByEscolaAndAnoReferencia(escola, anoReferencia)) {
-            throw new DataIntegrityViolationException("Já existe um registro anual para essa escola neste ano.");
+            throw new RegraNegocioException(REGISTRO_DUPLICADO);
         }
 
         RegistroAnual registro = registroAnualMapper.converter(dto);
@@ -116,6 +118,10 @@ public class RegistroAnualService {
 
         AnoReferencia anoReferencia = anoReferenciaRepository.findById(dto.anoReferenciaId())
                 .orElseThrow(() -> new NoSuchElementException("Ano de referência não encontrado"));
+
+        if (registroAnualRepository.existsByEscolaAndAnoReferenciaAndIdNot(escola, anoReferencia, registro.getId())) {
+            throw new RegraNegocioException(REGISTRO_DUPLICADO);
+        }
 
         registroAnualMapper.atualizar(dto, registro);
         aplicarOpcoes(registro);

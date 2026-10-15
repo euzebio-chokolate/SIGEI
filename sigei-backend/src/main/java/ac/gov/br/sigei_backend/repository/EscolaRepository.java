@@ -15,6 +15,9 @@ public interface EscolaRepository extends JpaRepository<Escola, Long> {
     Optional<Escola> findFirstByCodigoAndAldeia_NomeIgnoreCase(String codigo, String nomeAldeia);
     boolean existsByCodigoAndNomeIgnoreCase(String codigo, String nome);
     boolean existsByEscolaSede_Id(Long escolaSedeId);
+    long countByEscolaSede_Id(Long escolaSedeId);
+    boolean existsByAldeia_Id(Long aldeiaId);
+    boolean existsByAldeia_IdAndIdNot(Long aldeiaId, Long id);
     long countByAldeia_TerraIndigena_Municipio_Id(Long municipioId);
     long countByAldeia_TerraIndigena_Id(Long terraIndigenaId);
 }

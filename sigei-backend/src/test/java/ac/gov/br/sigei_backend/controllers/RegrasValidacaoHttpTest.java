@@ -94,7 +94,7 @@ class RegrasValidacaoHttpTest {
                                 .replace("DEPOIS_DO_PROXIMO", String.valueOf(ANO_ATUAL + 2))
                                 .replace("PROXIMO", String.valueOf(ANO_ATUAL + 1))))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$." + campo).isArray());
+                .andExpect(jsonPath("$.errors." + campo).isArray());
     }
 
     @Test

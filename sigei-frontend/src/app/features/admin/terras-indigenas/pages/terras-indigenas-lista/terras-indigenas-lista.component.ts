@@ -373,7 +373,7 @@ export class TerrasIndigenasListaComponent implements OnInit {
       },
       error: (erro) => {
         console.error('Erro ao excluir terra indígena:', erro);
-        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a terra indígena.', 'Não é possível excluir a terra indígena: existem aldeias vinculadas a ela.');
+        const mensagem = mensagemErroExclusao(erro, 'Não foi possível excluir a terra indígena.');
         if (mensagem) this.toast.erro(mensagem);
         this.excluindoId = null;
         this.terraParaExcluir = null;

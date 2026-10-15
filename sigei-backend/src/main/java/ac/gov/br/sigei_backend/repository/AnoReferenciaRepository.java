@@ -9,5 +9,7 @@ public interface AnoReferenciaRepository extends JpaRepository<AnoReferencia, Lo
 
     Optional<AnoReferencia> findByAno(Integer ano);
     Optional<AnoReferencia> findTopByOrderByAnoDesc();
+    boolean existsByAno(Integer ano);
+    boolean existsByAnoAndIdNot(Integer ano, Long id);
 
 }

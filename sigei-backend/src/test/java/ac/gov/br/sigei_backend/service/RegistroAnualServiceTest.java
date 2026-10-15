@@ -15,7 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.dao.DataIntegrityViolationException;
+import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -162,7 +162,7 @@ class RegistroAnualServiceTest {
             when(anoReferenciaRepository.findById(2L)).thenReturn(Optional.of(anoReferencia));
             when(registroAnualRepository.existsByEscolaAndAnoReferencia(escola, anoReferencia)).thenReturn(true);
 
-            DataIntegrityViolationException erro = assertThrows(DataIntegrityViolationException.class, () -> registroAnualService.salvar(requestDTO));
+            RegraNegocioException erro = assertThrows(RegraNegocioException.class, () -> registroAnualService.salvar(requestDTO));
 
             assertEquals("Já existe um registro anual para essa escola neste ano.", erro.getMessage());
             verify(registroAnualRepository, never()).save(any(RegistroAnual.class));

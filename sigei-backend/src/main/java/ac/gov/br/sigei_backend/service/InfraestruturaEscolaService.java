@@ -3,6 +3,7 @@ package ac.gov.br.sigei_backend.service;
 import ac.gov.br.sigei_backend.service.armazenamento.CloudinaryService;
 import ac.gov.br.sigei_backend.dto.request.InfraestruturaEscolaRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.InfraestruturaEscolaResponseDTO;
+import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 import ac.gov.br.sigei_backend.mappers.InfraestruturaEscolaMapper;
 import ac.gov.br.sigei_backend.models.InfraestruturaEscola;
 import ac.gov.br.sigei_backend.models.RegistroAnual;
@@ -21,6 +22,9 @@ import java.util.NoSuchElementException;
 @Service
 public class InfraestruturaEscolaService {
 
+    private static final String INFRAESTRUTURA_DUPLICADA =
+            "Este registro anual já tem uma infraestrutura cadastrada; edite a existente.";
+
     @Autowired
     CloudinaryService cloudinaryService;
 
@@ -37,6 +41,10 @@ public class InfraestruturaEscolaService {
 
         RegistroAnual registroAnual = registroAnualRepository.findById(infraDTO.registroAnualId())
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
+
+        if (infraestruturaRepository.existsByRegistroAnual_Id(registroAnual.getId())) {
+            throw new RegraNegocioException(INFRAESTRUTURA_DUPLICADA);
+        }
 
         InfraestruturaEscola infraestrutura = infraestruturaMapper.converter(infraDTO);
         OpcoesInfraestrutura.validar(infraestrutura);
@@ -76,6 +84,10 @@ public class InfraestruturaEscolaService {
 
         RegistroAnual registroAnual = registroAnualRepository.findById(infraDTO.registroAnualId())
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
+
+        if (infraestruturaRepository.existsByRegistroAnual_IdAndIdNot(registroAnual.getId(), infraestrutura.getId())) {
+            throw new RegraNegocioException(INFRAESTRUTURA_DUPLICADA);
+        }
 
         infraestruturaMapper.atualizar(infraDTO, infraestrutura);
         OpcoesInfraestrutura.validar(infraestrutura);

@@ -3,7 +3,9 @@ package ac.gov.br.sigei_backend.service;
 import ac.gov.br.sigei_backend.dto.request.MunicipioRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.MunicipioResponseDTO;
 import ac.gov.br.sigei_backend.models.Municipio;
+import ac.gov.br.sigei_backend.repository.LotacaoProfessorRepository;
 import ac.gov.br.sigei_backend.repository.MunicipioRepository;
+import ac.gov.br.sigei_backend.repository.TerraIndigenaRepository;
 import ac.gov.br.sigei_backend.mappers.MunicipioMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +26,12 @@ public class MunicipioServiceTest {
 
     @Mock
     MunicipioRepository municipioRepository;
+
+    @Mock
+    TerraIndigenaRepository terraIndigenaRepository;
+
+    @Mock
+    LotacaoProfessorRepository lotacaoProfessorRepository;
 
     @Mock
     MunicipioMapper municipioMapper;

@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
+import { interpretarErro } from '@core/http/erro-http';
 
 @Component({
   selector: 'app-login',
@@ -54,19 +55,8 @@ export class LoginComponent {
       error: erro => {
         console.error('Erro no login:', erro);
         this.carregando = false;
-
-        if (erro?.status === 401) {
-          this.erroMensagem = 'E-mail ou senha inválidos.';
-        } else if (erro?.status === 403) {
-          // A API só informa a desativação a quem acertou a senha
-          this.erroMensagem = 'Usuário desativado. Procure o administrador do sistema.';
-        } else if (erro?.status === 0) {
-          this.erroMensagem = 'Não foi possível conectar ao servidor.';
-        } else if (erro?.status >= 500) {
-          this.erroMensagem = 'O servidor está com problemas. Tente novamente em instantes.';
-        } else {
-          this.erroMensagem = 'Não foi possível realizar o login.';
-        }
+        // A API explica a recusa: credenciais inválidas (401) ou, só a quem acertou a senha, usuário desativado (403)
+        this.erroMensagem = interpretarErro(erro, 'Não foi possível realizar o login.').mensagem;
 
         this.cdr.markForCheck();
       }

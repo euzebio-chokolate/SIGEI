@@ -319,20 +319,42 @@ Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organiz
 
 ## Erros e cuidados ao modificar
 
-`exceptions/handler/ManipuladorGlobalException.java` define os tratamentos atuais:
+Toda resposta de erro é um **ProblemDetail** (RFC 9457, `application/problem+json`): `status`, `title` (tipo do erro, fixo por status: "Conflito", "Requisição inválida"…), `detail` (mensagem para o usuário, em português), `instance` (rota) e, na validação, `errors` com as mensagens por campo. `exceptions/handler/Problemas` monta os corpos; não devolva texto puro nem mapas avulsos em respostas de erro.
 
-| Exceção | HTTP / corpo |
+`exceptions/handler/ManipuladorGlobalException.java` estende `ResponseEntityExceptionHandler`, que trata as exceções do Spring MVC (JSON mal formado, parâmetro ausente ou de tipo errado, método não aceito, rota inexistente, upload acima do limite); `handleExceptionInternal` troca os textos em inglês por mensagens em português:
+
+- Valor do JSON que não converte para o tipo do campo (texto num número, opção fora de um enum, nulo num booleano) responde `400` como a validação, com o campo em `errors` ("Valor inválido para o campo perfil. Use um destes: ADMIN, USUARIO."). JSON mal formado, sem campo identificável, só tem o `detail`.
+- Tipo errado na URL (`/povo/abc`): "Valor inválido para id.".
+- Upload acima de `spring.servlet.multipart.max-file-size`: `413` com o limite na mensagem. `server.tomcat.max-swallow-size=100MB` faz o Tomcat descartar o corpo recusado em vez de fechar a conexão; com o padrão (2 MB), o cliente não recebia resposta. `FormatoErroHttpTest` cobre esses casos.
+
+Os tratamentos próprios:
+
+| Exceção | HTTP / `detail` |
 | --- | --- |
-| `MethodArgumentNotValidException` | `400`, mapa de campos para listas de mensagens. |
-| `IllegalArgumentException` | `400`, mensagem textual. |
-| `NoSuchElementException` | `404`, mensagem textual. |
-| `DataIntegrityViolationException` | `409`, mensagem textual. |
-| `ArmazenamentoImagemNaoConfiguradoException` | `503`, mensagem textual. |
-| `TokenInvalidoException` | `401`, mensagem textual; em `/auth/refresh` é tratada no próprio controller, que também remove os cookies. |
-| `CredenciaisInvalidasException` | `401`, "E-mail ou senha inválidos" (login). |
-| `UsuarioDesativadoException` | `403`, "Usuário desativado" (login com a senha correta). |
+| `MethodArgumentNotValidException` | `400`; `errors` com campo → mensagens, e `detail` com a mensagem do campo (ou "Alguns campos precisam de correção." se houver mais de um). |
+| `IllegalArgumentException` | `400`, mensagem da exceção. |
+| `NoSuchElementException` | `404`, mensagem da exceção. |
+| `RegraNegocioException` (e a subclasse `RegistroEmUsoException`) | `409`, mensagem do service. |
+| `DataIntegrityViolationException` | `409`, mensagem genérica; a mensagem do banco (SQL, constraints) não vai para a resposta, e o log registra só o nome da constraint. |
+| `ArmazenamentoImagemNaoConfiguradoException` | `503`, mensagem da exceção. |
+| `TokenInvalidoException` | `401`, mensagem da exceção; em `/auth/refresh` é tratada no próprio controller, que também remove os cookies. |
+| `CredenciaisInvalidasException` | `401`, "E-mail ou senha inválidos." (login). |
+| `UsuarioDesativadoException` | `403`, "Usuário desativado. Procure o administrador do sistema." (login com a senha correta). |
+| Qualquer outra `Exception` | `500`, mensagem genérica; a exceção vai só para o log. |
 
-Não existe um formato universal de erro. Exceções sem tratamento no advice e rotas inexistentes são encaminhadas para `/error`, liberado em `SecurityConfig` (`DispatcherType.ERROR`): o `JwtFilter` não roda nesse encaminhamento, e sem a liberação o usuário autenticado recebia `401`, que o frontend trata como sessão expirada e encerra a sessão. A autorização continua valendo na requisição original (rota protegida sem token: `401`), e o corpo padrão do Spring não traz mensagem nem stack trace. `ErroEncaminhadoHttpTest` cobre isso com servidor real, porque o MockMvc não faz o encaminhamento. Trate os erros esperados com exceções próprias e `@ExceptionHandler`, e não com `RuntimeException`.
+As mensagens de `IllegalArgumentException`, `NoSuchElementException` e das exceções próprias chegam à tela; escreva-as para o usuário, sem detalhes técnicos nem dados sensíveis.
+
+Conflitos previsíveis são conferidos nos services antes de gravar, para que o `409` explique o motivo, e o frontend mostra essa mensagem sem deduzir nada:
+
+- Exclusões com dependentes lançam `RegistroEmUsoException`, montada por `utils/Vinculos` ("Não é possível excluir o povo: ele tem 2 aldeias vinculadas."): povo e terra indígena com aldeias; município com terras indígenas ou lotações; aldeia com escola; escola com anexos; ano com registros anuais ou lotações. O que sai em cascata (registros da escola, lotações, sessões do usuário) não bloqueia.
+- Duplicidades lançam `RegraNegocioException`: e-mail de usuário, ano já cadastrado, registro anual da mesma escola e ano, aldeia já usada por outra escola (`VinculoSedeService.verificarAldeiaLivre`) e segunda equipe ou infraestrutura do mesmo registro anual.
+- `ConflitoHttpTest` cobre esses casos. Ao criar uma chave estrangeira ou uma restrição única, acrescente a verificação no service; a resposta genérica da `DataIntegrityViolationException` fica só para o que não dá para antecipar, como gravações simultâneas.
+
+Erros gerados fora dos controllers são encaminhados para `/error`: `401` sem autenticação (o entry point de `SecurityConfig` usa `sendError`), `403` sem permissão ou com token CSRF inválido (`AccessDeniedHandler` padrão) e exceções nos filtros. `controllers/ErroController` substitui o `BasicErrorController` do Spring Boot e responde nesse encaminhamento com o mesmo ProblemDetail, com a mensagem padrão do status (no `403` de CSRF, uma mensagem própria), sem detalhes da exceção. `/error` é liberado em `SecurityConfig` (`DispatcherType.ERROR`): o `JwtFilter` não roda no encaminhamento, e sem a liberação o usuário autenticado recebia `401`, que o frontend trata como sessão expirada e encerra a sessão. A autorização continua valendo na requisição original (rota protegida sem token: `401`). `ErroEncaminhadoHttpTest` e `FormatoErroHttpTest` cobrem isso com servidor real, porque o MockMvc não faz o encaminhamento. Trate os erros esperados com exceções próprias e `@ExceptionHandler`, e não com `RuntimeException`.
+
+No Swagger, as respostas de erro dos controllers são documentadas como `application/problem+json` com o schema `ProblemDetail`.
+
+No frontend, `core/http/erro-http.ts` (`interpretarErro`) lê `detail` e `errors`; falhas de conexão e `5xx` ficam com mensagens genéricas. Downloads com `responseType: 'blob'` recebem também o erro como Blob e usam `lerErroDoDownload` (`core/http/download.ts`) para recuperar o ProblemDetail.
 
 Ao trabalhar no projeto:
 
