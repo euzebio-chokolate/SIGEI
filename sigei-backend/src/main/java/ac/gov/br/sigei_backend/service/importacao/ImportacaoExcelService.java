@@ -13,7 +13,10 @@ import ac.gov.br.sigei_backend.utils.OpcoesInfraestrutura;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -38,6 +41,8 @@ import java.util.function.Function;
  */
 @Service
 public class ImportacaoExcelService {
+
+    private static final Logger log = LoggerFactory.getLogger(ImportacaoExcelService.class);
 
     private static final int ANO_MINIMO = 2000;
 
@@ -603,7 +608,7 @@ public class ImportacaoExcelService {
             );
         }
 
-        linha.seExistir(Coluna.ANO_CONSTRUCAO, linha::inteiro, infraestrutura::setAnoConstrucao);
+        linha.seExistir(Coluna.ANO_CONSTRUCAO, linha::ano, infraestrutura::setAnoConstrucao);
         linha.seExistir(Coluna.NUM_SALAS, linha::inteiro, infraestrutura::setNumSalas);
 
         linha.seExistir(
@@ -765,7 +770,16 @@ public class ImportacaoExcelService {
         return valor;
     }
 
+    /**
+     * Mensagem do erro da linha para o resultado, que aparece na tela. Erros de
+     * banco trazem SQL e nomes de constraints, por isso não são repassados.
+     */
     private String obterMensagemErro(Exception exception) {
+        if (exception instanceof DataAccessException) {
+            log.warn("Falha ao gravar uma linha da planilha de escolas", exception);
+            return "Não foi possível gravar a linha porque ela conflita com dados já cadastrados.";
+        }
+
         if (exception.getMessage() == null ||
                 exception.getMessage().isBlank()) {
 
@@ -809,6 +823,10 @@ public class ImportacaoExcelService {
 
         Integer inteiro(Coluna coluna) {
             return ExcelUtils.lerInteiro(row, planilha.coluna(coluna));
+        }
+
+        Integer ano(Coluna coluna) {
+            return ExcelUtils.lerAno(row, planilha.coluna(coluna));
         }
 
         Boolean booleano(Coluna coluna) {

@@ -482,7 +482,6 @@ export class EscolaFormComponent implements OnInit {
     this.escolaService.listar().subscribe({
       next: (dados) => {
         this.escolasCadastradas = dados ?? [];
-        this.atualizarAldeiasDisponiveis();
         this.possuiAnexos = this.escolaId !== null
           && this.escolasCadastradas.some(escola => escola.escolaSede?.id === this.escolaId);
         this.form.controls.tipoUnidade.updateValueAndValidity();
@@ -506,17 +505,9 @@ export class EscolaFormComponent implements OnInit {
     });
   }
 
+  // Uma aldeia pode ter mais de uma escola, então todas ficam disponíveis
   private atualizarAldeiasDisponiveis(): void {
-    const aldeiasVinculadas = new Set(
-      this.escolasCadastradas
-        .filter(escola => escola.id !== this.escolaId)
-        .map(escola => escola.aldeia?.id)
-        .filter((id): id is number => id !== undefined && id !== null)
-    );
-
-    this.aldeias = this.aldeiasCadastradas
-      .filter(aldeia => !aldeiasVinculadas.has(aldeia.id))
-      .sort((a, b) => a.nome.localeCompare(b.nome));
+    this.aldeias = [...this.aldeiasCadastradas].sort((a, b) => a.nome.localeCompare(b.nome));
   }
 
   aoAlterarTipoUnidade(): void {

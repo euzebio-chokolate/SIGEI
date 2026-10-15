@@ -49,7 +49,7 @@ class FlywayMigracoesTest {
         List<String> versoes = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8"), versoes);
+        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"), versoes);
     }
 
     @Test
@@ -76,8 +76,8 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(7, resultado.migrationsExecuted);
-        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7", "SQL:8"), historico(schema));
+        assertEquals(8, resultado.migrationsExecuted);
+        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7", "SQL:8", "SQL:9"), historico(schema));
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -100,7 +100,7 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(7, resultado.migrationsExecuted);
+        assertEquals(8, resultado.migrationsExecuted);
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -206,6 +206,28 @@ class FlywayMigracoesTest {
         // Só o usuário 2 entra na revisão do ajuste
         assertEquals(List.of("2:joao@x.com"), jdbc.queryForList(
                 "select id || ':' || email from " + schema + ".usuario_aud where revtype = 1", String.class));
+    }
+
+    @Test
+    void aldeiaDevePoderTerMaisDeUmaEscolaDepoisDaMigracao() throws Exception {
+        String schema = "legado_aldeia_unica";
+        criarSchema(schema, script("V1__esquema_inicial.sql") + """
+                insert into municipio (id, nome) values (1, 'Feijó');
+                insert into terra_indigena (id, nome, municipio_id) values (1, 'Katukina/Kaxinawa', 1);
+                insert into povo (id, nome) values (1, 'Huni Kui');
+                insert into aldeia (id, nome, terra_indigena_id, povo_id) values (1, 'Belo Monte', 1, 1);
+                insert into escola (id, codigo, nome, tipo_unidade, aldeia_id) values (1, '12031909', 'Primeira', 'SEDE', 1);
+                """);
+
+        flyway(schema).migrate();
+
+        jdbc.update("insert into " + schema + ".escola (id, codigo, nome, tipo_unidade, aldeia_id) "
+                + "values (2, '12004065', 'Segunda', 'SEDE', 1)");
+        assertEquals(2, jdbc.queryForObject(
+                "select count(*) from " + schema + ".escola where aldeia_id = 1", Integer.class));
+        assertEquals(1, jdbc.queryForObject(
+                "select count(*) from pg_indexes where schemaname = ? and indexname = 'idx_escola_aldeia'",
+                Integer.class, schema));
     }
 
     private Flyway flyway(String schema) {

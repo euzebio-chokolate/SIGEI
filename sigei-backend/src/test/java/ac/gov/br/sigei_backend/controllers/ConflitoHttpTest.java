@@ -98,12 +98,13 @@ class ConflitoHttpTest {
     }
 
     @Test
-    void excluirAldeiaComEscolaExplicaOVinculo() throws Exception {
+    void excluirAldeiaComEscolasExplicaOVinculo() throws Exception {
+        escola("SEDE", null, aldeia);
         escola("SEDE", null, aldeia);
 
         excluir("/aldeia/excluir/" + aldeia.getId())
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.detail").value("Não é possível excluir a aldeia: ela tem uma escola vinculada."));
+                .andExpect(jsonPath("$.detail").value("Não é possível excluir a aldeia: ela tem 2 escolas vinculadas."));
     }
 
     @Test
@@ -145,13 +146,14 @@ class ConflitoHttpTest {
     }
 
     @Test
-    void escolaNaAldeiaDeOutraRespondeMensagemPropria() throws Exception {
+    void aldeiaPodeTerMaisDeUmaEscola() throws Exception {
+        // Como na aldeia Belo Monte (Feijó), que tem duas escolas-sede
         escola("SEDE", null, aldeia);
 
         enviar(post("/escola/salvar"),
                 "{\"codigo\":\"COD-NOVA\",\"nome\":\"Escola nova\",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":" + aldeia.getId() + "}")
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.detail").value("A aldeia selecionada já está vinculada a outra escola."));
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.aldeia.id").value(aldeia.getId()));
     }
 
     @Test

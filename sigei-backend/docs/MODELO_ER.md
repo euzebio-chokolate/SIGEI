@@ -35,7 +35,7 @@ erDiagram
         varchar nome
         varchar tipo_unidade
         bigint escola_sede_id FK
-        bigint aldeia_id FK,UK
+        bigint aldeia_id FK
     }
     infraestrutura_escola {
         bigint id PK "NOT NULL"
@@ -145,7 +145,7 @@ erDiagram
     registro_anual o|..o| equipe_escola : registro_anual_id
     ano_referencia o|..o{ equipe_escola : ano_referencia_id
     escola o|..o{ escola : escola_sede_id
-    aldeia o|..o| escola : aldeia_id
+    aldeia o|..o{ escola : aldeia_id
     registro_anual o|..o| infraestrutura_escola : registro_anual_id
     professor o|..o{ lotacao_professor : professor_id
     ano_referencia ||..o{ lotacao_professor : ano_referencia_id

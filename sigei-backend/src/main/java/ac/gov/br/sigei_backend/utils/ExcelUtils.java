@@ -12,12 +12,16 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Leitura de células. Coluna negativa (coluna opcional ausente no layout) é lida
  * como célula vazia.
  */
 public final class ExcelUtils {
+
+    private static final Pattern PRIMEIRO_ANO = Pattern.compile("(?<!\\d)\\d{4}(?!\\d)");
 
     private ExcelUtils() {
     }
@@ -109,6 +113,34 @@ public final class ExcelUtils {
                             ": " +
                             valor
             );
+        }
+    }
+
+    /**
+     * Ano de quatro dígitos. Com mais de um ano na célula, como "2014 e 2025"
+     * (construção e reforma), vale o primeiro.
+     */
+    public static Integer lerAno(
+            Row linha,
+            int numeroColuna
+    ) {
+        String valor = lerTexto(linha, numeroColuna);
+
+        if (valor == null) {
+            return null;
+        }
+
+        try {
+            return lerInteiro(linha, numeroColuna);
+
+        } catch (IllegalArgumentException e) {
+            Matcher ano = PRIMEIRO_ANO.matcher(valor);
+
+            if (ano.find()) {
+                return Integer.valueOf(ano.group());
+            }
+
+            throw e;
         }
     }
 

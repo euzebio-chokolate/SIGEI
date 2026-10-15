@@ -64,7 +64,6 @@ public class EscolaService {
     public EscolaResponseDTO salvar(EscolaRequestDTO escolaRequestDTO) {
         Aldeia aldeia = aldeiaRepository.findById(escolaRequestDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
-        vinculoSedeService.verificarAldeiaLivre(aldeia.getId(), null);
 
         Escola escola = escolaMapper.converter(escolaRequestDTO);
 
@@ -130,7 +129,6 @@ public class EscolaService {
 
         Aldeia aldeia = aldeiaRepository.findById(escolaDTO.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
-        vinculoSedeService.verificarAldeiaLivre(aldeia.getId(), escola.getId());
 
         escolaMapper.atualizar(escolaDTO, escola);
 

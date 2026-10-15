@@ -1,6 +1,5 @@
 package ac.gov.br.sigei_backend.service;
 
-import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.models.enums.TipoUnidade;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
@@ -34,19 +33,6 @@ public class VinculoSedeService {
 
         escola.setTipoUnidade(tipo.name());
         escola.setEscolaSede(escolaSede);
-    }
-
-    /**
-     * Cada aldeia tem no máximo uma escola (coluna {@code escola.aldeia_id} única).
-     * @param escolaId a escola em edição, ou null num cadastro novo
-     */
-    public void verificarAldeiaLivre(Long aldeiaId, Long escolaId) {
-        boolean ocupada = escolaId == null
-                ? escolaRepository.existsByAldeia_Id(aldeiaId)
-                : escolaRepository.existsByAldeia_IdAndIdNot(aldeiaId, escolaId);
-        if (ocupada) {
-            throw new RegraNegocioException("A aldeia selecionada já está vinculada a outra escola.");
-        }
     }
 
     private TipoUnidade converterTipo(String tipoUnidade) {

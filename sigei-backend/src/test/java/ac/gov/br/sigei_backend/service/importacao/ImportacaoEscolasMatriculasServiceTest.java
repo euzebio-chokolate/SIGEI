@@ -124,6 +124,28 @@ class ImportacaoEscolasMatriculasServiceTest {
         }
 
         @Test
+        void deveImportarDuasEscolasDaMesmaAldeiaEOPrimeiroAnoDeConstrucao() throws IOException {
+            // Como na planilha de 2025: duas sedes na aldeia Belo Monte (Feijó) e
+            // células com construção e reforma ("2014 e 2025")
+            ImportacaoResultadoDTO resultado = importarEscolas(planilha("Dados", 0,
+                    new String[]{"MUNICÍPIO", "CÓDIGO", "NOME DA ESCOLA", "TERRA INDÍGENA", "ALDEIA", "POVO", "ANO CONSTRUÇÃO"},
+                    new String[]{"FEIJÓ", "12031909", "ESC IND NIA IBU ISAKA", "KATUKINA/KAXINAWA", "BELO MONTE", "HUNI KUI", "-"},
+                    new String[]{"FEIJÓ", "12004065", "ESC IND YUBE TUE BENA KENEYA", "KATUKINA/KAXINAWA", "BELO MONTE", "HUNI KUI", "2014 e 2025"}
+            ), ANO);
+
+            assertTrue(resultado.erros().isEmpty(), resultado.erros().toString());
+            assertEquals(2, resultado.escolasCriadas());
+            assertEquals(1, resultado.aldeiasCriadas());
+
+            Escola primeira = escolas.findAllByCodigo("12031909").getFirst();
+            Escola segunda = escolas.findAllByCodigo("12004065").getFirst();
+            assertEquals(primeira.getAldeia().getId(), segunda.getAldeia().getId());
+
+            RegistroAnual registro = registros.findByEscolaAndAnoReferencia_Ano(segunda, ANO).orElseThrow();
+            assertEquals(2014, infraestruturas.findByRegistroAnual_Id(registro.getId()).orElseThrow().getAnoConstrucao());
+        }
+
+        @Test
         void colunaObrigatoriaAusenteDeveImpedirAImportacao() {
             IllegalArgumentException erro = assertThrows(IllegalArgumentException.class, () -> importarEscolas(
                     planilha("Dados", 0, new String[]{"MUNICÍPIO", "NOME DA ESCOLA", "ALDEIA", "POVO", "TERRA INDÍGENA"}),

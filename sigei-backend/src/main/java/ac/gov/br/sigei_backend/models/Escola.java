@@ -24,7 +24,8 @@ public class Escola {
     @JoinColumn(name = "escola_sede_id")
     private Escola escolaSede;
 
-    @OneToOne
+    // Uma aldeia pode ter mais de uma escola (em Belo Monte, Feijó, há duas sedes)
+    @ManyToOne
     @JoinColumn(
             name = "aldeia_id",
             nullable = true

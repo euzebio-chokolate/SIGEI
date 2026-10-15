@@ -100,7 +100,6 @@ public class CadastroEscolaService {
     private void vincularRelacionamentos(Escola escola, EscolaRequestDTO dto) {
         Aldeia aldeia = aldeiaRepository.findById(dto.aldeiaId())
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
-        vinculoSedeService.verificarAldeiaLivre(aldeia.getId(), escola.getId());
 
         escola.setAldeia(aldeia);
         vinculoSedeService.vincular(escola, dto.tipoUnidade(), dto.escolaSedeId());

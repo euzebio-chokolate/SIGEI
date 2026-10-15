@@ -24,7 +24,7 @@ erDiagram
     municipio o|..o{ terra_indigena : municipio_id
     terra_indigena ||..o{ aldeia : terra_indigena_id
     povo ||..o{ aldeia : povo_id
-    aldeia o|..o| escola : aldeia_id
+    aldeia o|..o{ escola : aldeia_id
     escola o|..o{ escola : escola_sede_id
     escola o|..o{ registro_anual : escola_id
     ano_referencia o|..o{ registro_anual : ano_referencia_id
@@ -55,7 +55,7 @@ erDiagram
     }
     escola {
         bigint id PK
-        bigint aldeia_id FK,UK
+        bigint aldeia_id FK
         bigint escola_sede_id FK
     }
     ano_referencia {
@@ -107,7 +107,7 @@ erDiagram
     usuario ||--o{ refresh_token : "possui"
 ```
 
-As UKs de `aldeia_id` e `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. A unicidade composta de `registro_anual` está detalhada adiante. `usuario` não possui FK para as tabelas do domínio; apenas `refresh_token` referencia `usuario`. A lotação de professores pertence ao ano (`ano_referencia`), e não ao `registro_anual` da escola, porque pode não ter escola (núcleo) nem professor (vaga em aberto).
+As UKs de `registro_anual_id` representam a unicidade esperada dos mapeamentos `@OneToOne`. A unicidade composta de `registro_anual` está detalhada adiante. `usuario` não possui FK para as tabelas do domínio; apenas `refresh_token` referencia `usuario`. A lotação de professores pertence ao ano (`ano_referencia`), e não ao `registro_anual` da escola, porque pode não ter escola (núcleo) nem professor (vaga em aberto).
 
 ## Dicionário de dados
 
@@ -160,9 +160,9 @@ Entidade [Escola.java](../src/main/java/ac/gov/br/sigei_backend/models/Escola.ja
 | `nome` | `varchar(255)` | Sim | Nome da escola. |
 | `tipo_unidade` | `varchar(255)` | Sim | `SEDE` ou `ANEXO`; o campo é `String`, não enum persistido. Os cadastros pela API validam e gravam o valor em maiúsculas. |
 | `escola_sede_id` | `bigint` | Sim | FK → `escola.id`; autorrelacionamento muitos-para-um. É a única representação do vínculo entre anexo e escola-sede. |
-| `aldeia_id` | `bigint` | Sim | FK → `aldeia.id`; associação `@OneToOne`, com unicidade esperada. |
+| `aldeia_id` | `bigint` | Sim | FK → `aldeia.id`; muitos-para-um (`@ManyToOne`), com índice `idx_escola_aldeia`. |
 
-O modelo atual permite no máximo uma escola por aldeia por causa de `@OneToOne`; não documentar esse vínculo como muitos-para-um sem alterar o mapeamento. `Escola.registros` é a coleção inversa de `registro_anual.escola_id`.
+Uma aldeia pode ter mais de uma escola, como Belo Monte (Feijó), com duas escolas-sede; a coluna única foi removida pela migração V9. `Escola.registros` é a coleção inversa de `registro_anual.escola_id`.
 
 As regras do vínculo com a sede ficam em [VinculoSedeService.java](../src/main/java/ac/gov/br/sigei_backend/service/VinculoSedeService.java) e valem para os cadastros simples e completo: um `ANEXO` exige uma sede do tipo `SEDE`, diferente de si mesmo; uma `SEDE` não tem sede; e uma escola com anexos vinculados não pode passar a `ANEXO`. Com isso, o vínculo tem um único nível e não forma ciclos. Essas regras não são constraints do banco. A importação de Excel grava o vínculo diretamente: o anexo recebe a escola `SEDE` de mesmo código.
 
