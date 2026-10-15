@@ -3,13 +3,16 @@ package ac.gov.br.sigei_backend.service;
 import ac.gov.br.sigei_backend.config.security.AcessoDadosSensiveis;
 import ac.gov.br.sigei_backend.dto.request.LotacaoProfessorRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.LotacaoProfessorResponseDTO;
+import ac.gov.br.sigei_backend.dto.response.PaginaDTO;
 import ac.gov.br.sigei_backend.mappers.LotacaoProfessorMapper;
 import ac.gov.br.sigei_backend.models.Escola;
 import ac.gov.br.sigei_backend.models.LotacaoProfessor;
 import ac.gov.br.sigei_backend.models.Municipio;
 import ac.gov.br.sigei_backend.repository.*;
 import ac.gov.br.sigei_backend.utils.OpcoesProfessor;
+import ac.gov.br.sigei_backend.utils.Paginacao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,8 +62,11 @@ public class LotacaoProfessorService {
         return converter(lotacaoRepository.save(lotacao));
     }
 
-    public List<LotacaoProfessorResponseDTO> buscarTudo() {
-        return converterTodas(lotacaoRepository.findAll());
+    /** Lotações de todos os anos, paginadas; a ordem é a de {@link #ORDEM}, do ano mais recente ao mais antigo. */
+    public PaginaDTO<LotacaoProfessorResponseDTO> buscar(Integer ano, Long professorId, Long escolaId, Long municipioId,
+                                                         int pagina, int tamanho) {
+        Pageable pageable = Paginacao.pagina(pagina, tamanho);
+        return PaginaDTO.de(lotacaoRepository.buscar(ano, professorId, escolaId, municipioId, pageable), this::converter);
     }
 
     public List<LotacaoProfessorResponseDTO> buscarPorAno(Integer ano) {

@@ -1,8 +1,10 @@
 package ac.gov.br.sigei_backend.controllers;
 
 import ac.gov.br.sigei_backend.dto.request.RegistroAnualRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.PaginaDTO;
 import ac.gov.br.sigei_backend.dto.response.RegistroAnualResponseDTO;
 import ac.gov.br.sigei_backend.service.RegistroAnualService;
+import ac.gov.br.sigei_backend.utils.Paginacao;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -44,15 +46,22 @@ public class RegistroAnualController {
 
     @GetMapping("")
     @Operation(summary = "Buscar registros anuais",
-            description = "Retorna todos os registros de registros anuais. Retorna uma lista vazia quando não há cadastros. Requer perfil ADMIN ou USUARIO.")
+            description = "Retorna, paginados, os registros anuais de todos os anos, do mais recente ao mais antigo e, no ano, pelo nome da escola. "
+                    + "Os filtros são opcionais. Para um ano inteiro sem paginação, use /buscarPorAno. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Paginação inválida", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<List<RegistroAnualResponseDTO>> buscarTudo(){
-        List<RegistroAnualResponseDTO> registroDTOS = registroAnualService.buscarTudo();
-        return new ResponseEntity<List<RegistroAnualResponseDTO>>(registroDTOS, HttpStatus.OK);
+    public ResponseEntity<PaginaDTO<RegistroAnualResponseDTO>> buscar(
+            @Parameter(description = "Ano civil", example = "2025") @RequestParam(required = false) Integer ano,
+            @Parameter(description = "ID da escola", example = "1") @RequestParam(required = false) Long escolaId,
+            @Parameter(description = "ID do município da escola", example = "1") @RequestParam(required = false) Long municipioId,
+            @Parameter(description = "Página, a partir de zero", example = "0") @RequestParam(defaultValue = "0") int pagina,
+            @Parameter(description = "Registros por página (máximo " + Paginacao.TAMANHO_MAXIMO + ")", example = "20") @RequestParam(defaultValue = "" + Paginacao.TAMANHO_PADRAO) int tamanho
+    ) {
+        return ResponseEntity.ok(registroAnualService.buscar(ano, escolaId, municipioId, pagina, tamanho));
     }
 
     @GetMapping("/buscarPorEscolaEAno")

@@ -11,10 +11,6 @@ export class RegistroAnualService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/registroAnual`;
 
-  listar(): Observable<RegistroAnualResponse[]> {
-    return this.http.get<RegistroAnualResponse[]>(this.apiUrl);
-  }
-
   salvar(dados: RegistroAnualRequest): Observable<RegistroAnualResponse> {
     return this.http.post<RegistroAnualResponse>(`${this.apiUrl}/salvar`, dados);
   }

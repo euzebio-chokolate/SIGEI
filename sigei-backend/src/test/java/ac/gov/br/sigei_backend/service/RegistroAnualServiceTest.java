@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.service;
 
 import ac.gov.br.sigei_backend.dto.request.RegistroAnualRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.PaginaDTO;
 import ac.gov.br.sigei_backend.dto.response.RegistroAnualResponseDTO;
 import ac.gov.br.sigei_backend.mappers.RegistroAnualMapper;
 import ac.gov.br.sigei_backend.models.AnoReferencia;
@@ -16,6 +17,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -173,22 +177,30 @@ class RegistroAnualServiceTest {
     class Buscar {
 
         @Test
-        void deveBuscarTodosOsRegistrosAnuais() {
-            List<RegistroAnual> lista = new ArrayList<>();
-            lista.add(new RegistroAnual());
-            lista.add(new RegistroAnual());
+        void deveBuscarRegistrosAnuaisPaginados() {
+            List<RegistroAnual> lista = List.of(new RegistroAnual(), new RegistroAnual());
+            Pageable pageable = PageRequest.of(1, 2);
 
             RegistroAnualResponseDTO responseMock = mock(RegistroAnualResponseDTO.class);
 
-            when(registroAnualRepository.findAll()).thenReturn(lista);
-            lenient().when(registroAnualMapper.converter(any(RegistroAnual.class))).thenReturn(responseMock);
+            when(registroAnualRepository.buscar(2025, null, 3L, pageable)).thenReturn(new PageImpl<>(lista, pageable, 5));
+            when(registroAnualMapper.converter(any(RegistroAnual.class))).thenReturn(responseMock);
 
-            List<RegistroAnualResponseDTO> resultado = registroAnualService.buscarTudo();
+            PaginaDTO<RegistroAnualResponseDTO> resultado = registroAnualService.buscar(2025, null, 3L, 1, 2);
 
-            assertNotNull(resultado);
-            assertEquals(2, resultado.size());
-            verify(registroAnualRepository, times(1)).findAll();
-            verify(registroAnualMapper, times(2)).converter(any(RegistroAnual.class));
+            assertEquals(List.of(responseMock, responseMock), resultado.itens());
+            assertEquals(1, resultado.pagina());
+            assertEquals(2, resultado.tamanho());
+            assertEquals(5, resultado.totalItens());
+            assertEquals(3, resultado.totalPaginas());
+        }
+
+        @Test
+        void deveRecusarPaginacaoInvalida() {
+            assertThrows(IllegalArgumentException.class, () -> registroAnualService.buscar(null, null, null, -1, 20));
+            assertThrows(IllegalArgumentException.class, () -> registroAnualService.buscar(null, null, null, 0, 0));
+            assertThrows(IllegalArgumentException.class, () -> registroAnualService.buscar(null, null, null, 0, 101));
+            verifyNoInteractions(registroAnualRepository);
         }
 
         @Test

@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.service;
 
 import ac.gov.br.sigei_backend.dto.request.RegistroAnualRequestDTO;
+import ac.gov.br.sigei_backend.dto.response.PaginaDTO;
 import ac.gov.br.sigei_backend.dto.response.RegistroAnualResponseDTO;
 import ac.gov.br.sigei_backend.exceptions.RegraNegocioException;
 import ac.gov.br.sigei_backend.mappers.RegistroAnualMapper;
@@ -11,7 +12,9 @@ import ac.gov.br.sigei_backend.repository.AnoReferenciaRepository;
 import ac.gov.br.sigei_backend.repository.EscolaRepository;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
 import ac.gov.br.sigei_backend.utils.OpcoesRegistroAnual;
+import ac.gov.br.sigei_backend.utils.Paginacao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,11 +63,10 @@ public class RegistroAnualService {
         return registroAnualMapper.converter(registroSalvo);
     }
 
-    public List<RegistroAnualResponseDTO> buscarTudo() {
-        return registroAnualRepository.findAll()
-                .stream()
-                .map(registroAnualMapper::converter)
-                .toList();
+    /** Registros de todos os anos, paginados: do ano mais recente ao mais antigo e, no ano, pelo nome da escola. */
+    public PaginaDTO<RegistroAnualResponseDTO> buscar(Integer ano, Long escolaId, Long municipioId, int pagina, int tamanho) {
+        Pageable pageable = Paginacao.pagina(pagina, tamanho);
+        return PaginaDTO.de(registroAnualRepository.buscar(ano, escolaId, municipioId, pageable), registroAnualMapper::converter);
     }
 
     public RegistroAnualResponseDTO buscarPorEscolaEAno(Long escolaId, Integer ano) {

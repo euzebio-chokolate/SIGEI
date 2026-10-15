@@ -80,14 +80,14 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/terra` | CRUD base, `GET /{id}` e `GET /estatisticas`. |
 | `/escola` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `GET /{id}/historico` (trilha de auditoria, só `ADMIN`), `POST /salvarCompleto` e `PUT /editarCompleto` (multipart: parte `dados` em JSON e parte opcional `foto`). |
 | `/anos` | CRUD base. |
-| `/registroAnual` | CRUD base, `GET /buscarPorAno?ano=2025` e `GET /buscarPorEscolaEAno?escolaId=1&ano=2025`. |
+| `/registroAnual` | CRUD base, com o `GET` da raiz paginado (`PaginaDTO`; filtros opcionais `ano`, `escolaId` e `municipioId`), `GET /buscarPorAno?ano=2025`, `GET /buscarPorEscolaEAno?escolaId=1&ano=2025` e `GET /historico?escolaId=1`. |
 | `/infraestrutura` | CRUD base, `GET /buscarPorAno?ano=2025`, `GET /maisRecentes` (uma por escola, do registro mais recente que tenha infraestrutura; usada pelo mapa público) e `POST /{id}/foto` (multipart, campo `foto`). |
 | `/equipe` | Apenas `POST /salvar` e `PUT /editar`. |
 | `/matriculaNivel` | CRUD base. |
 | `/matriculaSerie` | CRUD base. |
 | `/usuario` | CRUD base e `GET /{id}`. |
 | `/professor` | CRUD base e `GET /{id}`. Exclusão retorna `204` e remove as lotações. CPF e matrícula só aparecem para `ADMIN`. |
-| `/lotacao` | CRUD base, `GET /{id}`, `GET /buscarPorAno?ano=2026` e `GET /buscarPorProfessor?professorId=1`. Exclusão retorna `204`. Número do contrato só aparece para `ADMIN`. |
+| `/lotacao` | CRUD base, com o `GET` da raiz paginado (`PaginaDTO`; filtros opcionais `ano`, `professorId`, `escolaId` e `municipioId`), `GET /{id}`, `GET /buscarPorAno?ano=2026` e `GET /buscarPorProfessor?professorId=1`. Exclusão retorna `204`. Número do contrato só aparece para `ADMIN`. |
 | `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /alterar-senha`. |
 | `/dashboard` | `GET`, com parâmetro opcional `ano`. Inclui o bloco `professores` (lotados, lotações, vagas, núcleo e lotações por tipo de contrato). |
 | `/auditoria` | `GET`, só `ADMIN`: alterações de todas as entidades auditadas, paginadas (`pagina` a partir de 0, `tamanho` até 100) e filtráveis por `entidade`, `operacao`, `usuarioId`, `sistema`, `de` e `ate` (datas do Acre). Responde `PaginaAuditoriaDTO`. |
@@ -95,7 +95,9 @@ Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `P
 | `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo` e parâmetro opcional `ano` (sem ele, o mais recente); `GET /layouts` (colunas aceitas por tipo) e `GET /modelos/{tipo}` (planilha modelo `.xlsx`). |
 | `/relatorios` | `GET /{tipo}` (`painel`, `escolas`, `matriculas`, `professores`), com `formato` (`xlsx` padrão ou `pdf`), `ano` e `municipioId` opcionais; responde o arquivo como anexo. |
 
-Os DTOs são a fonte dos nomes de campos, tipos e validações. Não suponha paginação, um envelope único de resposta ou CRUD completo em todos os controllers. Criações normalmente retornam `201`; consultas e edições, `200`. Exclusões variam entre `200` e `204`; preserve o contrato de cada controller.
+Os DTOs são a fonte dos nomes de campos, tipos e validações. Não suponha paginação, um envelope único de resposta ou CRUD completo em todos os controllers.
+
+Paginação: só as listagens de todos os anos, que crescem com o histórico (`GET /registroAnual` e `GET /lotacao`), e a auditoria. As duas primeiras recebem `pagina` (a partir de 0) e `tamanho` (padrão 20, até 100; `utils/Paginacao`, `400` fora disso), ordenam na consulta do repository e respondem `PaginaDTO` (`itens`, `pagina`, `tamanho`, `totalItens`, `totalPaginas`). As demais listas devolvem tudo, porque têm o tamanho do cadastro ou de um ano (cerca de 250 escolas e 600 lotações por ano), e o frontend pagina e filtra na tela; as telas usam as rotas por ano (`/buscarPorAno`), não as paginadas. Ao criar uma listagem que cresça a cada ano, pagine-a da mesma forma. Criações normalmente retornam `201`; consultas e edições, `200`. Exclusões variam entre `200` e `204`; preserve o contrato de cada controller.
 
 Swagger: `/swagger-ui.html` e `/swagger-ui/**`; OpenAPI: `/v3/api-docs`. As anotações dos controllers documentam operações, mas o comportamento efetivo depende também dos services e de `SecurityConfig`.
 
@@ -254,7 +256,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `SIGEI_ANO_PLANILHAS_ESCOLAS`, `SIGEI_ANO_PLANILHA_PROFESSORES` | Anos de referência das planilhas da carga inicial; padrões 2025 e 2026. |
 | `PORT` | Porta local da API; padrão 8080. No Compose, controla a porta publicada, com a API interna em 8080. |
 
-`spring.jpa.open-in-view=false`: mantenha o acesso a relacionamentos necessários ao DTO dentro do contexto transacional. O esquema é versionado pelo Flyway em `src/main/resources/db/migration`, e o Hibernate apenas o valida (`ddl-auto=validate`):
+`spring.jpa.open-in-view=false`: mantenha o acesso a relacionamentos necessários ao DTO dentro do contexto transacional. `hibernate.default_batch_fetch_size=100` carrega em lote os relacionamentos que a consulta não trouxe (aldeia, terra, povo, matrículas), em vez de uma consulta por registro. O lote não alcança o lado inverso de um `@OneToOne` (`RegistroAnual.equipe` e `infraestrutura`): inclua esses campos na consulta (`join fetch` ou `@EntityGraph`), como fazem as listagens de `RegistroAnualRepository`. `ListagensHttpTest` limita o número de consultas das listagens. O esquema é versionado pelo Flyway em `src/main/resources/db/migration`, e o Hibernate apenas o valida (`ddl-auto=validate`):
 
 - `V1__esquema_inicial.sql` reproduz exatamente o DDL que o Hibernate gerava antes do Flyway, inclusive os nomes das constraints.
 - `V2__refresh_token.sql` cria `refresh_token` de forma idempotente, pois a tabela pode já existir em bancos de desenvolvimento.
