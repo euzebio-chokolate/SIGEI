@@ -119,10 +119,11 @@ As regras são avaliadas nesta ordem:
 | `GET /infraestrutura` e descendentes | Público. |
 | `GET /escola/*/historico` | `ADMIN`. |
 | `GET /auditoria` e descendentes | `ADMIN`. |
+| `GET /usuario` e descendentes | `ADMIN`. |
 | Demais `GET /**` | `ADMIN` ou `USUARIO`. |
 | Demais requisições | `ADMIN`. |
 
-Esses matchers não criam endpoints. A exceção pública de infraestrutura não libera uploads, edições ou exclusões. A regra geral de leitura também permite a `USUARIO` consultar `/usuario`; não presuma restrição exclusiva de administrador nessa consulta. O mesmo vale para `/professor` e `/lotacao`: a leitura é liberada a `USUARIO`, e é o service (`AcessoDadosSensiveis`) que omite CPF, matrícula e número do contrato para quem não é `ADMIN`.
+Esses matchers não criam endpoints. A exceção pública de infraestrutura não libera uploads, edições ou exclusões. Leituras que expõem dados de pessoas ou de todo o sistema (`/usuario`, com nomes, e-mails e perfis; `/auditoria`; histórico da escola) têm matcher `ADMIN` antes da regra geral de leitura; esconder a tela no frontend não basta. `UsuarioAcessoHttpTest` cobre `/usuario`, inclusive a raiz (o padrão `/usuario/*` não a incluiria). Já `/professor` e `/lotacao` têm a leitura liberada a `USUARIO`, e é o service (`AcessoDadosSensiveis`) que omite CPF, matrícula e número do contrato para quem não é `ADMIN`.
 
 Fluxo de autenticação:
 

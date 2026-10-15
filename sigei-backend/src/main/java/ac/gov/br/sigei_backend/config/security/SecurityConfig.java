@@ -64,6 +64,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/escola/*/historico").hasRole("ADMIN")
                         // Antes da regra geral de leitura: a auditoria mostra autores e e-mails de todo o sistema
                         .requestMatchers(HttpMethod.GET, "/auditoria", "/auditoria/**").hasRole("ADMIN")
+                        // Idem: a lista de usuários traz nomes, e-mails e perfis
+                        .requestMatchers(HttpMethod.GET, "/usuario", "/usuario/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ADMIN", "USUARIO")
                         .anyRequest().hasRole("ADMIN")
                 )
