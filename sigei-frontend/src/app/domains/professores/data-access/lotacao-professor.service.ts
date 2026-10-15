@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
+import type { Pagina } from '@core/http/pagina';
 
 import type {
   LotacaoProfessorRequest,
@@ -19,6 +20,11 @@ export class LotacaoProfessorService {
 
   listarPorAno(ano: number): Observable<LotacaoProfessorResponse[]> {
     return this.http.get<LotacaoProfessorResponse[]>(`${this.apiUrl}/buscarPorAno`, { params: { ano } });
+  }
+
+  /** Lotações de uma escola no ano; o tamanho máximo da página (100) cobre qualquer escola. */
+  listarPorEscolaEAno(escolaId: number, ano: number): Observable<Pagina<LotacaoProfessorResponse>> {
+    return this.http.get<Pagina<LotacaoProfessorResponse>>(this.apiUrl, { params: { escolaId, ano, tamanho: 100 } });
   }
 
   listarPorProfessor(professorId: number): Observable<LotacaoProfessorResponse[]> {

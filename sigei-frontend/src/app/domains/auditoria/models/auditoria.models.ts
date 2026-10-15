@@ -1,3 +1,14 @@
+import {
+  OpcaoInfraestrutura,
+  rotuloOpcao,
+  SITUACOES_ESCOLA,
+  TIPOS_ACESSO,
+  TIPOS_AGUA,
+  TIPOS_ENERGIA
+} from '@domains/escolas/models/infraestrutura-opcoes';
+import { rotuloNivel } from '@domains/escolas/models/matricula-opcoes';
+import { rotuloSexo, rotuloTipoContrato } from '@domains/professores/models/professor.models';
+
 /** Espelha o AlteracaoHistoricoDTO do backend (GET /auditoria e GET /escola/{id}/historico). */
 export type OperacaoHistorico = 'CRIACAO' | 'ALTERACAO' | 'EXCLUSAO';
 
@@ -165,9 +176,23 @@ export function campoVisivel(campo: CampoAlterado): boolean {
   return !CAMPOS_OCULTOS.has(campo.campo);
 }
 
+/** Campos gravados como códigos (FUNDAMENTAL_ANOS_INICIAIS) e o rótulo de cada um. */
+const OPCOES_CAMPO: Record<string, readonly OpcaoInfraestrutura[]> = {
+  situacao: SITUACOES_ESCOLA,
+  tipoAcesso: TIPOS_ACESSO,
+  tipoAgua: TIPOS_AGUA,
+  tipoEnergia: TIPOS_ENERGIA
+};
+
 export function formatarValor(campo: string, valor: unknown): string {
   if (valor === null || valor === undefined || valor === '') return '—';
   if (campo === 'fotoUrl') return 'Enviada';
+  if (typeof valor === 'string') {
+    if (OPCOES_CAMPO[campo]) return rotuloOpcao(OPCOES_CAMPO[campo], valor);
+    if (campo === 'nivel' || campo === 'etapaEnsino') return rotuloNivel(valor);
+    if (campo === 'tipoContrato') return rotuloTipoContrato(valor);
+    if (campo === 'sexo') return rotuloSexo(valor);
+  }
   if (typeof valor === 'boolean') return valor ? 'Sim' : 'Não';
   // O ano não leva separador de milhar
   if (typeof valor === 'number') return campo === 'ano' || campo === 'anoConstrucao' ? String(valor) : valor.toLocaleString('pt-BR');

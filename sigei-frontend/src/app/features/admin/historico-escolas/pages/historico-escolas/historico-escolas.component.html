@@ -427,6 +427,7 @@
     [registro]="registroSelecionado"
     [nomeEscola]="modo === 'escola' ? (escolaSelecionada?.nome ?? null) : null"
     [codigoEscola]="modo === 'escola' ? (escolaSelecionada?.codigo ?? null) : null"
+    [escolaId]="modo === 'escola' ? escolaSelecionadaId : null"
     (fechar)="fecharDetalhes()"
   />
 </div>

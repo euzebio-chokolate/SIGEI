@@ -164,7 +164,7 @@
               <tbody>
                 @for (matricula of registro.matriculasNivel; track matricula.id) {
                   <tr class="border-t border-slate-100">
-                    <td class="px-4 py-2">{{ formatarNivel(matricula.nivel) }}</td>
+                    <td class="px-4 py-2">{{ rotuloNivel(matricula.nivel) }}</td>
                     <td class="px-4 py-2 text-center">{{ matricula.qtdMasculino ?? 0 }}</td>
                     <td class="px-4 py-2 text-center">{{ matricula.qtdFeminino ?? 0 }}</td>
                     <td class="px-4 py-2 text-center font-bold">{{ matricula.total }}</td>
@@ -196,7 +196,7 @@
                 @for (matricula of registro.matriculasSerie; track matricula.id) {
                   <tr class="border-t border-slate-100">
                     <td class="px-4 py-2">{{ matricula.denominacao }}</td>
-                    <td class="px-4 py-2">{{ matricula.etapaEnsino }}</td>
+                    <td class="px-4 py-2">{{ rotuloNivel(matricula.etapaEnsino) }}</td>
                     <td class="px-4 py-2 text-center">{{ matricula.qtdMasculino ?? 0 }}</td>
                     <td class="px-4 py-2 text-center">{{ matricula.qtdFeminino ?? 0 }}</td>
                     <td class="px-4 py-2 text-center font-bold">{{ matricula.total }}</td>
@@ -206,6 +206,10 @@
             </table>
           </div>
         </div>
+
+        @if (idEscola) {
+          <app-professores-escola [escolaId]="idEscola" [ano]="registro.anoReferencia.ano" />
+        }
 
         <!-- Foto -->
         @if (registro.infraestrutura?.fotoUrl) {

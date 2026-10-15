@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { interpretarErro, mensagemErroCarregamento } from '@core/http/erro-http';
 import { DashboardEvolucao, DashboardItem, DashboardResponse, DashboardService } from '@features/admin/dashboard/data-access/dashboard.service';
 import { rotuloTipoContrato } from '@domains/professores/models/professor.models';
+import { rotuloNivel } from '@domains/escolas/models/matricula-opcoes';
+import { rotuloOpcao, SITUACOES_ESCOLA } from '@domains/escolas/models/infraestrutura-opcoes';
 import { RelatorioService } from '@domains/relatorios/data-access/relatorio.service';
 import { FormatoRelatorio } from '@domains/relatorios/models/relatorio.models';
 
@@ -21,6 +23,9 @@ export class DashboardComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
 
   readonly rotuloTipoContrato = rotuloTipoContrato;
+  readonly rotuloNivel = rotuloNivel;
+  readonly rotulo = rotuloOpcao;
+  readonly situacoes = SITUACOES_ESCOLA;
 
   dados: DashboardResponse | null = null;
   carregando = true;

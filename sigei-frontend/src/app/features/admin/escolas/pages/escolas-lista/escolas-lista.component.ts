@@ -45,6 +45,7 @@ export class EscolasListaComponent implements OnInit {
   tituloSucesso = '';
   mensagemSucesso = '';
   registroSelecionado: RegistroAnualResponse | null = null;
+  escolaDetalhesId: number | null = null;
   visualizandoId: number | null = null;
 
   ngOnInit(): void {
@@ -125,6 +126,7 @@ export class EscolasListaComponent implements OnInit {
           return;
         }
 
+        this.escolaDetalhesId = escola.id;
         this.registroSelecionado = {
           ...registro,
           matriculasSerie: registro.matriculasSerie.map(matricula => ({

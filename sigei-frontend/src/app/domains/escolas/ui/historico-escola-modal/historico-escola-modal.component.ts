@@ -8,6 +8,7 @@ import {
 import {
   RegistroAnualResponse
 } from '@domains/escolas/data-access/registro-anual.service';
+import { ProfessoresEscolaComponent } from '@domains/professores/ui/professores-escola/professores-escola.component';
 import {
   rotuloOpcao,
   SITUACOES_ESCOLA,
@@ -15,10 +16,12 @@ import {
   TIPOS_AGUA,
   TIPOS_ENERGIA
 } from '@domains/escolas/models/infraestrutura-opcoes';
+import { rotuloNivel } from '@domains/escolas/models/matricula-opcoes';
 
 @Component({
   selector: 'app-historico-escola-modal',
   standalone: true,
+  imports: [ProfessoresEscolaComponent],
   templateUrl: './historico-escola-modal.component.html'
 })
 export class HistoricoEscolaModalComponent {
@@ -28,6 +31,7 @@ export class HistoricoEscolaModalComponent {
   readonly tiposAgua = TIPOS_AGUA;
   readonly tiposEnergia = TIPOS_ENERGIA;
   readonly rotulo = rotuloOpcao;
+  readonly rotuloNivel = rotuloNivel;
 
   @Input()
   aberto = false;
@@ -42,11 +46,19 @@ export class HistoricoEscolaModalComponent {
   @Input()
   codigoEscola: string | null = null;
 
+  @Input()
+  escolaId: number | null = null;
+
   @Output()
   fechar = new EventEmitter<void>();
 
   get nome(): string {
     return this.registro?.infraestrutura?.escola?.nome ?? this.nomeEscola ?? '-';
+  }
+
+  /** Escola das lotações exibidas; sem o ID informado, vem da infraestrutura do registro. */
+  get idEscola(): number | null {
+    return this.escolaId ?? this.registro?.infraestrutura?.escola?.id ?? null;
   }
 
   get codigo(): string {
@@ -75,36 +87,6 @@ export class HistoricoEscolaModalComponent {
         );
 
     return total?.total ?? 'Não informado';
-  }
-
-  formatarNivel(nivel: string): string {
-
-    switch (nivel) {
-
-      case 'TOTAL_GERAL':
-        return 'Total Geral';
-
-      case 'ENSINO_INFANTIL':
-        return 'Ensino Infantil';
-
-      case 'FUNDAMENTAL_ANOS_INICIAIS':
-        return 'Fundamental - Anos Iniciais';
-
-      case 'FUNDAMENTAL_ANOS_FINAIS':
-        return 'Fundamental - Anos Finais';
-
-      case 'ENSINO_MEDIO':
-        return 'Ensino Médio';
-
-      case 'EJA':
-        return 'EJA';
-
-      case 'AEE':
-        return 'AEE';
-
-      default:
-        return nivel;
-    }
   }
 
 }

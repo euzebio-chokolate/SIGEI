@@ -12,6 +12,8 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 
+import { rotuloNivel } from '@domains/escolas/models/matricula-opcoes';
+
 export interface MatriculaSerieFormControls {
   denominacao: FormControl<string>;
   etapaEnsino: FormControl<string>;
@@ -71,20 +73,6 @@ export class MatriculasSerieEtapaComponent {
     return masculino + feminino;
   }
 
-  formatarEtapa(etapa: string): string {
-    switch (etapa) {
-      case 'FUNDAMENTAL_ANOS_INICIAIS':
-        return 'Fundamental - Anos Iniciais';
-
-      case 'FUNDAMENTAL_ANOS_FINAIS':
-        return 'Fundamental - Anos Finais';
-
-      case 'ENSINO_MEDIO':
-        return 'Ensino Médio';
-
-      default:
-        return etapa;
-    }
-  }
+  readonly formatarEtapa = rotuloNivel;
 
 }

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { rotuloOpcao, SITUACOES_ESCOLA } from '@domains/escolas/models/infraestrutura-opcoes';
 
 export interface EscolaMapaItem {
   id: number;
@@ -24,6 +25,9 @@ export interface EscolaMapaItem {
   templateUrl: './mapa-busca.component.html',
 })
 export class MapaBuscaComponent {
+  readonly rotulo = rotuloOpcao;
+  readonly situacoes = SITUACOES_ESCOLA;
+
   @Input() dadosEscolas: EscolaMapaItem[] = [];
   @Input() carregando = false;
   @Output() buscaAlterada = new EventEmitter<string>();

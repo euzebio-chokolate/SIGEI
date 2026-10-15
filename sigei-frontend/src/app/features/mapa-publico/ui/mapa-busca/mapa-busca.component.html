@@ -40,7 +40,7 @@
                 <span class="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-slate-500">
                   <span class="rounded bg-slate-100 px-1.5 py-0.5 font-mono">INEP: {{ item.escola?.codigo || 'N/A' }}</span>
                   @if (item.situacao) {
-                    <span class="font-semibold" [class.text-red-600]="isParalisada(item.situacao)" [class.text-emerald-600]="!isParalisada(item.situacao)">{{ item.situacao }}</span>
+                    <span class="font-semibold" [class.text-red-600]="isParalisada(item.situacao)" [class.text-emerald-600]="!isParalisada(item.situacao)">{{ rotulo(situacoes, item.situacao) }}</span>
                   }
                 </span>
               </span>

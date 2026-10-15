@@ -36,6 +36,16 @@ describe('auditoria', () => {
     expect(formatarValor('cpf', '(dado protegido)')).toBe('(dado protegido)');
   });
 
+  it('mostra o rótulo dos campos gravados como códigos', () => {
+    expect(formatarValor('nivel', 'FUNDAMENTAL_ANOS_INICIAIS')).toBe('Fundamental - Anos Iniciais');
+    expect(formatarValor('etapaEnsino', 'ENSINO_MEDIO')).toBe('Ensino Médio');
+    expect(formatarValor('nivel', 'NIVEL_NOVO')).toBe('NIVEL NOVO');
+    expect(formatarValor('tipoEnergia', 'REDE_PUBLICA')).toBe('Rede pública');
+    expect(formatarValor('situacao', 'FUNCIONANDO')).toBe('Funcionando');
+    expect(formatarValor('tipoContrato', 'CONTRATO_DIRETO')).toBe('Contrato direto');
+    expect(formatarValor('sexo', 'F')).toBe('Feminino');
+  });
+
   it('traduz entidades e campos, com alternativa para nomes desconhecidos', () => {
     expect(rotuloEntidade('InfraestruturaEscola')).toBe('Infraestrutura');
     expect(rotuloEntidade('LotacaoProfessor')).toBe('Lotação de professor');
