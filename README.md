@@ -67,7 +67,7 @@ SIGEI/
 │   │   ├── repository/   # acesso a dados
 │   │   └── service/      # regras de negócio
 │   ├── docs/             # banco de dados, modelo ER, histórico anual
-│   └── planilhas/        # carga inicial de dados
+│   └── planilhas/        # planilhas de referência para importar pela tela
 ├── sigei-frontend/       # aplicação Angular
 │   ├── src/app/
 │   │   ├── core/         # autenticação
@@ -92,8 +92,10 @@ Pré-requisito: Docker com Compose.
    ```
 
    A API fica em `http://localhost:8080` (health check em `/actuator/health`).
-   Na primeira execução com banco vazio, a aplicação cadastra os municípios do
-   Acre e importa as planilhas da pasta `planilhas/`.
+   Na primeira execução, a aplicação cadastra os municípios do Acre e o
+   administrador inicial. Os dados de escolas, matrículas e professores são
+   importados pela tela de importações (`/admin/importacoes`); as planilhas da
+   pasta `planilhas/` servem de referência.
 
 2. Suba o frontend:
 

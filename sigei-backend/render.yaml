@@ -43,5 +43,3 @@ services:
         value: "true"
       - key: CORS_ALLOWED_ORIGINS
         sync: false
-      - key: SIGEI_DADOS_INICIAIS_ENABLED
-        value: "false"

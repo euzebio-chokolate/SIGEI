@@ -32,7 +32,7 @@ Pacote principal: `src/main/java/ac/gov/br/sigei_backend`. Entrada: `SigeiBacken
 | `dto/response` | Contratos de saída; especializações em `resumo`, `detalhe`, `dashboard` e `historico`. |
 | `mappers` | Interfaces MapStruct, com componentes Spring e atualizações via `@MappingTarget`. |
 | `config/security` | Autorização HTTP, filtro JWT e codificação de senhas. |
-| `config/initializer` | Administrador, municípios e carga inicial de planilhas. |
+| `config/initializer` | Administrador e municípios. |
 | `config/cloudinary` | Cliente de armazenamento de imagens. |
 | `config/auditoria` | `RevisaoListener`, que grava o autor das revisões do Envers. |
 | `config/criptografia` | Cifra dos dados sensíveis dos professores (`CriptografiaDadosSensiveis`, `DadoSensivelConverter`). |
@@ -181,7 +181,7 @@ Da foto, só a URL é copiada. O `fotoPublicId` fica apenas no registro que fez 
 
 ### Trilha de auditoria
 
-O Hibernate Envers registra cada criação, alteração e exclusão das entidades com `@Audited`: todas as de domínio e `Usuario`, sem a `senha` (`@NotAudited`). `RefreshToken` não é auditado. Cada transação gera uma `Revisao` com data e hora, e o `RevisaoListener` copia para ela ID, e-mail e nome do `Usuario` autenticado. Sem autenticação (inicializadores, carga de planilhas), o autor fica nulo e a revisão é atribuída ao sistema. Os valores de cada versão ficam nas tabelas `<entidade>_aud`. A configuração está em `application.properties` (`org.hibernate.envers.*`): exclusões guardam os últimos valores, e mudanças em coleções não geram revisão do pai.
+O Hibernate Envers registra cada criação, alteração e exclusão das entidades com `@Audited`: todas as de domínio e `Usuario`, sem a `senha` (`@NotAudited`). `RefreshToken` não é auditado. Cada transação gera uma `Revisao` com data e hora, e o `RevisaoListener` copia para ela ID, e-mail e nome do `Usuario` autenticado. Sem autenticação (inicializadores), o autor fica nulo e a revisão é atribuída ao sistema. Os valores de cada versão ficam nas tabelas `<entidade>_aud`. A configuração está em `application.properties` (`org.hibernate.envers.*`): exclusões guardam os últimos valores, e mudanças em coleções não geram revisão do pai.
 
 `HistoricoEscolaService` monta `GET /escolas/{id}/historico`, com as alterações da escola, de seus registros anuais e, em cada registro, de equipe, infraestrutura e matrículas. Compara cada versão com a anterior da mesma entidade e devolve apenas os campos alterados. Relacionamentos aparecem como `<campo>Id`. A ordem vai da revisão mais recente à mais antiga, e cada item traz o `ano` do registro. Uma escola excluída mantém o histórico; uma escola sem revisões resulta em `404`.
 
@@ -201,7 +201,7 @@ As três importações recebem o ano (`ano`) e localizam as colunas pelo cabeça
 - A comparação ignora acentos, maiúsculas e pontuação (`Nº DE SALAS` = `N DE SALAS`). Títulos exatos têm prioridade; depois vale um título que começa pelo nome conhecido (`Nº DE ALUNOS 2025`).
 - Cabeçalho em duas linhas: onde a primeira está vazia ou tem um título desconhecido (grupo mesclado, como `Matrículas`), vale a linha seguinte, e os dados começam depois dela.
 - Coluna opcional ausente tem posição -1, que `ExcelUtils` lê como célula vazia. Na importação de escolas, colunas opcionais ausentes não alteram os valores gravados.
-- Ao acrescentar uma coluna, inclua-a no enum (com sinônimos das planilhas reais) e no teste do service. As planilhas de `planilhas/` precisam continuar sendo lidas com o mesmo resultado.
+- Ao acrescentar uma coluna, inclua-a no enum (com sinônimos das planilhas reais) e no teste do service. As planilhas de `planilhas/` (referência para a importação pela tela) precisam continuar sendo lidas com o mesmo resultado.
 
 `ImportacaoExcelService` (escolas, infraestrutura e equipe) cria o ano informado se ainda não existir (de 2000 ao ano atual + 1), sem copiar dados de outro ano. O anexo vem da coluna `TIPO DE UNIDADE` ou, no formato antigo, de `ANEXO` na coluna de ordem; sem `LATITUDE`/`LONGITUDE`, aceita `COORDENADAS` com a longitude na coluna seguinte. Coordenadas podem estar em graus decimais ou em graus, minutos e segundos. Com dois anos no ano de construção (`2014 e 2025`, construção e reforma), vale o primeiro (`ExcelUtils.lerAno`). Erros de banco de uma linha aparecem no resultado com uma mensagem neutra, sem o SQL, e vão para o log. `ImportacaoMatriculasService` exige o ano cadastrado e o registro anual de cada escola nele; `EJA` e `AEE` são opcionais (zero).
 
@@ -251,9 +251,6 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 | `CORS_ALLOWED_ORIGINS` | Origens permitidas do frontend. |
 | `SIGEI_ADMIN_NAME`, `SIGEI_ADMIN_EMAIL`, `SIGEI_ADMIN_PASSWORD` | Administrador inicial. |
 | `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` | Armazenamento de imagens. |
-| `SIGEI_DADOS_INICIAIS_ENABLED` | Carga automática de planilhas; padrão `true`. |
-| `SIGEI_PLANILHA_INFRAESTRUTURA`, `SIGEI_PLANILHA_MATRICULAS`, `SIGEI_PLANILHA_PROFESSORES` | Resources das planilhas; padrões apontam para `planilhas/`. |
-| `SIGEI_ANO_PLANILHAS_ESCOLAS`, `SIGEI_ANO_PLANILHA_PROFESSORES` | Anos de referência das planilhas da carga inicial; padrões 2025 e 2026. |
 | `PORT` | Porta local da API; padrão 8080. No Compose, controla a porta publicada, com a API interna em 8080. |
 
 `spring.jpa.open-in-view=false`: mantenha o acesso a relacionamentos necessários ao DTO dentro do contexto transacional. `hibernate.default_batch_fetch_size=100` carrega em lote os relacionamentos que a consulta não trouxe (aldeia, terra, povo, matrículas), em vez de uma consulta por registro. O lote não alcança o lado inverso de um `@OneToOne` (`RegistroAnual.equipe` e `infraestrutura`): inclua esses campos na consulta (`join fetch` ou `@EntityGraph`), como fazem as listagens de `RegistroAnualRepository`. `ListagensHttpTest` limita o número de consultas das listagens. O esquema é versionado pelo Flyway em `src/main/resources/db/migration`, e o Hibernate apenas o valida (`ddl-auto=validate`):
@@ -274,7 +271,7 @@ Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL Po
 Na inicialização:
 
 - `MunicipioInitializer` (`@Order(1)`) cadastra os municípios do Acre ausentes, comparando nomes normalizados.
-- `DadosIniciaisInitializer` (`@Order(2)`) só executa quando habilitado. Sem nenhum registro anual, valida os dois arquivos de escolas e importa infraestrutura antes de matrículas; esses arquivos indisponíveis impedem a inicialização. Depois, se não houver professores, importa o quadro de professores do ano configurado (padrão 2026): num banco novo, inicia antes esse ano (`AtualizacaoAnualService`, com a cópia usual de 2025); num banco em uso sem esse ano, apenas registra um aviso. Falhas e planilha ausente nesta etapa só geram log, sem impedir a subida.
+- Não há carga automática de dados: escolas, matrículas e professores são importados pela tela `/admin/importacoes` (`/importacoes`).
 - `AdminInitializer` cria o administrador apenas se o e-mail ainda não existir, com troca de senha obrigatória. Sem senha configurada, gera uma temporária e a registra no log. Configurar novas credenciais não altera automaticamente um usuário já existente.
 
 Actuator expõe `health` e `info`; apenas health tem liberação pública explícita. O Dockerfile faz build em Java 21, pula os testes e executa o JAR com usuário sem privilégios. O Compose inclui PostgreSQL 17 e volume persistente.
@@ -285,8 +282,7 @@ O Git local tem a raiz em `SIGEI`, contendo backend e frontend. No Render, use
 Blueprint Path `sigei-backend/render.yaml`; o arquivo define `rootDir: sigei-backend`.
 Na Vercel, use Root Directory `sigei-frontend`.
 `render.yaml` configura somente a API no Render Free, com PostgreSQL externo no
-Neon, heap Java de 256 MB, pool de três conexões e carga automática de planilhas
-desligada. Esses limites precisam de validação no ambiente hospedado.
+Neon, heap Java de 256 MB e pool de três conexões. Esses limites precisam de validação no ambiente hospedado.
 `docs/deploy/vercel.json.example` é um modelo para o repositório do frontend:
 substitua o endereço de exemplo pela API real antes de usá-lo como `vercel.json`.
 O proxy `/api` da Vercel mantém a mesma origem da sessão; a API não deve entrar
@@ -317,7 +313,7 @@ Em Linux/macOS, use `./mvnw` nos mesmos comandos. Com `.env` configurado, `docke
 
 API local: `http://localhost:8080`; health: `/actuator/health`.
 
-Testes em `src/test/java` espelham os pacotes principais. Services usam Mockito; repositories usam `@DataJpaTest` com `@ActiveProfiles("test")`. Há teste de carregamento do contexto, teste do inicializador de municípios e `FlywayMigracoesTest` (PostgreSQL via Testcontainers). O perfil `test` configura H2 em memória, schema `create-drop`, Flyway desligado (as migrações usam SQL do PostgreSQL), segredo JWT de teste e desabilita a carga de planilhas.
+Testes em `src/test/java` espelham os pacotes principais. Services usam Mockito; repositories usam `@DataJpaTest` com `@ActiveProfiles("test")`. Há teste de carregamento do contexto, teste do inicializador de municípios e `FlywayMigracoesTest` (PostgreSQL via Testcontainers). O perfil `test` configura H2 em memória, schema `create-drop`, Flyway desligado (as migrações usam SQL do PostgreSQL), e segredo JWT de teste.
 
 Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organizar cenários, seguindo `RegistroAnualServiceTest`. Fixtures de persistência ficam em `repository/RepositoryTestFixtures.java`. Requisições manuais estão em `tests - bruno/Sample API Collection/`; elas não substituem testes automatizados. `RotasRestHttpTest` cobre o contrato REST (ID do caminho na edição, `id` do corpo ignorado no cadastro, `204` na exclusão, abertura de ano e as listas por ano). Testes H2 não garantem compatibilidade de toda consulta com PostgreSQL.
 

@@ -15,7 +15,6 @@ RUN addgroup -S sigei && adduser -S sigei -G sigei
 WORKDIR /app
 
 COPY --from=build /workspace/target/*.jar app.jar
-COPY --chown=sigei:sigei planilhas planilhas
 
 USER sigei
 EXPOSE 8080
