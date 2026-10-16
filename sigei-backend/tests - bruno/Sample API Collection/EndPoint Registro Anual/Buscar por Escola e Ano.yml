@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/registroAnual/buscarPorEscolaEAno?escolaId=1&ano=2025
+  url: http://localhost:8080/escolas/1/registros-anuais/2025
   params:
     - name: escolaId
       value: "1"

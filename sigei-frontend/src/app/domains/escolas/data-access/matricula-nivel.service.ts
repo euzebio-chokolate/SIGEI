@@ -9,21 +9,21 @@ export type { MatriculaNivelRequest, MatriculaNivelResponse } from '../models/ma
 @Injectable({ providedIn: 'root' })
 export class MatriculaNivelService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/matriculaNivel`;
+  private readonly apiUrl = `${environment.apiUrl}/matriculas-nivel`;
 
   listar(): Observable<MatriculaNivelResponse[]> {
     return this.http.get<MatriculaNivelResponse[]>(this.apiUrl);
   }
 
   salvar(dados: MatriculaNivelRequest): Observable<MatriculaNivelResponse> {
-    return this.http.post<MatriculaNivelResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<MatriculaNivelResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: MatriculaNivelRequest): Observable<MatriculaNivelResponse> {
-    return this.http.put<MatriculaNivelResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: MatriculaNivelRequest): Observable<MatriculaNivelResponse> {
+    return this.http.put<MatriculaNivelResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

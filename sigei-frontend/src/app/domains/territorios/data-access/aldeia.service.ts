@@ -9,7 +9,7 @@ export type { MunicipioResumo, TerraIndigenaResumo, PovoResumo, AldeiaRequest, A
 @Injectable({ providedIn: 'root' })
 export class AldeiaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/aldeia`;
+  private readonly apiUrl = `${environment.apiUrl}/aldeias`;
 
   listar(): Observable<AldeiaResponse[]> {
     return this.http.get<AldeiaResponse[]>(this.apiUrl);
@@ -20,14 +20,14 @@ export class AldeiaService {
   }
 
   salvar(dados: AldeiaRequest): Observable<AldeiaResponse> {
-    return this.http.post<AldeiaResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<AldeiaResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: AldeiaRequest): Observable<AldeiaResponse> {
-    return this.http.put<AldeiaResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: AldeiaRequest): Observable<AldeiaResponse> {
+    return this.http.put<AldeiaResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

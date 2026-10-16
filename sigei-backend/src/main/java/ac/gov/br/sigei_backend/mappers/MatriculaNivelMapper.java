@@ -12,6 +12,7 @@ public interface MatriculaNivelMapper {
 
     MatriculaNivelResponseDTO converter(MatriculaNivel matriculaNivel);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "registro", ignore = true)
     MatriculaNivel converter(MatriculaNivelRequestDTO dto);
 

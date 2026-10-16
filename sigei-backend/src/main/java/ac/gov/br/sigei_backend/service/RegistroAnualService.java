@@ -110,9 +110,9 @@ public class RegistroAnualService {
     }
 
     @Transactional
-    public RegistroAnualResponseDTO editar(RegistroAnualRequestDTO dto) {
+    public RegistroAnualResponseDTO editar(Long id, RegistroAnualRequestDTO dto) {
 
-        RegistroAnual registro = registroAnualRepository.findById(dto.id())
+        RegistroAnual registro = registroAnualRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Registro anual não encontrado"));
 
         Escola escola = escolaRepository.findById(dto.escolaId())

@@ -5,7 +5,6 @@ import ac.gov.br.sigei_backend.dto.request.AlterarSenhaRequestDTO;
 import ac.gov.br.sigei_backend.dto.request.LoginRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.LoginResponseDTO;
 import ac.gov.br.sigei_backend.exceptions.TokenInvalidoException;
-import ac.gov.br.sigei_backend.exceptions.handler.Problemas;
 import ac.gov.br.sigei_backend.models.Usuario;
 import ac.gov.br.sigei_backend.service.auth.AuthService;
 import ac.gov.br.sigei_backend.service.auth.SessaoAutenticada;
@@ -20,8 +19,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ProblemDetail;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -67,7 +64,7 @@ public class AuthController {
             @ApiResponse(responseCode = "401", description = "Cookie ausente, token inválido, expirado, já utilizado ou de usuário desativado; os cookies de sessão são removidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "403", description = "Token CSRF ausente ou inválido", content = @Content)
     })
-    public ResponseEntity<?> renovar(
+    public ResponseEntity<LoginResponseDTO> renovar(
             @Parameter(hidden = true) @CookieValue(name = CookiesSessao.COOKIE_RENOVACAO, required = false) String refreshToken,
             HttpServletResponse response) {
         try {
@@ -75,10 +72,9 @@ public class AuthController {
             cookiesSessao.gravar(response, sessao.tokenAcesso(), sessao.refreshToken());
             return ResponseEntity.ok(sessao.usuario());
         } catch (TokenInvalidoException erro) {
+            // Os cookies removidos aqui seguem na resposta 401 montada pelo ManipuladorGlobalException
             cookiesSessao.limpar(response);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .contentType(MediaType.APPLICATION_PROBLEM_JSON)
-                    .body(Problemas.criar(HttpStatus.UNAUTHORIZED, erro.getMessage()));
+            throw erro;
         }
     }
 
@@ -98,7 +94,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/alterar-senha")
+    @PutMapping("/senha")
     @Operation(summary = "Alterar senha",
             description = "Altera a senha do usuário autenticado após validar a senha atual e a confirmação da nova senha. Encerra todas as sessões do usuário e remove os cookies de sessão. Requer autenticação e o cabeçalho X-XSRF-TOKEN.")
     @ApiResponses({

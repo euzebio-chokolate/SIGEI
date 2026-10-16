@@ -9,7 +9,7 @@ export type { EscolaResumo, AnoReferenciaResumo, InfraestruturaRequest, Infraest
 @Injectable({ providedIn: 'root' })
 export class InfraestruturaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/infraestrutura`;
+  private readonly apiUrl = `${environment.apiUrl}/infraestruturas`;
 
   listarTodas(): Observable<InfraestruturaResponse[]> {
     return this.http.get<InfraestruturaResponse[]>(this.apiUrl);
@@ -17,11 +17,11 @@ export class InfraestruturaService {
 
   /** Uma infraestrutura por escola: a do registro anual mais recente. */
   listarMaisRecentes(): Observable<InfraestruturaResponse[]> {
-    return this.http.get<InfraestruturaResponse[]>(`${this.apiUrl}/maisRecentes`);
+    return this.http.get<InfraestruturaResponse[]>(`${this.apiUrl}/mais-recentes`);
   }
 
   salvar(dados: InfraestruturaRequest): Observable<InfraestruturaResponse> {
-    return this.http.post<InfraestruturaResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<InfraestruturaResponse>(this.apiUrl, dados);
   }
 
   adicionarFoto(
@@ -37,17 +37,11 @@ export class InfraestruturaService {
     );
   }
 
-  excluirFoto(infraestruturaId: number): Observable<void> {
-    return this.http.delete<void>(
-      `${this.apiUrl}/${infraestruturaId}/foto`
-    );
-  }
-
-  editar(dados: InfraestruturaRequest): Observable<InfraestruturaResponse> {
-    return this.http.put<InfraestruturaResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: InfraestruturaRequest): Observable<InfraestruturaResponse> {
+    return this.http.put<InfraestruturaResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

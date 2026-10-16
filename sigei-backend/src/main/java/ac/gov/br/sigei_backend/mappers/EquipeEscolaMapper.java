@@ -11,6 +11,7 @@ import org.mapstruct.MappingTarget;
 public interface EquipeEscolaMapper {
     EquipeEscolaResponseDTO converter(EquipeEscola equipeEscola);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target="registroAnual",ignore=true)
     EquipeEscola converter(EquipeEscolaRequestDTO equipeEscolaRequestDTO);
 

@@ -25,6 +25,7 @@ public interface InfraestruturaEscolaMapper {
     )
     InfraestruturaEscolaResponseDTO converter(InfraestruturaEscola infraestrutura);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "registroAnual", ignore = true)
     InfraestruturaEscola converter(InfraestruturaEscolaRequestDTO dto);
 

@@ -67,19 +67,19 @@ class TamanhoCamposHttpTest {
 
     @ParameterizedTest(name = "{0} {2}")
     @CsvSource(delimiter = '|', value = {
-            "/aldeia/salvar         | {\"nome\":\"LONGO\",\"terraIndigenaId\":999999,\"povoId\":999999}                       | nome",
-            "/escola/salvar         | {\"codigo\":\"LONGO\",\"nome\":\"E\",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":999999}       | codigo",
-            "/escola/salvar         | {\"codigo\":\"1\",\"nome\":\"LONGO\",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":999999}       | nome",
-            "/matriculaNivel/salvar | {\"registroId\":999999,\"nivel\":\"LONGO\"}                                             | nivel",
-            "/matriculaSerie/salvar | {\"registroId\":999999,\"denominacao\":\"LONGO\"}                                       | denominacao",
-            "/matriculaSerie/salvar | {\"registroId\":999999,\"denominacao\":\"1º ano\",\"etapaEnsino\":\"LONGO\"}             | etapaEnsino",
-            "/municipio/salvar      | {\"nome\":\"LONGO\"}                                                                    | nome",
-            "/povo/salvar           | {\"nome\":\"LONGO\"}                                                                    | nome",
-            "/terra/salvar          | {\"nome\":\"LONGO\",\"municipioId\":999999}                                             | nome",
-            "/registroAnual/salvar  | {\"escolaId\":999999,\"anoReferenciaId\":999999,\"rede\":\"LONGO\",\"localFuncionamento\":\"Aldeia\"} | rede",
-            "/registroAnual/salvar  | {\"escolaId\":999999,\"anoReferenciaId\":999999,\"rede\":\"Estadual\",\"localFuncionamento\":\"LONGO\"} | localFuncionamento",
-            "/usuario/salvar        | {\"nome\":\"LONGO\",\"email\":\"longo@sigei.com\",\"senha\":\"senha-forte-123\",\"perfil\":\"USUARIO\"} | nome",
-            "/usuario/salvar        | {\"nome\":\"Longo\",\"email\":\"LONGO@sigei.com\",\"senha\":\"senha-forte-123\",\"perfil\":\"USUARIO\"} | email"
+            "/aldeias         | {\"nome\":\"LONGO\",\"terraIndigenaId\":999999,\"povoId\":999999}                       | nome",
+            "/escolas         | {\"codigo\":\"LONGO\",\"nome\":\"E\",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":999999}       | codigo",
+            "/escolas         | {\"codigo\":\"1\",\"nome\":\"LONGO\",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":999999}       | nome",
+            "/matriculas-nivel | {\"registroId\":999999,\"nivel\":\"LONGO\"}                                             | nivel",
+            "/matriculas-serie | {\"registroId\":999999,\"denominacao\":\"LONGO\"}                                       | denominacao",
+            "/matriculas-serie | {\"registroId\":999999,\"denominacao\":\"1º ano\",\"etapaEnsino\":\"LONGO\"}             | etapaEnsino",
+            "/municipios      | {\"nome\":\"LONGO\"}                                                                    | nome",
+            "/povos           | {\"nome\":\"LONGO\"}                                                                    | nome",
+            "/terras-indigenas          | {\"nome\":\"LONGO\",\"municipioId\":999999}                                             | nome",
+            "/registros-anuais  | {\"escolaId\":999999,\"anoReferenciaId\":999999,\"rede\":\"LONGO\",\"localFuncionamento\":\"Aldeia\"} | rede",
+            "/registros-anuais  | {\"escolaId\":999999,\"anoReferenciaId\":999999,\"rede\":\"Estadual\",\"localFuncionamento\":\"LONGO\"} | localFuncionamento",
+            "/usuarios        | {\"nome\":\"LONGO\",\"email\":\"longo@sigei.com\",\"senha\":\"senha-forte-123\",\"perfil\":\"USUARIO\"} | nome",
+            "/usuarios        | {\"nome\":\"Longo\",\"email\":\"LONGO@sigei.com\",\"senha\":\"senha-forte-123\",\"perfil\":\"USUARIO\"} | email"
     })
     void textoMaiorQueAColunaDeveResponder400(String rota, String corpo, String campo) throws Exception {
         mvc.perform(post(rota)

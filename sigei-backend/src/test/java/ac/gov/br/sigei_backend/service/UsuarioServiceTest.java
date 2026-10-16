@@ -60,14 +60,14 @@ class UsuarioServiceTest {
             UsuarioResponseDTO outro = usuarioService.salvar(requisicao(null, "pedro@sigei.ac.gov.br"));
 
             assertThrows(RegraNegocioException.class,
-                    () -> usuarioService.editar(requisicao(outro.id(), "ANA@sigei.ac.gov.br")));
+                    () -> usuarioService.editar(outro.id(), requisicao(outro.id(), "ANA@sigei.ac.gov.br")));
         }
 
         @Test
         void deveEditarMantendoOProprioEmailComOutraCaixa() {
             UsuarioResponseDTO salvo = usuarioService.salvar(requisicao(null, "lucia@sigei.ac.gov.br"));
 
-            UsuarioResponseDTO editado = usuarioService.editar(requisicao(salvo.id(), "Lucia@SIGEI.ac.gov.br"));
+            UsuarioResponseDTO editado = usuarioService.editar(salvo.id(), requisicao(salvo.id(), "Lucia@SIGEI.ac.gov.br"));
 
             assertEquals("lucia@sigei.ac.gov.br", editado.email());
         }

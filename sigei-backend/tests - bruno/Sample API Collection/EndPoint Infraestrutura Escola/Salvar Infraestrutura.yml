@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8080/infraestrutura/salvar
+  url: http://localhost:8080/infraestruturas
   body:
     type: json
     data: |

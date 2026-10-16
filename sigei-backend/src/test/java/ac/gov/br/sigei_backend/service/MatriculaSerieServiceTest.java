@@ -109,7 +109,7 @@ public class MatriculaSerieServiceTest {
   when(matriculaSerieRepository.save(any(MatriculaSerie.class))).thenReturn(matriculaSalva);
   lenient().when(matriculaSerieMapper.converter(matriculaSalva)).thenReturn(responseMock);
 
-  MatriculaSerieResponseDTO resultado = matriculaSerieService.editar(requestDTO);
+  MatriculaSerieResponseDTO resultado = matriculaSerieService.editar(requestDTO.id(), requestDTO);
 
   assertNotNull(resultado);
   verify(matriculaSerieRepository, times(1)).findById(1L);
@@ -123,7 +123,7 @@ public class MatriculaSerieServiceTest {
 
   when(matriculaSerieRepository.findById(99L)).thenReturn(Optional.empty());
 
-  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO));
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO.id(), requestDTO));
 
   assertEquals("Matrícula não encontrada", erro.getMessage());
   verify(registroRepository, never()).findById(anyLong());
@@ -140,7 +140,7 @@ public class MatriculaSerieServiceTest {
   when(matriculaSerieRepository.findById(1L)).thenReturn(Optional.of(matriculaExistente));
   when(registroRepository.findById(99L)).thenReturn(Optional.empty());
 
-  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO));
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaSerieService.editar(requestDTO.id(), requestDTO));
 
   assertEquals("Registro anual não encontrado", erro.getMessage());
   verify(matriculaSerieRepository, never()).save(any(MatriculaSerie.class));

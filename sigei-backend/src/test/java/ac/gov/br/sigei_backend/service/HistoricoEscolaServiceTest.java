@@ -96,7 +96,7 @@ class HistoricoEscolaServiceTest {
     void deveRegistrarAutorDataECamposAlteradosDeCadaRevisao() throws Exception {
         autenticar(7L, "gestora@sigei.com", "Gestora");
         Long escolaId = cadastro.salvar(dados(null, "Escola original", 10, 3), null).escola().id();
-        cadastro.editar(dados(escolaId, "Escola renomeada", 12, 3), null);
+        cadastro.editar(escolaId, dados(escolaId, "Escola renomeada", 12, 3), null);
 
         List<AlteracaoHistoricoDTO> alteracoes = historico.buscarPorEscola(escolaId);
 

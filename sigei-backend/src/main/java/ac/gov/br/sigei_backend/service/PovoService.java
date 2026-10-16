@@ -52,12 +52,12 @@ public class PovoService {
         return povoMapper.converter(povo);
     }
 
-    public PovoResponseDTO editar(PovoRequestDTO povoDTO) {
-        povoRepository.findById(povoDTO.id())
+    public PovoResponseDTO editar(Long id, PovoRequestDTO povoDTO) {
+        povoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Povo não encontrado"));
 
         Povo povo = povoMapper.converter(povoDTO);
-        povo.setId(povoDTO.id());
+        povo.setId(id);
         Povo povoSalvo = povoRepository.save(povo);
         return povoMapper.converter(povoSalvo);
     }

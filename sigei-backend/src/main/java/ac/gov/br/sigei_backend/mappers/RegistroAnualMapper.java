@@ -25,6 +25,7 @@ public interface RegistroAnualMapper {
 
     RegistroAnualResumoDTO converterResumo(RegistroAnual registro);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "escola", ignore = true)
     @Mapping(target = "anoReferencia", ignore = true)
     RegistroAnual converter(RegistroAnualRequestDTO dto);

@@ -54,14 +54,14 @@ class EdicaoValidacaoHttpTest {
 
     @ParameterizedTest(name = "{0}")
     @CsvSource(delimiter = '|', value = {
-            "/aldeia/editar         | {\"id\":999999,\"nome\":\"\",\"terraIndigenaId\":1,\"povoId\":1}   | nome",
-            "/aldeia/editar         | {\"id\":999999,\"nome\":\"Aldeia\",\"povoId\":1}                   | terraIndigenaId",
-            "/escola/editar         | {\"id\":999999,\"codigo\":\"1\",\"nome\":\" \",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":1} | nome",
-            "/infraestrutura/editar | {\"id\":999999}                                                    | registroAnualId",
-            "/matriculaNivel/editar | {\"id\":999999,\"registroId\":1,\"nivel\":\"\"}                     | nivel",
-            "/municipio/editar      | {\"id\":999999,\"nome\":\"\"}                                      | nome",
-            "/povo/editar           | {\"id\":999999,\"nome\":\"\"}                                      | nome",
-            "/terra/editar          | {\"id\":999999,\"nome\":\"Terra\"}                                 | municipioId"
+            "/aldeias/999999         | {\"id\":999999,\"nome\":\"\",\"terraIndigenaId\":1,\"povoId\":1}   | nome",
+            "/aldeias/999999         | {\"id\":999999,\"nome\":\"Aldeia\",\"povoId\":1}                   | terraIndigenaId",
+            "/escolas/999999         | {\"id\":999999,\"codigo\":\"1\",\"nome\":\" \",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":1} | nome",
+            "/infraestruturas/999999 | {\"id\":999999}                                                    | registroAnualId",
+            "/matriculas-nivel/999999 | {\"id\":999999,\"registroId\":1,\"nivel\":\"\"}                     | nivel",
+            "/municipios/999999      | {\"id\":999999,\"nome\":\"\"}                                      | nome",
+            "/povos/999999           | {\"id\":999999,\"nome\":\"\"}                                      | nome",
+            "/terras-indigenas/999999          | {\"id\":999999,\"nome\":\"Terra\"}                                 | municipioId"
     })
     void edicaoComCampoObrigatorioInvalidoDeveResponder400(String rota, String corpo, String campo) throws Exception {
         mvc.perform(put(rota)

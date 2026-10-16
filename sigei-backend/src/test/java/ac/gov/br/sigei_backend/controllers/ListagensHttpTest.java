@@ -93,18 +93,18 @@ class ListagensHttpTest {
         registro(escolas.findById(a.getEscola().getId()).orElseThrow(), outroAno);
 
         // Pelo nome da escola, dentro do ano
-        listar("/registroAnual?ano=" + ANO + "&municipioId=" + municipio.getId() + "&tamanho=2")
+        listar("/registros-anuais?ano=" + ANO + "&municipioId=" + municipio.getId() + "&tamanho=2")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.itens[*].id").value(contains(a.getId().intValue(), b.getId().intValue())))
                 .andExpect(jsonPath("$.pagina").value(0))
                 .andExpect(jsonPath("$.tamanho").value(2))
                 .andExpect(jsonPath("$.totalItens").value(3))
                 .andExpect(jsonPath("$.totalPaginas").value(2));
-        listar("/registroAnual?ano=" + ANO + "&municipioId=" + municipio.getId() + "&tamanho=2&pagina=1")
+        listar("/registros-anuais?ano=" + ANO + "&municipioId=" + municipio.getId() + "&tamanho=2&pagina=1")
                 .andExpect(jsonPath("$.itens[*].id").value(contains(c.getId().intValue())));
 
         // Uma escola em todos os anos: do mais recente ao mais antigo
-        listar("/registroAnual?escolaId=" + a.getEscola().getId())
+        listar("/registros-anuais?escolaId=" + a.getEscola().getId())
                 .andExpect(jsonPath("$.itens[*].anoReferencia.ano").value(contains(OUTRO_ANO, ANO)));
     }
 
@@ -118,13 +118,13 @@ class ListagensHttpTest {
         LotacaoProfessor anoSeguinte = lotacao(professor, escola, outroAno);
 
         // Núcleo antes das escolas; vaga sem professor no fim
-        listar("/lotacao?ano=" + ANO + "&municipioId=" + municipio.getId())
+        listar("/lotacoes?ano=" + ANO + "&municipioId=" + municipio.getId())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.itens[*].id").value(contains(
                         noNucleo.getId().intValue(), naEscola.getId().intValue(), vaga.getId().intValue())))
                 .andExpect(jsonPath("$.totalItens").value(3));
 
-        listar("/lotacao?professorId=" + professor.getId() + "&tamanho=1")
+        listar("/lotacoes?professorId=" + professor.getId() + "&tamanho=1")
                 .andExpect(jsonPath("$.itens[*].id").value(contains(anoSeguinte.getId().intValue())))
                 .andExpect(jsonPath("$.totalItens").value(3))
                 .andExpect(jsonPath("$.totalPaginas").value(3));
@@ -132,10 +132,10 @@ class ListagensHttpTest {
 
     @Test
     void paginacaoInvalidaResponde400() throws Exception {
-        listar("/registroAnual?tamanho=101")
+        listar("/registros-anuais?tamanho=101")
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("O tamanho da página deve estar entre 1 e 100."));
-        listar("/lotacao?pagina=-1")
+        listar("/lotacoes?pagina=-1")
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("A página deve ser zero ou maior."));
     }
@@ -150,11 +150,11 @@ class ListagensHttpTest {
             lotacao(i % 3 == 0 ? null : professor, escola, ano);
         }
 
-        assertConsultasLimitadas("/registroAnual/buscarPorAno?ano=" + ANO);
-        assertConsultasLimitadas("/registroAnual?ano=" + ANO);
-        assertConsultasLimitadas("/lotacao/buscarPorAno?ano=" + ANO);
-        assertConsultasLimitadas("/lotacao?ano=" + ANO);
-        assertConsultasLimitadas("/escola");
+        assertConsultasLimitadas("/anos/" + ANO + "/registros-anuais");
+        assertConsultasLimitadas("/registros-anuais?ano=" + ANO);
+        assertConsultasLimitadas("/anos/" + ANO + "/lotacoes");
+        assertConsultasLimitadas("/lotacoes?ano=" + ANO);
+        assertConsultasLimitadas("/escolas");
     }
 
     /** Com 12 registros, uma consulta por registro passaria de 12; o lote mantém poucas. */

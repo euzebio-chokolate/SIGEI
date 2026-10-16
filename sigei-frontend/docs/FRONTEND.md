@@ -150,21 +150,22 @@ Serviços HTTP e rotas consumidas:
 
 | Serviço | Base | Operações usadas |
 | --- | --- | --- |
-| `EscolaService` | `/escola` | listar, `GET /{id}`, salvar, editar, excluir |
-| `RegistroAnualService` | `/registroAnual` | CRUD, `buscarPorAno`, `buscarPorEscolaEAno`, `historico` |
-| `EquipeEscolaService` | `/equipe` | salvar, editar |
-| `InfraestruturaService` | `/infraestrutura` | listar, salvar, editar, excluir, `POST /{id}/foto`, `DELETE /{id}/foto` |
-| `MatriculaNivelService` | `/matriculaNivel` | CRUD |
-| `MatriculaSerieService` | `/matriculaSerie` | CRUD |
-| `AnoReferenciaService` | `/anos` | listar, salvar |
-| `AtualizacaoAnualService` | `/atualizacao-anual` | `POST /iniciar` (resposta em texto) |
-| `MunicipioService` | `/municipio` | `GET /estatisticas` |
-| `TerraIndigenaService` | `/terra` | `GET /estatisticas`, `GET /{id}`, salvar, editar, excluir |
-| `AldeiaService` | `/aldeia` | CRUD e `GET /{id}` |
-| `PovoService` | `/povo` | CRUD e `GET /{id}` |
-| `UsuarioService` | `/usuario` | CRUD e `GET /{id}` |
+| `EscolaService` | `/escolas` | listar, `GET /{id}`, `GET /{id}/historico`, salvar, editar (`PUT /{id}`), excluir, `POST /cadastro-completo`, `PUT /{id}/cadastro-completo` |
+| `RegistroAnualService` | `/registros-anuais` | salvar, editar, excluir; `buscarPorAno` (`GET /anos/{ano}/registros-anuais`), `buscarPorEscolaEAno` (`GET /escolas/{id}/registros-anuais/{ano}`), `buscarHistorico` (`GET /escolas/{id}/registros-anuais`) |
+| `EquipeEscolaService` | `/equipes` | salvar, editar |
+| `InfraestruturaService` | `/infraestruturas` | listar, `GET /mais-recentes`, salvar, editar, excluir, `POST /{id}/foto` |
+| `MatriculaNivelService` | `/matriculas-nivel` | CRUD |
+| `MatriculaSerieService` | `/matriculas-serie` | CRUD |
+| `AnoReferenciaService` | `/anos-referencia` | listar, salvar, `iniciarProximo` (`POST /proximo`, devolve o ano criado) |
+| `MunicipioService` | `/municipios` | listar, `GET /estatisticas` |
+| `TerraIndigenaService` | `/terras-indigenas` | `GET /estatisticas`, `GET /{id}`, salvar, editar, excluir |
+| `AldeiaService` | `/aldeias` | CRUD e `GET /{id}` |
+| `PovoService` | `/povos` | CRUD e `GET /{id}` |
+| `UsuarioService` | `/usuarios` | CRUD e `GET /{id}` |
+| `ProfessorService` | `/professores` | CRUD e `GET /{id}` |
+| `LotacaoProfessorService` | `/lotacoes` | CRUD, `GET /{id}`, `listarPorAno` (`GET /anos/{ano}/lotacoes`), `listarPorProfessor` (`GET /professores/{id}/lotacoes`), `listarPorEscolaEAno` (coleção paginada) |
 | `DashboardService` | `/dashboard` | `GET` com `ano` opcional |
-| `AuthService` | `/auth` | `POST /login`, `POST /refresh`, `POST /logout`, `PUT /alterar-senha` |
+| `AuthService` | `/auth` | `POST /login`, `POST /refresh`, `POST /logout`, `PUT /senha` |
 
 ## Telas
 
@@ -172,7 +173,7 @@ Serviços HTTP e rotas consumidas:
 
 `features/mapa-publico`. É a página inicial e não exige login.
 
-- Carrega `GET /infraestrutura`, rota pública, porque cada registro de
+- Carrega `GET /infraestruturas/mais-recentes`, rota pública, porque cada registro de
   infraestrutura traz as coordenadas, a situação e os dados resumidos da escola.
 - Centro inicial: `[-8.77, -70.55]`, zoom 7 (estado do Acre).
 - Camadas de fundo: OpenStreetMap (padrão), Esri World Imagery (satélite),
@@ -259,7 +260,7 @@ registro correspondente, se houver. Os demais anos não são alterados.
 ### Abertura de novo ano
 
 Na lista de escolas, o administrador confirma um modal que chama
-`POST /atualizacao-anual/iniciar`. O backend cria o ano seguinte e copia o
+`POST /anos-referencia/proximo` (`AnoReferenciaService.iniciarProximo`). O backend cria o ano seguinte e copia o
 último registro de cada escola (ver `AtualizacaoAnualService` no backend).
 
 ### Histórico de escolas
@@ -267,7 +268,7 @@ Na lista de escolas, o administrador confirma um modal que chama
 `features/admin/historico-escolas`. Tem dois modos:
 
 - **Por ano:** lista os registros de um ano (`buscarPorAno`), com filtro de texto e paginação.
-- **Por escola:** consulta `GET /registroAnual/historico?escolaId=&anoInicial=&anoFinal=`
+- **Por escola:** consulta `GET /escolas/{id}/registros-anuais?anoInicial=&anoFinal=`
   e mostra a evolução ano a ano. O `escolaId` fica na URL, então voltar de uma
   edição reabre a mesma consulta.
 
@@ -318,9 +319,6 @@ código em 29/09/2026:
 
 | Ponto | Efeito | Local |
 | --- | --- | --- |
-| `DELETE /infraestrutura/{id}/foto` não existe no backend | Remover a foto de uma escola já cadastrada e salvar dá erro, depois de escola, registro e demais dados já terem sido gravados | `infraestrutura.service.ts`, `escola-form.component.ts` |
-| `GET /infraestrutura` devolve os registros de todos os anos | Uma escola com mais de um ano cadastrado aparece com vários marcadores no mapa público | `mapa-publico.component.ts` |
-| `MunicipioService.buscarPorId()` usa `/municipio/{id}`, rota que não existe (`listar()` foi corrigido para `GET /municipio` e é usado pela tela de relatórios) | Nenhum, porque o método não é chamado; é código morto | `municipio.service.ts` |
 | Porta do proxy (8081) diferente da porta padrão do backend (8080) | `npm start` não alcança a API sem ajuste | `proxy.conf.json` |
 | `environment.production.ts` usa a URL do backend, mas o README descreve o uso de `/api` via Nginx | No Docker, o proxy `/api` do Nginx não é usado pelo build de produção | `environment.production.ts`, `README.md` |
 

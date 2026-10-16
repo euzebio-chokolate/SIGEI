@@ -159,7 +159,7 @@ public class EscolaServiceTest {
         when(escolaRepository.save(any(Escola.class))).thenReturn(escolaSalva);
         lenient().when(escolaMapper.converter(escolaSalva)).thenReturn(responseMock);
 
-        EscolaResponseDTO resultado = escolaService.editar(requestDTO);
+        EscolaResponseDTO resultado = escolaService.editar(requestDTO.id(), requestDTO);
 
         assertNotNull(resultado);
         assertSame(escolaSede, escolaExistente.getEscolaSede());
@@ -176,7 +176,7 @@ public class EscolaServiceTest {
         doNothing().when(escolaMapper).atualizar(requestDTO, escolaExistente);
         when(escolaRepository.save(any(Escola.class))).thenReturn(new Escola());
 
-        escolaService.editar(requestDTO);
+        escolaService.editar(requestDTO.id(), requestDTO);
 
         verify(escolaRepository, times(1)).findById(1L);
         verify(escolaRepository, times(1)).save(escolaExistente);
@@ -187,7 +187,7 @@ public class EscolaServiceTest {
         EscolaRequestDTO requestDTO = new EscolaRequestDTO(99L, "123", "Escola Editada", "ANEXO", 2L, 1L);
         when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO.id(), requestDTO));
         assertEquals("Escola não encontrada", erro.getMessage());
         verify(escolaRepository, never()).save(any(Escola.class));
     }
@@ -198,7 +198,7 @@ public class EscolaServiceTest {
         when(escolaRepository.findById(1L)).thenReturn(Optional.of(new Escola()));
         when(aldeiaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO.id(), requestDTO));
         assertEquals("Aldeia não encontrada", erro.getMessage());
         verify(escolaRepository, never()).save(any(Escola.class));
     }
@@ -210,7 +210,7 @@ public class EscolaServiceTest {
         when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(new Aldeia()));
         when(escolaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> escolaService.editar(requestDTO.id(), requestDTO));
         assertEquals("Escola sede não encontrada", erro.getMessage());
         verify(escolaRepository, never()).save(any(Escola.class));
     }
@@ -310,7 +310,7 @@ public class EscolaServiceTest {
             prepararAldeia();
 
             assertRecusado("A escola não pode ser sede de si mesma.",
-                    () -> escolaService.editar(dto));
+                    () -> escolaService.editar(dto.id(), dto));
         }
 
         @Test
@@ -325,7 +325,7 @@ public class EscolaServiceTest {
             when(escolaRepository.existsByEscolaSede_Id(1L)).thenReturn(true);
 
             assertRecusado("A escola possui anexos vinculados e não pode passar a ser do tipo ANEXO.",
-                    () -> escolaService.editar(dto));
+                    () -> escolaService.editar(dto.id(), dto));
         }
     }
 }

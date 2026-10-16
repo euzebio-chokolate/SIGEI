@@ -4,6 +4,9 @@ import ac.gov.br.sigei_backend.exceptions.handler.ManipuladorGlobalException;
 import ac.gov.br.sigei_backend.mappers.RegistroAnualMapper;
 import ac.gov.br.sigei_backend.models.*;
 import ac.gov.br.sigei_backend.repository.RegistroAnualRepository;
+import ac.gov.br.sigei_backend.service.CadastroEscolaService;
+import ac.gov.br.sigei_backend.service.EscolaService;
+import ac.gov.br.sigei_backend.service.HistoricoEscolaService;
 import ac.gov.br.sigei_backend.service.RegistroAnualService;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +20,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -27,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DataJpaTest(showSql = false)
 @ActiveProfiles("test")
-@Import({RegistroAnualService.class, RegistroAnualController.class, RegistroAnualHistoricoTest.MappersConfig.class})
+@Import({RegistroAnualService.class, RegistroAnualController.class, EscolaController.class, RegistroAnualHistoricoTest.MappersConfig.class})
 class RegistroAnualHistoricoTest {
     @TestConfiguration
     @ComponentScan(basePackageClasses = RegistroAnualMapper.class)
@@ -35,6 +39,11 @@ class RegistroAnualHistoricoTest {
 
     @Autowired EntityManager entityManager;
     @Autowired RegistroAnualController controller;
+    @Autowired EscolaController escolaController;
+    // A rota dos registros de uma escola fica em EscolaController; os demais services dele não são usados aqui
+    @MockitoBean EscolaService escolaService;
+    @MockitoBean CadastroEscolaService cadastroEscolaService;
+    @MockitoBean HistoricoEscolaService historicoEscolaService;
     @Autowired RegistroAnualRepository repository;
     private MockMvc mvc;
     private Escola escola;
@@ -43,7 +52,7 @@ class RegistroAnualHistoricoTest {
 
     @BeforeEach
     void preparar() {
-        mvc = MockMvcBuilders.standaloneSetup(controller)
+        mvc = MockMvcBuilders.standaloneSetup(controller, escolaController)
                 .setControllerAdvice(new ManipuladorGlobalException()).build();
         escola = new Escola();
         escola.setNome("Escola histórica");
@@ -81,7 +90,7 @@ class RegistroAnualHistoricoTest {
 
     @Test
     void retornaHistoricoCronologicoSomenteDaEscolaComDadosDeCadaAno() throws Exception {
-        mvc.perform(get("/registroAnual/historico").param("escolaId", escola.getId().toString()))
+        mvc.perform(get("/escolas/" + escola.getId() + "/registros-anuais"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].anoReferencia.ano", contains(1990, 1992, 2026)))
                 .andExpect(jsonPath("$[0].totalAlunos").value(40))
@@ -97,7 +106,7 @@ class RegistroAnualHistoricoTest {
     @ParameterizedTest
     @CsvSource({"1990,1992,2", "1990,1990,1", "1991,2025,1", "1991,,2", ",1992,2", "2000,2005,0"})
     void filtraPeriodoComLimitesInclusivosEOpcionais(Integer inicio, Integer fim, int quantidade) throws Exception {
-        var request = get("/registroAnual/historico").param("escolaId", escola.getId().toString());
+        var request = get("/escolas/" + escola.getId() + "/registros-anuais");
         if (inicio != null) request.param("anoInicial", inicio.toString());
         if (fim != null) request.param("anoFinal", fim.toString());
         mvc.perform(request).andExpect(status().isOk()).andExpect(jsonPath("$", hasSize(quantidade)));
@@ -106,18 +115,17 @@ class RegistroAnualHistoricoTest {
     @ParameterizedTest
     @CsvSource({"2026,1990", "0,1990", "1990,-1"})
     void rejeitaPeriodoInvalido(String inicio, String fim) throws Exception {
-        mvc.perform(get("/registroAnual/historico").param("escolaId", escola.getId().toString())
+        mvc.perform(get("/escolas/" + escola.getId() + "/registros-anuais")
                         .param("anoInicial", inicio).param("anoFinal", fim))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void validaEscolaEFormatoDosParametros() throws Exception {
-        mvc.perform(get("/registroAnual/historico")).andExpect(status().isBadRequest());
-        mvc.perform(get("/registroAnual/historico").param("escolaId", "0")).andExpect(status().isBadRequest());
-        mvc.perform(get("/registroAnual/historico").param("escolaId", "999999"))
+        mvc.perform(get("/escolas/0/registros-anuais")).andExpect(status().isBadRequest());
+        mvc.perform(get("/escolas/999999/registros-anuais"))
                 .andExpect(status().isNotFound());
-        mvc.perform(get("/registroAnual/historico").param("escolaId", escola.getId().toString())
+        mvc.perform(get("/escolas/" + escola.getId() + "/registros-anuais")
                 .param("anoInicial", "abc")).andExpect(status().isBadRequest());
     }
 
@@ -125,7 +133,7 @@ class RegistroAnualHistoricoTest {
     void escolaSemRegistrosRetornaListaVazia() throws Exception {
         Escola vazia = new Escola();
         entityManager.persist(vazia);
-        mvc.perform(get("/registroAnual/historico").param("escolaId", vazia.getId().toString()))
+        mvc.perform(get("/escolas/" + vazia.getId() + "/registros-anuais"))
                 .andExpect(status().isOk()).andExpect(content().json("[]"));
     }
 
@@ -138,14 +146,14 @@ class RegistroAnualHistoricoTest {
                 {"escolaId": %d, "anoReferenciaId": %d, "rede": "Estadual",
                  "localFuncionamento": "Rural", "totalAlunos": 55}
                 """.formatted(escola.getId(), ano.getId());
-        mvc.perform(post("/registroAnual/salvar").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/registros-anuais").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.totalAlunos").value(55))
                 .andExpect(jsonPath("$.anoReferencia.ano").value(1991));
         entityManager.flush();
         entityManager.clear();
         assertEquals(55, repository.findByEscolaAndAnoReferencia_Ano(escola, 1991).orElseThrow().getTotalAlunos());
         assertEquals(230, repository.findById(atual.getId()).orElseThrow().getTotalAlunos());
-        mvc.perform(post("/registroAnual/salvar").contentType(MediaType.APPLICATION_JSON).content(body))
+        mvc.perform(post("/registros-anuais").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isConflict());
     }
 
@@ -158,10 +166,10 @@ class RegistroAnualHistoricoTest {
                 {"escolaId": %d, "anoReferenciaId": %d, "rede": "Estadual",
                  "localFuncionamento": "Rural"%s}
                 """;
-        mvc.perform(post("/registroAnual/salvar").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/registros-anuais").contentType(MediaType.APPLICATION_JSON)
                         .content(body.formatted(escola.getId(), ano.getId(), ", \"totalAlunos\": -1")))
                 .andExpect(status().isBadRequest());
-        mvc.perform(post("/registroAnual/salvar").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/registros-anuais").contentType(MediaType.APPLICATION_JSON)
                         .content(body.formatted(escola.getId(), ano.getId(), "")))
                 .andExpect(status().isCreated()).andExpect(jsonPath("$.totalAlunos").value(nullValue()));
     }
@@ -172,12 +180,12 @@ class RegistroAnualHistoricoTest {
                 {"id": %d, "escolaId": %d, "anoReferenciaId": %d, "rede": "Estadual",
                  "localFuncionamento": "Rural"%s}
                 """;
-        mvc.perform(put("/registroAnual/editar").contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/registros-anuais/" + antigo.getId()).contentType(MediaType.APPLICATION_JSON)
                         .content(body.formatted(antigo.getId(), escola.getId(), antigo.getAnoReferencia().getId(), "")))
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.totalAlunos").value(40));
-        mvc.perform(put("/registroAnual/editar").contentType(MediaType.APPLICATION_JSON)
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalAlunos").value(40));
+        mvc.perform(put("/registros-anuais/" + antigo.getId()).contentType(MediaType.APPLICATION_JSON)
                         .content(body.formatted(antigo.getId(), escola.getId(), antigo.getAnoReferencia().getId(), ", \"totalAlunos\": 0")))
-                .andExpect(status().isCreated()).andExpect(jsonPath("$.totalAlunos").value(0));
+                .andExpect(status().isOk()).andExpect(jsonPath("$.totalAlunos").value(0));
         entityManager.flush();
         entityManager.clear();
         assertEquals(0, repository.findById(antigo.getId()).orElseThrow().getTotalAlunos());

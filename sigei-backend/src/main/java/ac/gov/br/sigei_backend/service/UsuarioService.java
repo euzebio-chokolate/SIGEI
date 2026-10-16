@@ -63,8 +63,8 @@ public class UsuarioService {
         return usuarioMapper.converter(usuario);
     }
 
-    public UsuarioResponseDTO editar(UsuarioRequestDTO dto) {
-        Usuario usuario = usuarioRepository.findById(dto.id())
+    public UsuarioResponseDTO editar(Long id, UsuarioRequestDTO dto) {
+        Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Usuário não encontrado"));
 
         String email = EmailUtils.normalizar(dto.email());

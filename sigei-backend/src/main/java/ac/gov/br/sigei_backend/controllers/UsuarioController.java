@@ -20,14 +20,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/usuario")
+@RequestMapping("/usuarios")
 @Tag(name = "Usuários", description = "Endpoints para gerenciamento de usuários")
 public class UsuarioController {
 
     @Autowired
     UsuarioService usuarioService;
 
-    @PostMapping("/salvar")
+    @PostMapping
     @Operation(summary = "Salvar usuário",
             description = "Cadastra um novo registro de usuário com os dados informados no corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
@@ -49,7 +49,7 @@ public class UsuarioController {
         );
     }
 
-    @GetMapping("")
+    @GetMapping
     @Operation(summary = "Buscar usuários",
             description = "Retorna todos os registros de usuários. Retorna uma lista vazia quando não há cadastros. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
@@ -90,9 +90,9 @@ public class UsuarioController {
         );
     }
 
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     @Operation(summary = "Editar usuário",
-            description = "Atualiza os dados de usuário identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")
+            description = "Atualiza os dados de usuário identificado pelo ID informado no caminho. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -102,10 +102,11 @@ public class UsuarioController {
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
     public ResponseEntity<UsuarioResponseDTO> editar(
+            @Parameter(description = "ID de usuário", example = "1") @PathVariable Long id,
             @Valid @RequestBody UsuarioRequestDTO dto) {
 
         UsuarioResponseDTO usuario =
-                usuarioService.editar(dto);
+                usuarioService.editar(id, dto);
 
         return new ResponseEntity<>(
                 usuario,
@@ -113,23 +114,21 @@ public class UsuarioController {
         );
     }
 
-    @DeleteMapping("/excluir/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Excluir usuário",
             description = "Remove o registro de usuário pelo ID. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso", content = @Content),
+            @ApiResponse(responseCode = "204", description = "Registro excluído", content = @Content),
             @ApiResponse(responseCode = "400", description = "ID em formato inválido", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "409", description = "O registro possui vínculos que impedem a exclusão", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<?> excluir(@Parameter(description = "ID do registro de usuário", example = "1") @PathVariable Long id) {
+    public ResponseEntity<Void> excluir(@Parameter(description = "ID do registro de usuário", example = "1") @PathVariable Long id) {
 
         usuarioService.excluir(id);
 
-        return new ResponseEntity<>(
-                HttpStatus.OK
-        );
+        return ResponseEntity.noContent().build();
     }
 }

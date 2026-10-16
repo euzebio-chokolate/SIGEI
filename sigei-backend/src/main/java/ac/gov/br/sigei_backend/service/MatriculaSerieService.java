@@ -39,9 +39,9 @@ public class MatriculaSerieService {
         return matriculaSerieRepository.findAll().stream().map(matriculaSerieMapper::converter).toList();
     }
 
-    public MatriculaSerieResponseDTO editar(MatriculaSerieRequestDTO matriculaSerieDTO){
+    public MatriculaSerieResponseDTO editar(Long id, MatriculaSerieRequestDTO matriculaSerieDTO){
 
-        MatriculaSerie matriculaSerie = matriculaSerieRepository.findById(matriculaSerieDTO.id())
+        MatriculaSerie matriculaSerie = matriculaSerieRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Matrícula não encontrada"));
 
         RegistroAnual registroAnual = registroRepository.findById(matriculaSerieDTO.registroId())

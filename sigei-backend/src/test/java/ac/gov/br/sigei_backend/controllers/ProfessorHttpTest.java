@@ -96,25 +96,25 @@ class ProfessorHttpTest {
         long id = criarProfessor(CPF, "MAT-1");
         long lotacaoId = criarLotacao(id, "CT-2026-15");
 
-        mvc.perform(get("/professor/" + id).header(HttpHeaders.AUTHORIZATION, bearer(admin)))
+        mvc.perform(get("/professores/" + id).header(HttpHeaders.AUTHORIZATION, bearer(admin)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.cpf").value(CPF))
                 .andExpect(jsonPath("$.matricula").value("MAT-1"));
 
-        mvc.perform(get("/professor/" + id).header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
+        mvc.perform(get("/professores/" + id).header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("Maria Professora"))
                 .andExpect(jsonPath("$.cpf").doesNotExist())
                 .andExpect(jsonPath("$.matricula").doesNotExist());
 
-        mvc.perform(get("/professor").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
+        mvc.perform(get("/professores").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
                 .andExpect(status().isOk())
                 .andExpect(content().string(not(containsString(CPF))));
 
-        mvc.perform(get("/lotacao/" + lotacaoId).header(HttpHeaders.AUTHORIZATION, bearer(admin)))
+        mvc.perform(get("/lotacoes/" + lotacaoId).header(HttpHeaders.AUTHORIZATION, bearer(admin)))
                 .andExpect(jsonPath("$.numeroContrato").value("CT-2026-15"));
 
-        mvc.perform(get("/lotacao/buscarPorAno").param("ano", "2026").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
+        mvc.perform(get("/anos/2026/lotacoes").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].professor.nome").value("Maria Professora"))
                 .andExpect(jsonPath("$[0].numeroContrato").doesNotExist());
@@ -122,13 +122,13 @@ class ProfessorHttpTest {
 
     @Test
     void gravacaoDeveSerRestritaAoAdministrador() throws Exception {
-        mvc.perform(post("/professor/salvar")
+        mvc.perform(post("/professores")
                         .header(HttpHeaders.AUTHORIZATION, bearer(leitor))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Tentativa\"}"))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(get("/professor"))
+        mvc.perform(get("/professores"))
                 .andExpect(status().isUnauthorized());
 
         mvc.perform(post("/importacoes/professores").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
@@ -139,14 +139,14 @@ class ProfessorHttpTest {
     void cpfInvalidoOuRepetidoDeveSerRecusadoSemRepetirOValor() throws Exception {
         criarProfessor(CPF, null);
 
-        mvc.perform(post("/professor/salvar")
+        mvc.perform(post("/professores")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Outra\",\"cpf\":\"529.982.247-25\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("CPF já cadastrado para outro professor."));
 
-        mvc.perform(post("/professor/salvar")
+        mvc.perform(post("/professores")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Outra\",\"cpf\":\"123.456.789-00\"}"))
@@ -156,14 +156,14 @@ class ProfessorHttpTest {
 
     @Test
     void lotacaoSemEscolaExigeMunicipioEVagaDispensaProfessor() throws Exception {
-        mvc.perform(post("/lotacao/salvar")
+        mvc.perform(post("/lotacoes")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"anoReferenciaId\":%d,\"segmento\":\"1º AO 5º ANO\"}".formatted(ano.getId())))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail").value("Informe a escola ou, para lotação no núcleo, o município"));
 
-        mvc.perform(post("/lotacao/salvar")
+        mvc.perform(post("/lotacoes")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"anoReferenciaId\":%d,\"municipioId\":%d,\"tipoContrato\":\"temporario\"}"
@@ -171,7 +171,7 @@ class ProfessorHttpTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.detail", containsString("Tipo de contrato inválido")));
 
-        mvc.perform(post("/lotacao/salvar")
+        mvc.perform(post("/lotacoes")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"anoReferenciaId\":%d,\"municipioId\":%d,\"tipoContrato\":\"contrato direto\"}"
@@ -188,14 +188,14 @@ class ProfessorHttpTest {
         long id = criarProfessor(null, null);
         criarLotacao(id, null);
 
-        mvc.perform(delete("/professor/excluir/" + id).header(HttpHeaders.AUTHORIZATION, bearer(admin)))
+        mvc.perform(delete("/professores/" + id).header(HttpHeaders.AUTHORIZATION, bearer(admin)))
                 .andExpect(status().isNoContent());
 
         assertEquals(0, lotacoes.count());
     }
 
     private long criarProfessor(String cpf, String matricula) throws Exception {
-        String corpo = mvc.perform(post("/professor/salvar")
+        String corpo = mvc.perform(post("/professores")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -208,7 +208,7 @@ class ProfessorHttpTest {
     }
 
     private long criarLotacao(long professorId, String numeroContrato) throws Exception {
-        String corpo = mvc.perform(post("/lotacao/salvar")
+        String corpo = mvc.perform(post("/lotacoes")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""

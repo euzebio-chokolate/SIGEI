@@ -88,7 +88,7 @@ public class EquipeEscolaServiceTest {
   when(equipeEscolaRepository.save(any(EquipeEscola.class))).thenReturn(equipeSalva);
   lenient().when(equipeEscolaMapper.converter(equipeSalva)).thenReturn(responseMock);
 
-  EquipeEscolaResponseDTO resultado = equipeEscolaService.editar(requestDTO);
+  EquipeEscolaResponseDTO resultado = equipeEscolaService.editar(requestDTO.id(), requestDTO);
 
   assertNotNull(resultado);
   verify(equipeEscolaRepository, times(1)).findById(1L);
@@ -102,7 +102,7 @@ public class EquipeEscolaServiceTest {
 
   when(equipeEscolaRepository.findById(99L)).thenReturn(Optional.empty());
 
-  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO));
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO.id(), requestDTO));
 
   assertEquals("Equipe escolar não encontrada", erro.getMessage());
   verify(registroAnualRepository, never()).findById(anyLong());
@@ -119,7 +119,7 @@ public class EquipeEscolaServiceTest {
   when(equipeEscolaRepository.findById(1L)).thenReturn(Optional.of(equipeExistente));
   when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
 
-  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO));
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> equipeEscolaService.editar(requestDTO.id(), requestDTO));
 
   assertEquals("Registro anual não encontrado", erro.getMessage());
   verify(equipeEscolaRepository, never()).save(any(EquipeEscola.class));

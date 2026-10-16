@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/terra")
+@RequestMapping("/terras-indigenas")
 @Tag(name = "Terras Indígenas", description = "Endpoints para gerenciamento de terras indígenas")
 public class TerraIndigenaController {
 
     @Autowired
     TerraIndigenaService terraIndigenaService;
 
-    @PostMapping("/salvar")
+    @PostMapping
     @Operation(summary = "Salvar terra indígena",
             description = "Cadastra um novo registro de terra indígena com os dados informados no corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
@@ -91,9 +91,9 @@ public class TerraIndigenaController {
         );
     }
 
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     @Operation(summary = "Editar terra indígena",
-            description = "Atualiza os dados de terra indígena identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")
+            description = "Atualiza os dados de terra indígena identificado pelo ID informado no caminho. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -103,16 +103,16 @@ public class TerraIndigenaController {
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
 
-    public ResponseEntity<TerraIndigenaResponseDTO> editar(@Valid @RequestBody TerraIndigenaRequestDTO terraIndigenaDTO) {
-        TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.editar(terraIndigenaDTO);
+    public ResponseEntity<TerraIndigenaResponseDTO> editar(@Parameter(description = "ID de terra indígena", example = "1") @PathVariable Long id, @Valid @RequestBody TerraIndigenaRequestDTO terraIndigenaDTO) {
+        TerraIndigenaResponseDTO terraIndigenaResponseDTO = terraIndigenaService.editar(id, terraIndigenaDTO);
         return new ResponseEntity<>(terraIndigenaResponseDTO, HttpStatus.OK);
     }
 
-    @DeleteMapping("/excluir/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Excluir terra indígena",
             description = "Remove o registro de terra indígena pelo ID. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso", content = @Content),
+            @ApiResponse(responseCode = "204", description = "Registro excluído", content = @Content),
             @ApiResponse(responseCode = "400", description = "ID em formato inválido", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "409", description = "O registro possui vínculos que impedem a exclusão", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -121,6 +121,6 @@ public class TerraIndigenaController {
     })
     public ResponseEntity<Void> excluir(@Parameter(description = "ID da terra indígena", example = "1") @PathVariable Long id) {
         terraIndigenaService.excluir(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -20,14 +20,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/anos")
+@RequestMapping("/anos-referencia")
 @Tag(name = "Anos de Referência", description = "Endpoints para gerenciamento de anos de referência")
 public class AnoReferenciaController {
 
     @Autowired
     AnoReferenciaService anoReferenciaService;
 
-    @PostMapping("/salvar")
+    @PostMapping
     @Operation(summary = "Salvar ano de referência",
             description = "Cadastra um novo registro de ano de referência com os dados informados no corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
@@ -41,7 +41,23 @@ public class AnoReferenciaController {
         return new ResponseEntity<>(anoReferenciaService.salvar(dto), HttpStatus.CREATED);
     }
 
-    @GetMapping("")
+    @PostMapping("/proximo")
+    @Operation(summary = "Iniciar o próximo ano de referência",
+            description = "Cria o ano seguinte ao maior ano cadastrado e copia os últimos registros das escolas, incluindo equipe, infraestrutura e matrículas, "
+                    + "além das lotações de professores do último ano. Escolas sem registro anterior são ignoradas. Retorna o ano criado. Requer perfil ADMIN.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Ano criado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = AnoReferenciaResponseDTO.class))),
+            @ApiResponse(responseCode = "400", description = "O novo ano já foi iniciado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "404", description = "Nenhum ano de referência cadastrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "409", description = "Conflito de integridade ao criar o novo ano", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
+            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
+            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
+    })
+    public ResponseEntity<AnoReferenciaResponseDTO> iniciarProximo() {
+        return new ResponseEntity<>(anoReferenciaService.iniciarProximo(), HttpStatus.CREATED);
+    }
+
+    @GetMapping
     @Operation(summary = "Buscar anos de referência",
             description = "Retorna todos os registros de anos de referência. Retorna uma lista vazia quando não há cadastros. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
@@ -53,9 +69,9 @@ public class AnoReferenciaController {
         return ResponseEntity.ok(anoReferenciaService.buscarTudo());
     }
 
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     @Operation(summary = "Editar ano de referência",
-            description = "Atualiza os dados de ano de referência identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")
+            description = "Atualiza os dados de ano de referência identificado pelo ID informado no caminho. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -64,11 +80,11 @@ public class AnoReferenciaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<AnoReferenciaResponseDTO> editar(@Valid @RequestBody AnoReferenciaRequestDTO dto) {
-        return ResponseEntity.ok(anoReferenciaService.editar(dto));
+    public ResponseEntity<AnoReferenciaResponseDTO> editar(@Parameter(description = "ID de ano de referência", example = "1") @PathVariable Long id, @Valid @RequestBody AnoReferenciaRequestDTO dto) {
+        return ResponseEntity.ok(anoReferenciaService.editar(id, dto));
     }
 
-    @DeleteMapping("/excluir/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Excluir ano de referência",
             description = "Remove o registro de ano de referência pelo ID. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({

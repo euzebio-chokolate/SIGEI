@@ -51,7 +51,7 @@ class AuditoriaHttpTest {
 
     @Test
     void deveListarAsAlteracoesFeitasPeloAdministrador() throws Exception {
-        mvc.perform(post("/povo/salvar")
+        mvc.perform(post("/povos")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"nome\":\"Povo auditado via HTTP\"}"))

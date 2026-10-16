@@ -146,12 +146,8 @@ export class ProfessorFormComponent implements OnInit {
       matricula: valor.matricula.trim() || null
     };
 
-    if (this.editando && this.professorId) {
-      dados.id = this.professorId;
-    }
-
-    const requisicao = this.editando
-      ? this.professorService.editar(dados)
+    const requisicao = this.editando && this.professorId
+      ? this.professorService.editar(this.professorId, dados)
       : this.professorService.salvar(dados);
 
     requisicao.subscribe({

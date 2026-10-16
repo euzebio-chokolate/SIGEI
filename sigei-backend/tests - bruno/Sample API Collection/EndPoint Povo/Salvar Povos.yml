@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8080/povo/salvar
+  url: http://localhost:8080/povos
   body:
     type: json
     data: |-

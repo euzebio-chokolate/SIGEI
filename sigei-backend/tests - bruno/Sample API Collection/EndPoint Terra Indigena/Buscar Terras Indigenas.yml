@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/terra/estatisticas
+  url: http://localhost:8080/terras-indigenas/estatisticas
   auth: inherit
 
 settings:

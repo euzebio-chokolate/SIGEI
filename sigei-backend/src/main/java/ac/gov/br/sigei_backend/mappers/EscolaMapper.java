@@ -20,10 +20,12 @@ public interface EscolaMapper {
     EscolaDetalheResponseDTO converterDetalhe(Escola escola);
     EscolaResumoDTO converterResumo(Escola escola);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "aldeia", ignore = true)
     @Mapping(target = "escolaSede", ignore = true)
     Escola converter(EscolaRequestDTO dto);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "aldeia", ignore = true)
     @Mapping(target = "escolaSede", ignore = true)
     public void atualizar(EscolaRequestDTO dto, @MappingTarget Escola escola);

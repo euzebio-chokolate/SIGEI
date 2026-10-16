@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -145,7 +146,7 @@ class CadastroEscolaServiceTest {
         when(cloudinaryService.uploadImagem(any())).thenThrow(new IOException("rede indisponível"));
         MockMultipartFile foto = new MockMultipartFile("foto", "foto.jpg", "image/jpeg", new byte[]{1, 2, 3});
 
-        assertThrows(IOException.class, () -> service.editar(cadastro(escolaId, ano2025, 99), foto));
+        assertThrows(IOException.class, () -> service.editar(escolaId, cadastro(escolaId, ano2025, 99), foto));
 
         Escola escola = escolas.findById(escolaId).orElseThrow();
         assertEquals(10, registros.findByEscolaAndAnoReferencia_Ano(escola, 2025).orElseThrow().getTotalAlunos());
@@ -179,9 +180,9 @@ class CadastroEscolaServiceTest {
     @Test
     void deveAtualizarAnoExistenteSemDuplicarEPreservarOutrosAnos() throws Exception {
         Long escolaId = service.salvar(cadastro(null, ano2025, 10), null).escola().id();
-        service.editar(cadastro(escolaId, ano2026, 20), null);
+        service.editar(escolaId, cadastro(escolaId, ano2026, 20), null);
 
-        CadastroEscolaResponseDTO resposta = service.editar(cadastro(escolaId, ano2025, 99), null);
+        CadastroEscolaResponseDTO resposta = service.editar(escolaId, cadastro(escolaId, ano2025, 99), null);
 
         assertEquals(99, resposta.registro().totalAlunos());
         assertEquals(1, escolas.count());
@@ -195,8 +196,8 @@ class CadastroEscolaServiceTest {
     }
 
     @Test
-    void deveRejeitarEdicaoSemIdDaEscola() {
-        assertThrows(IllegalArgumentException.class, () -> service.editar(cadastro(null, ano2025, 10), null));
+    void deveRejeitarEdicaoDeEscolaInexistente() {
+        assertThrows(NoSuchElementException.class, () -> service.editar(999L, cadastro(null, ano2025, 10), null));
         assertEquals(0, escolas.count());
     }
 

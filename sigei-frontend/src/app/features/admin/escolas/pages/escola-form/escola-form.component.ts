@@ -739,7 +739,6 @@ if (
 
     const dados: CadastroEscolaRequest = {
       escola: {
-        ...(this.editando && this.escolaId ? { id: this.escolaId } : {}),
         codigo: this.form.controls.codigo.value,
         nome: this.form.controls.nome.value,
         tipoUnidade: this.form.controls.tipoUnidade.value,
@@ -758,8 +757,8 @@ if (
     };
 
     // Uma única requisição: o backend grava todo o cadastro em uma transação
-    const cadastro$ = this.editando
-      ? this.escolaService.editarCompleto(dados, this.fotoEscola)
+    const cadastro$ = this.editando && this.escolaId !== null
+      ? this.escolaService.editarCompleto(this.escolaId, dados, this.fotoEscola)
       : this.escolaService.salvarCompleto(dados, this.fotoEscola);
 
     cadastro$.subscribe({

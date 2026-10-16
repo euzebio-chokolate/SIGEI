@@ -9,13 +9,13 @@ export type { EquipeEscolaRequest, EquipeEscolaResponse } from '../models/equipe
 @Injectable({ providedIn: 'root' })
 export class EquipeEscolaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/equipe`;
+  private readonly apiUrl = `${environment.apiUrl}/equipes`;
 
   salvar(dados: EquipeEscolaRequest): Observable<EquipeEscolaResponse> {
-    return this.http.post<EquipeEscolaResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<EquipeEscolaResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: EquipeEscolaRequest): Observable<EquipeEscolaResponse> {
-    return this.http.put<EquipeEscolaResponse>(`${this.apiUrl}/editar`,dados);
+  editar(id: number, dados: EquipeEscolaRequest): Observable<EquipeEscolaResponse> {
+    return this.http.put<EquipeEscolaResponse>(`${this.apiUrl}/${id}`, dados);
   }
 }

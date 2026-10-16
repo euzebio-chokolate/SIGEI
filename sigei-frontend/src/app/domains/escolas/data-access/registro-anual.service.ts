@@ -9,32 +9,33 @@ export type { AnoReferenciaResumo, RegistroAnualRequest, EscolaRegistroResumo, E
 @Injectable({ providedIn: 'root' })
 export class RegistroAnualService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/registroAnual`;
+  private readonly apiUrl = `${environment.apiUrl}/registros-anuais`;
 
   salvar(dados: RegistroAnualRequest): Observable<RegistroAnualResponse> {
-    return this.http.post<RegistroAnualResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<RegistroAnualResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: RegistroAnualRequest): Observable<RegistroAnualResponse> {
-    return this.http.put<RegistroAnualResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: RegistroAnualRequest): Observable<RegistroAnualResponse> {
+    return this.http.put<RegistroAnualResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  /** Todos os registros do ano, sem paginação; ano é o valor civil (2025), não o ID. */
   buscarPorAno(ano: number): Observable<RegistroAnualResponse[]> {
-    return this.http.get<RegistroAnualResponse[]>(`${this.apiUrl}/buscarPorAno`, { params: {ano} });
+    return this.http.get<RegistroAnualResponse[]>(`${environment.apiUrl}/anos/${ano}/registros-anuais`);
   }
 
   buscarPorEscolaEAno(escolaId: number, ano: number): Observable<RegistroAnualResponse> {
-    return this.http.get<RegistroAnualResponse>(`${this.apiUrl}/buscarPorEscolaEAno`, { params: { escolaId, ano } });
+    return this.http.get<RegistroAnualResponse>(`${environment.apiUrl}/escolas/${escolaId}/registros-anuais/${ano}`);
   }
 
   buscarHistorico(escolaId: number, anoInicial?: number | null, anoFinal?: number | null): Observable<RegistroAnualResponse[]> {
-    const params: Record<string, number> = { escolaId };
+    const params: Record<string, number> = {};
     if (anoInicial) params['anoInicial'] = anoInicial;
     if (anoFinal) params['anoFinal'] = anoFinal;
-    return this.http.get<RegistroAnualResponse[]>(`${this.apiUrl}/historico`, { params });
+    return this.http.get<RegistroAnualResponse[]>(`${environment.apiUrl}/escolas/${escolaId}/registros-anuais`, { params });
   }
 }

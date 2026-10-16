@@ -41,9 +41,9 @@ public class MatriculaNivelService {
         return matriculaNivelRepository.findAll().stream().map(matriculaNivelMapper::converter).toList();
     }
 
-    public MatriculaNivelResponseDTO editar(MatriculaNivelRequestDTO matriculaNivelDTO) {
+    public MatriculaNivelResponseDTO editar(Long id, MatriculaNivelRequestDTO matriculaNivelDTO) {
 
-        MatriculaNivel matricula = matriculaNivelRepository.findById(matriculaNivelDTO.id())
+        MatriculaNivel matricula = matriculaNivelRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Matrícula não encontrada"));
 
         RegistroAnual registro = registroRepository.findById(matriculaNivelDTO.registroId())

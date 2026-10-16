@@ -108,7 +108,7 @@ class AuditoriaServiceTest {
     @Test
     void deveListarAlteracoesDeTodasAsEntidadesComDescricaoDoRegistro() throws Exception {
         Long escolaId = cadastro.salvar(dados(null, "Escola auditada", 10), null).escola().id();
-        cadastro.editar(dados(escolaId, "Escola auditada", 12), null);
+        cadastro.editar(escolaId, dados(escolaId, "Escola auditada", 12), null);
 
         List<AlteracaoHistoricoDTO> alteracoes = buscar(filtro(null, null), 0, 100).alteracoes();
 

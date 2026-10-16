@@ -30,6 +30,9 @@ public class AnoReferenciaService {
     @Autowired
     LotacaoProfessorRepository lotacaoProfessorRepository;
 
+    @Autowired
+    AtualizacaoAnualService atualizacaoAnualService;
+
     public AnoReferenciaResponseDTO salvar(AnoReferenciaRequestDTO dto) {
 
         if (anoReferenciaRepository.existsByAno(dto.ano())) {
@@ -43,6 +46,10 @@ public class AnoReferenciaService {
         return anoReferenciaMapper.converter(anoSalvo);
     }
 
+    public AnoReferenciaResponseDTO iniciarProximo() {
+        return anoReferenciaMapper.converter(atualizacaoAnualService.iniciarNovoAno());
+    }
+
     public List<AnoReferenciaResponseDTO> buscarTudo() {
         return anoReferenciaRepository.findAll()
                 .stream()
@@ -50,9 +57,9 @@ public class AnoReferenciaService {
                 .toList();
     }
 
-    public AnoReferenciaResponseDTO editar(AnoReferenciaRequestDTO dto) {
+    public AnoReferenciaResponseDTO editar(Long id, AnoReferenciaRequestDTO dto) {
 
-        AnoReferencia anoReferencia = anoReferenciaRepository.findById(dto.id())
+        AnoReferencia anoReferencia = anoReferenciaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Ano de referência não encontrado"));
 
         if (anoReferenciaRepository.existsByAnoAndIdNot(dto.ano(), anoReferencia.getId())) {

@@ -12,7 +12,7 @@ const VALIDADE_CACHE_MS = 5 * 60 * 1000;
 @Injectable({ providedIn: 'root' })
 export class AnoReferenciaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/anos`;
+  private readonly apiUrl = `${environment.apiUrl}/anos-referencia`;
 
   /**
    * Os anos mudam raramente e são pedidos por várias telas (escolas, histórico,
@@ -39,7 +39,17 @@ export class AnoReferenciaService {
   }
 
   salvar(ano: number): Observable<AnoReferencia> {
-    return this.http.post<AnoReferencia>(`${this.apiUrl}/salvar`, { ano }).pipe(
+    return this.http.post<AnoReferencia>(this.apiUrl, { ano }).pipe(
+      tap(() => this.invalidar())
+    );
+  }
+
+  /**
+   * Cria o ano seguinte ao maior cadastrado, copiando os últimos registros das
+   * escolas e as lotações do último ano. Retorna o ano criado.
+   */
+  iniciarProximo(): Observable<AnoReferencia> {
+    return this.http.post<AnoReferencia>(`${this.apiUrl}/proximo`, {}).pipe(
       tap(() => this.invalidar())
     );
   }

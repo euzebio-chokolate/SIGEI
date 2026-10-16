@@ -157,7 +157,7 @@ public class InfraestruturaEscolaServiceTest {
   when(infraestruturaRepository.save(any(InfraestruturaEscola.class))).thenReturn(infraSalva);
   lenient().when(infraestruturaMapper.converter(infraSalva)).thenReturn(responseMock);
 
-  InfraestruturaEscolaResponseDTO resultado = infraestruturaEscolaService.editar(requestDTO);
+  InfraestruturaEscolaResponseDTO resultado = infraestruturaEscolaService.editar(requestDTO.id(), requestDTO);
 
   assertNotNull(resultado);
   verify(infraestruturaRepository, times(1)).findById(1L);
@@ -174,7 +174,7 @@ public class InfraestruturaEscolaServiceTest {
 
   when(infraestruturaRepository.findById(99L)).thenReturn(Optional.empty());
 
-  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> infraestruturaEscolaService.editar(requestDTO));
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> infraestruturaEscolaService.editar(requestDTO.id(), requestDTO));
 
   assertEquals("Infraestrutura não encontrada", erro.getMessage());
   verify(registroAnualRepository, never()).findById(anyLong());
@@ -194,7 +194,7 @@ public class InfraestruturaEscolaServiceTest {
   when(infraestruturaRepository.findById(1L)).thenReturn(Optional.of(infraExistente));
   when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
 
-  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> infraestruturaEscolaService.editar(requestDTO));
+  NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> infraestruturaEscolaService.editar(requestDTO.id(), requestDTO));
 
   assertEquals("Registro anual não encontrado", erro.getMessage());
   verify(infraestruturaRepository, never()).save(any(InfraestruturaEscola.class));

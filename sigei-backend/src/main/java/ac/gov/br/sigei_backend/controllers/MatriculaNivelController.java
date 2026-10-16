@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/matriculaNivel")
+@RequestMapping("/matriculas-nivel")
 @Tag(name = "Matrículas por Nível", description = "Endpoints para gerenciamento de matrículas por nível")
 public class MatriculaNivelController {
     @Autowired
     MatriculaNivelService matriculaNivelService;
 
-    @PostMapping("/salvar")
+    @PostMapping
     @Operation(summary = "Salvar matrícula por nível",
             description = "Cadastra um novo registro de matrícula por nível com os dados informados no corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
@@ -37,12 +37,12 @@ public class MatriculaNivelController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity salvar(@Valid @RequestBody MatriculaNivelRequestDTO matriculaNivelDTO){
+    public ResponseEntity<MatriculaNivelResponseDTO> salvar(@Valid @RequestBody MatriculaNivelRequestDTO matriculaNivelDTO){
         MatriculaNivelResponseDTO matriculaNivelResponseDTO = matriculaNivelService.salvar(matriculaNivelDTO);
-        return new ResponseEntity<MatriculaNivelResponseDTO>(matriculaNivelResponseDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(matriculaNivelResponseDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping("")
+    @GetMapping
     @Operation(summary = "Buscar matrículas por nível",
             description = "Retorna todos os registros de matrículas por nível. Retorna uma lista vazia quando não há cadastros. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
@@ -52,12 +52,12 @@ public class MatriculaNivelController {
     })
     public ResponseEntity<List<MatriculaNivelResponseDTO>> buscarTudo(){
         List<MatriculaNivelResponseDTO> matriculaNivelDTOS = matriculaNivelService.buscarTudo();
-        return new ResponseEntity<List<MatriculaNivelResponseDTO>>(matriculaNivelDTOS, HttpStatus.OK);
+        return new ResponseEntity<>(matriculaNivelDTOS, HttpStatus.OK);
     }
 
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     @Operation(summary = "Editar matrícula por nível",
-            description = "Atualiza os dados de matrícula por nível identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")
+            description = "Atualiza os dados de matrícula por nível identificado pelo ID informado no caminho. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MatriculaNivelResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -66,24 +66,24 @@ public class MatriculaNivelController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity editar(@Valid @RequestBody MatriculaNivelRequestDTO matriculaNivelDTO){
-        MatriculaNivelResponseDTO matriculaNivelResponseDTO = matriculaNivelService.editar(matriculaNivelDTO);
-        return new ResponseEntity<MatriculaNivelResponseDTO>(matriculaNivelResponseDTO, HttpStatus.OK);
+    public ResponseEntity<MatriculaNivelResponseDTO> editar(@Parameter(description = "ID de matrícula por nível", example = "1") @PathVariable Long id, @Valid @RequestBody MatriculaNivelRequestDTO matriculaNivelDTO){
+        MatriculaNivelResponseDTO matriculaNivelResponseDTO = matriculaNivelService.editar(id, matriculaNivelDTO);
+        return new ResponseEntity<>(matriculaNivelResponseDTO, HttpStatus.OK);
     }
 
-    @DeleteMapping("/excluir/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Excluir matrícula por nível",
             description = "Remove o registro de matrícula por nível pelo ID. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso", content = @Content),
+            @ApiResponse(responseCode = "204", description = "Registro excluído", content = @Content),
             @ApiResponse(responseCode = "400", description = "ID em formato inválido", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "409", description = "O registro possui vínculos que impedem a exclusão", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<?> excluir(@Parameter(description = "ID do registro de matrícula por nível", example = "1") @PathVariable Long id){
+    public ResponseEntity<Void> excluir(@Parameter(description = "ID do registro de matrícula por nível", example = "1") @PathVariable Long id){
         matriculaNivelService.excluir(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -11,6 +11,7 @@ import org.mapstruct.MappingTarget;
 public interface MatriculaSerieMapper {
     MatriculaSerieResponseDTO converter(MatriculaSerie matriculaSerie);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "registro", ignore = true)
     MatriculaSerie converter(MatriculaSerieRequestDTO dto);
 

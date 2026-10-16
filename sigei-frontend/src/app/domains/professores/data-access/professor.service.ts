@@ -9,7 +9,7 @@ export type { ProfessorRequest, ProfessorResponse } from '../models/professor.mo
 @Injectable({ providedIn: 'root' })
 export class ProfessorService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/professor`;
+  private readonly apiUrl = `${environment.apiUrl}/professores`;
 
   listar(): Observable<ProfessorResponse[]> {
     return this.http.get<ProfessorResponse[]>(this.apiUrl);
@@ -20,15 +20,15 @@ export class ProfessorService {
   }
 
   salvar(dados: ProfessorRequest): Observable<ProfessorResponse> {
-    return this.http.post<ProfessorResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<ProfessorResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: ProfessorRequest): Observable<ProfessorResponse> {
-    return this.http.put<ProfessorResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: ProfessorRequest): Observable<ProfessorResponse> {
+    return this.http.put<ProfessorResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   /** Exclui o professor e as suas lotações. */
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

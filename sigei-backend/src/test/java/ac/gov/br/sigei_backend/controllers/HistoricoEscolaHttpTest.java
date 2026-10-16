@@ -73,7 +73,7 @@ class HistoricoEscolaHttpTest {
 
     @Test
     void alteracaoPelaApiDeveRegistrarOUsuarioAutenticado() throws Exception {
-        String corpo = mvc.perform(post("/escola/salvar")
+        String corpo = mvc.perform(post("/escolas")
                         .header(HttpHeaders.AUTHORIZATION, bearer(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -83,7 +83,7 @@ class HistoricoEscolaHttpTest {
                 .andReturn().getResponse().getContentAsString();
         long escolaId = Long.parseLong(corpo.replaceAll("^\\{\"id\":(\\d+).*$", "$1"));
 
-        mvc.perform(get("/escola/" + escolaId + "/historico").header(HttpHeaders.AUTHORIZATION, bearer(admin)))
+        mvc.perform(get("/escolas/" + escolaId + "/historico").header(HttpHeaders.AUTHORIZATION, bearer(admin)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].entidade").value("Escola"))
                 .andExpect(jsonPath("$[0].operacao").value("CRIACAO"))
@@ -94,12 +94,12 @@ class HistoricoEscolaHttpTest {
 
     @Test
     void historicoDeveSerRestritoAoAdministrador() throws Exception {
-        mvc.perform(get("/escola/1/historico").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
+        mvc.perform(get("/escolas/1/historico").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
                 .andExpect(status().isForbidden());
-        mvc.perform(get("/escola/1/historico"))
+        mvc.perform(get("/escolas/1/historico"))
                 .andExpect(status().isUnauthorized());
         // O leitor continua consultando as demais rotas de escola
-        mvc.perform(get("/escola").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
+        mvc.perform(get("/escolas").header(HttpHeaders.AUTHORIZATION, bearer(leitor)))
                 .andExpect(status().isOk());
     }
 

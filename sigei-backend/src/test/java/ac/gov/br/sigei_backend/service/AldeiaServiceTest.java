@@ -150,7 +150,7 @@ public class AldeiaServiceTest {
 
         lenient().when(aldeiaMapper.converter(any(Aldeia.class))).thenReturn(responseMock);
 
-        AldeiaResponseDTO resultado = aldeiaService.editar(requestDTO);
+        AldeiaResponseDTO resultado = aldeiaService.editar(requestDTO.id(), requestDTO);
 
         assertNotNull(resultado);
         verify(aldeiaRepository, times(1)).findById(1L);
@@ -164,7 +164,7 @@ public class AldeiaServiceTest {
         AldeiaRequestDTO requestDTO = new AldeiaRequestDTO(99L, "Aldeia Editada", 1L, 2L);
         when(aldeiaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO.id(), requestDTO));
 
         assertEquals("Aldeia não encontrada", erro.getMessage());
         verify(terraIndigenaRepository, never()).findById(anyLong());
@@ -182,7 +182,7 @@ public class AldeiaServiceTest {
         when(aldeiaRepository.findById(1L)).thenReturn(Optional.of(aldeiaExistente));
         when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO.id(), requestDTO));
 
         assertEquals("Terra indígena não encontrada", erro.getMessage());
         verify(povoRepository, never()).findById(anyLong());
@@ -203,7 +203,7 @@ public class AldeiaServiceTest {
         when(terraIndigenaRepository.findById(2L)).thenReturn(Optional.of(terraNova));
         when(povoRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> aldeiaService.editar(requestDTO.id(), requestDTO));
 
         assertEquals("Povo não encontrado", erro.getMessage());
         verify(aldeiaRepository, never()).save(any(Aldeia.class));

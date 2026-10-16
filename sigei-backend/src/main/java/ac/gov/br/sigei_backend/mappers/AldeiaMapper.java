@@ -17,6 +17,7 @@ public interface AldeiaMapper {
     AldeiaResponseDTO converter(Aldeia aldeia);
     AldeiaResumoDTO converterResumo(Aldeia aldeia);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "terraIndigena", ignore = true)
     @Mapping(target = "povo", ignore = true)
     Aldeia converter(AldeiaRequestDTO dto);

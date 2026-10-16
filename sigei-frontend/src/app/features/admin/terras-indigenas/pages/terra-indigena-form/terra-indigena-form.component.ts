@@ -255,13 +255,7 @@ export class TerraIndigenaFormComponent implements OnInit {
 
     // Fluxo de Edição
     if (this.editando && this.terraId !== null) {
-      const dadosEdicao: TerraIndigenaRequest = {
-        id: this.terraId,
-        nome: valores.nome.trim(),
-        municipioId: valores.municipioId,
-      };
-
-      this.terraIndigenaService.editar(dadosEdicao).subscribe({
+      this.terraIndigenaService.editar(this.terraId, dados).subscribe({
         next: () => {
           this.salvando = false;
           this.toast.sucesso('Os dados da terra indígena foram atualizados.', 'Terra indígena atualizada');

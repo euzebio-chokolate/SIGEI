@@ -47,9 +47,9 @@ public class EquipeEscolaService {
         return equipeEscolaMapper.converter(equipeEscolaSalva);
     }
 
-    public EquipeEscolaResponseDTO editar(EquipeEscolaRequestDTO equipeDTO) {
+    public EquipeEscolaResponseDTO editar(Long id, EquipeEscolaRequestDTO equipeDTO) {
 
-        EquipeEscola equipeEscola = equipeEscolaRepository.findById(equipeDTO.id())
+        EquipeEscola equipeEscola = equipeEscolaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Equipe escolar não encontrada"));
 
         RegistroAnual registroAnual = registroAnualRepository

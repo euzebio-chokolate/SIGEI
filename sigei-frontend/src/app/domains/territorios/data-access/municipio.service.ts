@@ -9,7 +9,7 @@ export type { Municipio, MunicipioEstatistica } from '../models/municipio.models
 @Injectable({ providedIn: 'root' })
 export class MunicipioService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/municipio`;
+  private readonly apiUrl = `${environment.apiUrl}/municipios`;
 
   listarEstatisticas(): Observable<MunicipioEstatistica[]> {
     return this.http.get<MunicipioEstatistica[]>(`${this.apiUrl}/estatisticas`);
@@ -17,10 +17,6 @@ export class MunicipioService {
 
   listar(): Observable<Municipio[]> {
     return this.http.get<Municipio[]>(this.apiUrl);
-  }
-
-  buscarPorId(id: number): Observable<Municipio> {
-    return this.http.get<Municipio>(`${this.apiUrl}/${id}`);
   }
 
 }

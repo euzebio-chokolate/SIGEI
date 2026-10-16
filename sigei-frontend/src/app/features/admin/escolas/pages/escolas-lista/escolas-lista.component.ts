@@ -6,7 +6,7 @@ import { SeAdminDirective } from '@core/auth/se-admin.directive';
 import { interpretarErro, mensagemErroCarregamento, mensagemErroExclusao } from '@core/http/erro-http';
 import { ToastService } from '@core/notificacao/toast.service';
 import { ConfirmModalComponent } from '@shared/ui/confirm-modal/confirm-modal.component';
-import { AtualizacaoAnualService } from '@domains/escolas/data-access/atualizacao-anual.service';
+import { AnoReferenciaService } from '@domains/escolas/data-access/ano-referencia.service';
 import { AnoModalComponent } from '@domains/escolas/ui/ano-modal/ano-modal.component';
 import { SucessoModalComponent } from '@shared/ui/sucesso-modal/sucesso-modal.component';
 import { HistoricoEscolaModalComponent } from '@domains/escolas/ui/historico-escola-modal/historico-escola-modal.component';
@@ -23,7 +23,7 @@ import { BuscaDebounceDirective } from '@shared/directives/busca-debounce.direct
 })
 export class EscolasListaComponent implements OnInit {
   private readonly escolaService = inject(EscolaService);
-  private readonly atualizacaoAnualService = inject(AtualizacaoAnualService);
+  private readonly anoReferenciaService = inject(AnoReferenciaService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly toast = inject(ToastService);
 
@@ -208,16 +208,11 @@ confirmarAtualizacaoAnual(): void {
 
   this.atualizandoAno = true;
 
-  this.atualizacaoAnualService
-    .iniciar()
+  this.anoReferenciaService
+    .iniciarProximo()
     .subscribe({
 
-      next: resultado => {
-
-        console.log(
-          'Atualização anual concluída:',
-          resultado
-        );
+      next: novoAno => {
 
         // Para o loading
         this.atualizandoAno = false;
@@ -230,8 +225,7 @@ confirmarAtualizacaoAnual(): void {
           'Novo ano criado';
 
         this.mensagemSucesso =
-          resultado ||
-          'A atualização anual foi concluída com sucesso.';
+          `O ano ${novoAno.ano} foi iniciado com os dados do ano anterior.`;
 
         // Abre modal de sucesso
         this.modalSucessoAberto = true;

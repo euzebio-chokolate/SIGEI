@@ -77,21 +77,21 @@ class ConflitoHttpTest {
     void excluirPovoComAldeiasExplicaOVinculo() throws Exception {
         aldeia("Outra aldeia conflito");
 
-        excluir("/povo/excluir/" + povo.getId())
+        excluir("/povos/" + povo.getId())
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Não é possível excluir o povo: ele tem 2 aldeias vinculadas."));
     }
 
     @Test
     void excluirTerraComAldeiaExplicaOVinculo() throws Exception {
-        excluir("/terra/excluir/" + terra.getId())
+        excluir("/terras-indigenas/" + terra.getId())
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Não é possível excluir a terra indígena: ela tem 1 aldeia vinculada."));
     }
 
     @Test
     void excluirMunicipioComTerraExplicaOVinculo() throws Exception {
-        excluir("/municipio/excluir/" + municipio.getId())
+        excluir("/municipios/" + municipio.getId())
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value(
                         "Não é possível excluir o município: ele tem 1 terra indígena vinculada."));
@@ -102,7 +102,7 @@ class ConflitoHttpTest {
         escola("SEDE", null, aldeia);
         escola("SEDE", null, aldeia);
 
-        excluir("/aldeia/excluir/" + aldeia.getId())
+        excluir("/aldeias/" + aldeia.getId())
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Não é possível excluir a aldeia: ela tem 2 escolas vinculadas."));
     }
@@ -112,7 +112,7 @@ class ConflitoHttpTest {
         Escola sede = escola("SEDE", null, aldeia);
         escola("ANEXO", sede, aldeia("Aldeia do anexo conflito"));
 
-        excluir("/escola/excluir/" + sede.getId())
+        excluir("/escolas/" + sede.getId())
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Não é possível excluir a escola: ela tem 1 escola anexa vinculada."));
     }
@@ -122,7 +122,7 @@ class ConflitoHttpTest {
         AnoReferencia ano = ano(1951);
         registro(escola("SEDE", null, aldeia), ano);
 
-        excluir("/anos/excluir/" + ano.getId())
+        excluir("/anos-referencia/" + ano.getId())
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Não é possível excluir o ano 1951: ele tem 1 registro anual de escola."));
     }
@@ -133,14 +133,14 @@ class ConflitoHttpTest {
         livre.setNome("Povo livre conflito");
         povos.save(livre);
 
-        excluir("/povo/excluir/" + livre.getId()).andExpect(status().is2xxSuccessful());
+        excluir("/povos/" + livre.getId()).andExpect(status().is2xxSuccessful());
     }
 
     @Test
     void anoDuplicadoRespondeMensagemPropria() throws Exception {
         ano(1952);
 
-        enviar(post("/anos/salvar"), "{\"ano\":1952}")
+        enviar(post("/anos-referencia"), "{\"ano\":1952}")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("O ano 1952 já está cadastrado."));
     }
@@ -150,7 +150,7 @@ class ConflitoHttpTest {
         // Como na aldeia Belo Monte (Feijó), que tem duas escolas-sede
         escola("SEDE", null, aldeia);
 
-        enviar(post("/escola/salvar"),
+        enviar(post("/escolas"),
                 "{\"codigo\":\"COD-NOVA\",\"nome\":\"Escola nova\",\"tipoUnidade\":\"SEDE\",\"aldeiaId\":" + aldeia.getId() + "}")
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.aldeia.id").value(aldeia.getId()));
@@ -163,7 +163,7 @@ class ConflitoHttpTest {
         equipe.setRegistroAnual(registro);
         equipes.save(equipe);
 
-        enviar(post("/equipe/salvar"), "{\"registroAnualId\":" + registro.getId()
+        enviar(post("/equipes"), "{\"registroAnualId\":" + registro.getId()
                 + ",\"temProfessorResponsavel\":true,\"temEquipeGestora\":false,\"temMerendeira\":false,"
                 + "\"temZeladora\":false,\"temBarqueiro\":false,\"necessitaTransporte\":false}")
                 .andExpect(status().isConflict())
@@ -172,7 +172,7 @@ class ConflitoHttpTest {
 
     @Test
     void usuarioComEmailRepetidoRespondeMensagemPropria() throws Exception {
-        enviar(post("/usuario/salvar"),
+        enviar(post("/usuarios"),
                 "{\"nome\":\"Outro\",\"email\":\"ADMIN.conflito@sigei.com\",\"senha\":\"12345678\",\"perfil\":\"USUARIO\",\"ativo\":true}")
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.detail").value("Já existe um usuário cadastrado com esse e-mail"));

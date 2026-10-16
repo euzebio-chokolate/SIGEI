@@ -23,14 +23,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/lotacao")
+@RequestMapping("/lotacoes")
 @Tag(name = "Lotações de professores", description = "Lotação anual dos professores em escolas ou no núcleo do município. Sem professor, a lotação é uma vaga em aberto. O número do contrato só é devolvido ao perfil ADMIN.")
 public class LotacaoProfessorController {
 
     @Autowired
     LotacaoProfessorService lotacaoService;
 
-    @PostMapping("/salvar")
+    @PostMapping
     @Operation(summary = "Salvar lotação",
             description = "Cadastra uma lotação. Sem professorId, é uma vaga em aberto; sem escolaId, é uma lotação no núcleo e exige municipioId. Requer perfil ADMIN.")
     @ApiResponses({
@@ -44,10 +44,10 @@ public class LotacaoProfessorController {
         return new ResponseEntity<>(lotacaoService.salvar(lotacaoDTO), HttpStatus.CREATED);
     }
 
-    @GetMapping("")
+    @GetMapping
     @Operation(summary = "Buscar lotações",
             description = "Retorna, paginadas, as lotações de todos os anos, do mais recente ao mais antigo e, no ano, por município, escola (núcleo primeiro) e professor (vagas por último). "
-                    + "Os filtros são opcionais. Para um ano inteiro sem paginação, use /buscarPorAno. Requer perfil ADMIN ou USUARIO.")
+                    + "Os filtros são opcionais. Para um ano inteiro sem paginação, use /anos/{ano}/lotacoes. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Paginação inválida", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -65,31 +65,6 @@ public class LotacaoProfessorController {
         return ResponseEntity.ok(lotacaoService.buscar(ano, professorId, escolaId, municipioId, pagina, tamanho));
     }
 
-    @GetMapping("/buscarPorAno")
-    @Operation(summary = "Buscar lotações por ano",
-            description = "Retorna as lotações do ano civil informado (por exemplo, 2026), por município e escola. Requer perfil ADMIN ou USUARIO.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = LotacaoProfessorResponseDTO.class)))),
-            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
-    })
-    public ResponseEntity<List<LotacaoProfessorResponseDTO>> buscarPorAno(@Parameter(description = "Ano civil", example = "2026") @RequestParam Integer ano) {
-        return ResponseEntity.ok(lotacaoService.buscarPorAno(ano));
-    }
-
-    @GetMapping("/buscarPorProfessor")
-    @Operation(summary = "Buscar lotações de um professor",
-            description = "Retorna as lotações do professor em todos os anos, da mais recente à mais antiga. Requer perfil ADMIN ou USUARIO.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = LotacaoProfessorResponseDTO.class)))),
-            @ApiResponse(responseCode = "404", description = "Professor não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
-            @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
-            @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
-    })
-    public ResponseEntity<List<LotacaoProfessorResponseDTO>> buscarPorProfessor(@Parameter(description = "ID do professor", example = "1") @RequestParam Long professorId) {
-        return ResponseEntity.ok(lotacaoService.buscarPorProfessor(professorId));
-    }
-
     @GetMapping("/{id}")
     @Operation(summary = "Buscar lotação por ID", description = "Retorna a lotação. Requer perfil ADMIN ou USUARIO.")
     @ApiResponses({
@@ -102,9 +77,9 @@ public class LotacaoProfessorController {
         return ResponseEntity.ok(lotacaoService.buscarPorId(id));
     }
 
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     @Operation(summary = "Editar lotação",
-            description = "Atualiza a lotação identificada pelo campo id do corpo. O número do contrato informado substitui o gravado; vazio limpa o campo. Requer perfil ADMIN.")
+            description = "Atualiza a lotação identificada pelo ID informado no caminho. O número do contrato informado substitui o gravado; vazio limpa o campo. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos ou tipo de contrato fora das opções", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -112,11 +87,11 @@ public class LotacaoProfessorController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<LotacaoProfessorResponseDTO> editar(@Valid @RequestBody LotacaoProfessorRequestDTO lotacaoDTO) {
-        return ResponseEntity.ok(lotacaoService.editar(lotacaoDTO));
+    public ResponseEntity<LotacaoProfessorResponseDTO> editar(@Parameter(description = "ID de lotação", example = "1") @PathVariable Long id, @Valid @RequestBody LotacaoProfessorRequestDTO lotacaoDTO) {
+        return ResponseEntity.ok(lotacaoService.editar(id, lotacaoDTO));
     }
 
-    @DeleteMapping("/excluir/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Excluir lotação", description = "Remove a lotação. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Operação realizada com sucesso", content = @Content),

@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:8080/equipe/editar
+  url: http://localhost:8080/equipes/1
   body:
     type: json
     data: |-

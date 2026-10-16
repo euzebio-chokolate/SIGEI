@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/usuario
+  url: http://localhost:8080/usuarios
   body:
     type: multipart-form
   auth:

@@ -10,7 +10,6 @@ import type { AlteracaoHistorico } from '@domains/auditoria/models/auditoria.mod
 
 export interface CadastroEscolaRequest {
   escola: {
-    id?: number;
     codigo: string;
     nome: string;
     tipoUnidade: string;
@@ -55,7 +54,7 @@ export interface CadastroEscolaResponse {
 @Injectable({ providedIn: 'root' })
 export class EscolaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/escola`;
+  private readonly apiUrl = `${environment.apiUrl}/escolas`;
 
   salvar(
     dados: {
@@ -66,7 +65,7 @@ export class EscolaService {
       aldeiaId: number;
     }
   ): Observable<EscolaResponse> {
-    return this.http.post<EscolaResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<EscolaResponse>(this.apiUrl, dados);
   }
 
   listar(): Observable<EscolaResponse[]> {
@@ -83,6 +82,7 @@ export class EscolaService {
   }
 
   editar(
+    id: number,
     dados: {
       id?: number;
       codigo: string;
@@ -92,7 +92,7 @@ export class EscolaService {
       aldeiaId: number;
     }
     ): Observable<EscolaResponse> {
-        return this.http.put<EscolaResponse>(`${this.apiUrl}/editar`,dados);
+    return this.http.put<EscolaResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   /**
@@ -100,11 +100,11 @@ export class EscolaService {
    * em uma única transação no backend: se algo falhar, nada é gravado.
    */
   salvarCompleto(dados: CadastroEscolaRequest, foto: File | null): Observable<CadastroEscolaResponse> {
-    return this.http.post<CadastroEscolaResponse>(`${this.apiUrl}/salvarCompleto`, this.montarCadastro(dados, foto));
+    return this.http.post<CadastroEscolaResponse>(`${this.apiUrl}/cadastro-completo`, this.montarCadastro(dados, foto));
   }
 
-  editarCompleto(dados: CadastroEscolaRequest, foto: File | null): Observable<CadastroEscolaResponse> {
-    return this.http.put<CadastroEscolaResponse>(`${this.apiUrl}/editarCompleto`, this.montarCadastro(dados, foto));
+  editarCompleto(id: number, dados: CadastroEscolaRequest, foto: File | null): Observable<CadastroEscolaResponse> {
+    return this.http.put<CadastroEscolaResponse>(`${this.apiUrl}/${id}/cadastro-completo`, this.montarCadastro(dados, foto));
   }
 
   private montarCadastro(dados: CadastroEscolaRequest, foto: File | null): FormData {
@@ -117,6 +117,6 @@ export class EscolaService {
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

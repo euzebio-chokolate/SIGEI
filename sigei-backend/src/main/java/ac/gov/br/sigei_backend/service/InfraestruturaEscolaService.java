@@ -77,9 +77,9 @@ public class InfraestruturaEscolaService {
         return infraestruturaRepository.buscarMaisRecentesPorEscola();
     }
 
-    public InfraestruturaEscolaResponseDTO editar(InfraestruturaEscolaRequestDTO infraDTO) {
+    public InfraestruturaEscolaResponseDTO editar(Long id, InfraestruturaEscolaRequestDTO infraDTO) {
 
-        InfraestruturaEscola infraestrutura = infraestruturaRepository.findById(infraDTO.id())
+        InfraestruturaEscola infraestrutura = infraestruturaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Infraestrutura não encontrada"));
 
         RegistroAnual registroAnual = registroAnualRepository.findById(infraDTO.registroAnualId())

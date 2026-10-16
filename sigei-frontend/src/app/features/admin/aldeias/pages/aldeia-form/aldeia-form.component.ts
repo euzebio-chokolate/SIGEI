@@ -320,14 +320,7 @@ export class AldeiaFormComponent implements OnInit {
 
     // Fluxo de Edição
     if (this.editando && this.aldeiaId !== null) {
-      const dadosEdicao: AldeiaRequest = {
-        id: this.aldeiaId,
-        nome: valores.nome.trim(),
-        terraIndigenaId: valores.terraIndigenaId,
-        povoId: valores.povoId
-      };
-
-      this.aldeiaService.editar(dadosEdicao).subscribe({
+      this.aldeiaService.editar(this.aldeiaId, dados).subscribe({
         next: () => {
           this.salvando = false;
           this.toast.sucesso('Os dados da aldeia foram atualizados.', 'Aldeia atualizada');

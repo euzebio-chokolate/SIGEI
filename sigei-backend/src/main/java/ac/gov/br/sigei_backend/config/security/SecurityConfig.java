@@ -59,13 +59,13 @@ public class SecurityConfig {
                                 "/v3/api-docs",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        .requestMatchers("/auth/alterar-senha").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/infraestrutura", "/infraestrutura/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/escola/*/historico").hasRole("ADMIN")
+                        .requestMatchers("/auth/senha").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/infraestruturas", "/infraestruturas/**", "/anos/*/infraestruturas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/escolas/*/historico").hasRole("ADMIN")
                         // Antes da regra geral de leitura: a auditoria mostra autores e e-mails de todo o sistema
                         .requestMatchers(HttpMethod.GET, "/auditoria", "/auditoria/**").hasRole("ADMIN")
                         // Idem: a lista de usuários traz nomes, e-mails e perfis
-                        .requestMatchers(HttpMethod.GET, "/usuario", "/usuario/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/usuarios", "/usuarios/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/**").hasAnyRole("ADMIN", "USUARIO")
                         .anyRequest().hasRole("ADMIN")
                 )

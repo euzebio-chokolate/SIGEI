@@ -71,9 +71,9 @@ public class AldeiaService {
         return aldeiaMapper.converter(aldeia);
     }
 
-    public AldeiaResponseDTO editar(AldeiaRequestDTO dto) {
+    public AldeiaResponseDTO editar(Long id, AldeiaRequestDTO dto) {
 
-        aldeiaRepository.findById(dto.id())
+        aldeiaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Aldeia não encontrada"));
 
         TerraIndigena terraIndigena = terraIndigenaRepository.findById(dto.terraIndigenaId())
@@ -84,7 +84,7 @@ public class AldeiaService {
 
         Aldeia aldeia = aldeiaMapper.converter(dto);
 
-        aldeia.setId(dto.id());
+        aldeia.setId(id);
         aldeia.setTerraIndigena(terraIndigena);
         aldeia.setPovo(povo);
 

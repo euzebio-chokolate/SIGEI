@@ -4,6 +4,7 @@ import ac.gov.br.sigei_backend.dto.request.EquipeEscolaRequestDTO;
 import ac.gov.br.sigei_backend.dto.response.EquipeEscolaResponseDTO;
 import ac.gov.br.sigei_backend.service.EquipeEscolaService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,14 +18,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/equipe")
+@RequestMapping("/equipes")
 @Tag(name = "Equipes Escolares", description = "Endpoints para gerenciamento de equipes escolares")
 public class EquipeEscolaController {
 
     @Autowired
     EquipeEscolaService equipeEscolaService;
 
-    @PostMapping("/salvar")
+    @PostMapping
     @Operation(summary = "Salvar equipe escolar",
             description = "Cadastra um novo registro de equipe escolar com os dados informados no corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
@@ -35,14 +36,14 @@ public class EquipeEscolaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity salvar(@Valid @RequestBody EquipeEscolaRequestDTO equipeDTO){
+    public ResponseEntity<EquipeEscolaResponseDTO> salvar(@Valid @RequestBody EquipeEscolaRequestDTO equipeDTO){
         EquipeEscolaResponseDTO equipeEscolaResponseDTO = equipeEscolaService.salvar(equipeDTO);
-        return new ResponseEntity<EquipeEscolaResponseDTO>(equipeEscolaResponseDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(equipeEscolaResponseDTO, HttpStatus.CREATED);
     }
 
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     @Operation(summary = "Editar equipe escolar",
-            description = "Atualiza os dados de equipe escolar identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")
+            description = "Atualiza os dados de equipe escolar identificado pelo ID informado no caminho. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -51,9 +52,9 @@ public class EquipeEscolaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<EquipeEscolaResponseDTO> editar(@Valid @RequestBody EquipeEscolaRequestDTO equipeDTO){
-        EquipeEscolaResponseDTO equipeEscolaResponseDTO = equipeEscolaService.editar(equipeDTO);
-        return new ResponseEntity<EquipeEscolaResponseDTO>(equipeEscolaResponseDTO, HttpStatus.OK);
+    public ResponseEntity<EquipeEscolaResponseDTO> editar(@Parameter(description = "ID de equipe escolar", example = "1") @PathVariable Long id, @Valid @RequestBody EquipeEscolaRequestDTO equipeDTO){
+        EquipeEscolaResponseDTO equipeEscolaResponseDTO = equipeEscolaService.editar(id, equipeDTO);
+        return new ResponseEntity<>(equipeEscolaResponseDTO, HttpStatus.OK);
     }
 
 }

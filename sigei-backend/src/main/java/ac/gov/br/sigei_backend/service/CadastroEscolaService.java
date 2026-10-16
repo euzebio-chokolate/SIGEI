@@ -82,12 +82,8 @@ public class CadastroEscolaService {
     }
 
     @Transactional(rollbackFor = IOException.class)
-    public CadastroEscolaResponseDTO editar(CadastroEscolaRequestDTO dto, MultipartFile foto) throws IOException {
-        if (dto.escola().id() == null) {
-            throw new IllegalArgumentException("O ID da escola é obrigatório na edição.");
-        }
-
-        Escola escola = escolaRepository.findById(dto.escola().id())
+    public CadastroEscolaResponseDTO editar(Long id, CadastroEscolaRequestDTO dto, MultipartFile foto) throws IOException {
+        Escola escola = escolaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
 
         escolaMapper.atualizar(dto.escola(), escola);

@@ -12,6 +12,7 @@ public interface UsuarioMapper {
 
     UsuarioResponseDTO converter(Usuario usuario);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "senha", ignore = true)
     Usuario converter(UsuarioRequestDTO dto);
 

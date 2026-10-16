@@ -89,7 +89,7 @@ public class MunicipioServiceTest {
         when(municipioRepository.save(any(Municipio.class))).thenReturn(municipioConvertido);
         lenient().when(municipioMapper.converter(any(Municipio.class))).thenReturn(responseMock);
 
-        MunicipioResponseDTO resultado = municipioService.editar(requestDTO);
+        MunicipioResponseDTO resultado = municipioService.editar(requestDTO.id(), requestDTO);
 
         assertNotNull(resultado);
         verify(municipioRepository, times(1)).findById(1L);
@@ -102,7 +102,7 @@ public class MunicipioServiceTest {
         when(municipioRepository.findById(99L)).thenReturn(Optional.empty());
 
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
-            municipioService.editar(requestDTO);
+            municipioService.editar(requestDTO.id(), requestDTO);
         });
 
         assertEquals("Id de municipio inválido ou não encontrado", erro.getMessage());

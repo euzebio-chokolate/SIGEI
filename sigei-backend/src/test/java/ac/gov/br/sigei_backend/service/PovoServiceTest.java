@@ -85,7 +85,7 @@ public class PovoServiceTest {
         when(povoRepository.save(any(Povo.class))).thenReturn(povoSalvo);
         lenient().when(povoMapper.converter(povoSalvo)).thenReturn(responseMock);
 
-        PovoResponseDTO resultado = povoService.editar(requestDTO);
+        PovoResponseDTO resultado = povoService.editar(requestDTO.id(), requestDTO);
 
         assertNotNull(resultado);
         verify(povoRepository, times(1)).findById(1L);
@@ -97,7 +97,7 @@ public class PovoServiceTest {
         PovoRequestDTO requestDTO = new PovoRequestDTO(99L, "Huni Kuin");
         when(povoRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> povoService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> povoService.editar(requestDTO.id(), requestDTO));
 
         assertEquals("Povo não encontrado", erro.getMessage());
         verify(povoRepository, never()).save(any(Povo.class));

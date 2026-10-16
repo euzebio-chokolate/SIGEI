@@ -58,14 +58,14 @@ class FormatoErroHttpTest {
     @ParameterizedTest(name = "{0} {1} -> {3}")
     @CsvSource(delimiter = '|', nullValues = "-", value = {
             // método | rota                          | corpo         | status | perfil | detail
-            "DELETE   | /povo/excluir/999999          | -             | 404    | ADMIN  | Id de povo inválido ou não encontrado",
-            "GET      | /municipio/buscarTudo         | -             | 404    | ADMIN  | O recurso solicitado não foi encontrado.",
-            "POST     | /povo/salvar                  | {nome         | 400    | ADMIN  | O corpo da requisição é inválido ou está mal formatado.",
-            "GET      | /povo/abc                     | -             | 400    | ADMIN  | Valor inválido para id.",
-            "GET      | /registroAnual/buscarPorAno   | -             | 400    | ADMIN  | O parâmetro ano é obrigatório.",
-            "PATCH    | /povo/salvar                  | {}            | 405    | ADMIN  | O método PATCH não é aceito nesta rota.",
-            "GET      | /povo                         | -             | 401    | -      | Autenticação necessária. Entre novamente.",
-            "POST     | /povo/salvar                  | {\"nome\":\"x\"} | 403 | USUARIO | Você não tem permissão para realizar esta ação.",
+            "DELETE   | /povos/999999                 | -             | 404    | ADMIN  | Id de povo inválido ou não encontrado",
+            "GET      | /municipios/x/y               | -             | 404    | ADMIN  | O recurso solicitado não foi encontrado.",
+            "POST     | /povos                        | {nome         | 400    | ADMIN  | O corpo da requisição é inválido ou está mal formatado.",
+            "GET      | /povos/abc                    | -             | 400    | ADMIN  | Valor inválido para id.",
+            "GET      | /anos/abc/registros-anuais    | -             | 400    | ADMIN  | Valor inválido para ano.",
+            "PATCH    | /povos                        | {}            | 405    | ADMIN  | O método PATCH não é aceito nesta rota.",
+            "GET      | /povos                        | -             | 401    | -      | Autenticação necessária. Entre novamente.",
+            "POST     | /povos                        | {\"nome\":\"x\"} | 403 | USUARIO | Você não tem permissão para realizar esta ação.",
             "POST     | /auth/login                   | {\"email\":\"ninguem@sigei.com\",\"senha\":\"12345678\"} | 401 | - | E-mail ou senha inválidos."
     })
     void erroSaiComoProblemDetail(String metodo, String rota, String corpo, int status, String perfil, String detalhe)
@@ -83,7 +83,7 @@ class FormatoErroHttpTest {
 
     @Test
     void validacaoTrazAsMensagensPorCampo() throws Exception {
-        HttpResponse<String> resposta = enviar("POST", "/povo/salvar", "{\"nome\":\"\"}", "ADMIN");
+        HttpResponse<String> resposta = enviar("POST", "/povos", "{\"nome\":\"\"}", "ADMIN");
 
         assertEquals(400, resposta.statusCode());
         assertEquals("application/problem+json", resposta.headers().firstValue("Content-Type").orElse(""));
@@ -96,8 +96,8 @@ class FormatoErroHttpTest {
     @ParameterizedTest(name = "{0}")
     @CsvSource(delimiter = '|', value = {
             // rota          | corpo                                                                        | campo  | detail
-            "/usuario/salvar | {\"nome\":\"X\",\"email\":\"x@sigei.com\",\"senha\":\"12345678\",\"perfil\":\"CHEFE\",\"ativo\":true} | perfil | Valor inválido para o campo perfil. Use um destes: ADMIN, USUARIO.",
-            "/anos/salvar    | {\"ano\":\"dois mil\"}                                                       | ano    | Valor inválido para o campo ano."
+            "/usuarios | {\"nome\":\"X\",\"email\":\"x@sigei.com\",\"senha\":\"12345678\",\"perfil\":\"CHEFE\",\"ativo\":true} | perfil | Valor inválido para o campo perfil. Use um destes: ADMIN, USUARIO.",
+            "/anos-referencia    | {\"ano\":\"dois mil\"}                                                       | ano    | Valor inválido para o campo ano."
     })
     void valorDeTipoErradoNoCorpoApontaOCampo(String rota, String corpo, String campo, String detalhe) throws Exception {
         HttpResponse<String> resposta = enviar("POST", rota.trim(), corpo, "ADMIN");

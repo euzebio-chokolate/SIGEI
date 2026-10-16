@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/povo
+  url: http://localhost:8080/povos
   body:
     type: json
     data: |-

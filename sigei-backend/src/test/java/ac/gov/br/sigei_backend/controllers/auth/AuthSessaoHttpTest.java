@@ -91,24 +91,24 @@ class AuthSessaoHttpTest {
     void cookieDeAcessoDeveAutenticarConsultas() throws Exception {
         Cookie acesso = cookie(login(), CookiesSessao.COOKIE_ACESSO);
 
-        mvc.perform(get("/usuario").cookie(acesso)).andExpect(status().isOk());
-        mvc.perform(get("/usuario")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/usuarios").cookie(acesso)).andExpect(status().isOk());
+        mvc.perform(get("/usuarios")).andExpect(status().isUnauthorized());
     }
 
     @Test
     void alteracaoComCookieDeveExigirTokenCsrf() throws Exception {
         Cookie acesso = cookie(login(), CookiesSessao.COOKIE_ACESSO);
 
-        mvc.perform(post("/povo/salvar").cookie(acesso)
+        mvc.perform(post("/povos").cookie(acesso)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"nome\":\"Povo CSRF\"}"))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(post("/povo/salvar").cookie(acesso, new Cookie("XSRF-TOKEN", CSRF))
+        mvc.perform(post("/povos").cookie(acesso, new Cookie("XSRF-TOKEN", CSRF))
                         .header("X-XSRF-TOKEN", "outro-valor")
                         .contentType(MediaType.APPLICATION_JSON).content("{\"nome\":\"Povo CSRF\"}"))
                 .andExpect(status().isForbidden());
 
-        mvc.perform(post("/povo/salvar").cookie(acesso, new Cookie("XSRF-TOKEN", CSRF))
+        mvc.perform(post("/povos").cookie(acesso, new Cookie("XSRF-TOKEN", CSRF))
                         .header("X-XSRF-TOKEN", CSRF)
                         .contentType(MediaType.APPLICATION_JSON).content("{\"nome\":\"Povo CSRF\"}"))
                 .andExpect(status().isCreated());
@@ -116,7 +116,7 @@ class AuthSessaoHttpTest {
 
     @Test
     void alteracaoComBearerDeveDispensarCsrf() throws Exception {
-        mvc.perform(post("/povo/salvar")
+        mvc.perform(post("/povos")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.gerarToken(usuario))
                         .contentType(MediaType.APPLICATION_JSON).content("{\"nome\":\"Povo Bearer\"}"))
                 .andExpect(status().isCreated());
@@ -133,7 +133,7 @@ class AuthSessaoHttpTest {
 
         Cookie nova = cookie(renovada, CookiesSessao.COOKIE_RENOVACAO);
         assertNotEquals(renovacao.getValue(), nova.getValue());
-        mvc.perform(get("/usuario").cookie(cookie(renovada, CookiesSessao.COOKIE_ACESSO)))
+        mvc.perform(get("/usuarios").cookie(cookie(renovada, CookiesSessao.COOKIE_ACESSO)))
                 .andExpect(status().isOk());
 
         // Token antigo: recusado, e a resposta remove os cookies de sessão

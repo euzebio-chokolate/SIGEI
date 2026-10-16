@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: http://localhost:8080/registroAnual/editar
+  url: http://localhost:8080/registros-anuais/1
   auth: inherit
 
 settings:

@@ -108,15 +108,15 @@ public class TerraIndigenaService {
         return resultado;
     }
 
-    public TerraIndigenaResponseDTO editar(TerraIndigenaRequestDTO terraIndigenaDTO){
-        terraIndigenaRepository.findById(terraIndigenaDTO.id())
+    public TerraIndigenaResponseDTO editar(Long id, TerraIndigenaRequestDTO terraIndigenaDTO){
+        terraIndigenaRepository.findById(id)
                         .orElseThrow(() -> new NoSuchElementException("Id de terra indígena inválido ou não encontrado"));
 
         Municipio municipio = municipioRepository.findById(terraIndigenaDTO.municipioId())
                 .orElseThrow(() -> new NoSuchElementException("Id de município inválido ou não encontrado"));
 
         TerraIndigena terraIndigena = terraIndigenaMapper.converter(terraIndigenaDTO);
-        terraIndigena.setId(terraIndigenaDTO.id());
+        terraIndigena.setId(id);
         terraIndigena.setMunicipio(municipio);
 
         TerraIndigena TerraSalva = terraIndigenaRepository.save(terraIndigena);

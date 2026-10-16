@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/infraestrutura
+  url: http://localhost:8080/infraestruturas
   auth: inherit
 
 settings:

@@ -23,13 +23,13 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/infraestrutura")
+@RequestMapping("/infraestruturas")
 @Tag(name = "Infraestruturas Escolares", description = "Endpoints para gerenciamento de infraestruturas escolares")
 public class InfraestruturaEscolaController {
     @Autowired
     InfraestruturaEscolaService infraestruturaService;
 
-    @PostMapping("/salvar")
+    @PostMapping
     @Operation(summary = "Salvar infraestrutura escolar",
             description = "Cadastra um novo registro de infraestrutura escolar com os dados informados no corpo da requisição. Requer perfil ADMIN.")
     @ApiResponses({
@@ -40,12 +40,12 @@ public class InfraestruturaEscolaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity salvar(@Valid @RequestBody InfraestruturaEscolaRequestDTO infraDTO){
+    public ResponseEntity<InfraestruturaEscolaResponseDTO> salvar(@Valid @RequestBody InfraestruturaEscolaRequestDTO infraDTO){
         InfraestruturaEscolaResponseDTO infraestruturaEscolaResponseDTO = infraestruturaService.salvar(infraDTO);
-        return new ResponseEntity<InfraestruturaEscolaResponseDTO>(infraestruturaEscolaResponseDTO, HttpStatus.CREATED);
+        return new ResponseEntity<>(infraestruturaEscolaResponseDTO, HttpStatus.CREATED);
     }
 
-    @GetMapping("")
+    @GetMapping
     @Operation(summary = "Buscar infraestruturas escolares",
             description = "Retorna todos os registros de infraestruturas escolares. Retorna uma lista vazia quando não há cadastros.")
     @ApiResponses({
@@ -53,22 +53,10 @@ public class InfraestruturaEscolaController {
     })
     public ResponseEntity<List<InfraestruturaEscolaResponseDTO>> buscarTudo(){
         List<InfraestruturaEscolaResponseDTO> infras = infraestruturaService.buscarTudo();
-        return new ResponseEntity<List<InfraestruturaEscolaResponseDTO>>(infras, HttpStatus.OK);
+        return new ResponseEntity<>(infras, HttpStatus.OK);
     }
 
-    @GetMapping("/buscarPorAno")
-    @Operation(summary = "Buscar infraestruturas escolares por ano",
-            description = "Retorna os registros de infraestruturas escolares do ano informado. Retorna uma lista vazia quando não há resultados.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Ano ausente ou em formato inválido", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class)))
-    })
-    public ResponseEntity<List<InfraestruturaEscolaResponseDTO>> buscarPorAno(@Parameter(description = "Ano de referência (valor do ano, não o ID)", example = "2025") @RequestParam Integer ano) {
-        List<InfraestruturaEscolaResponseDTO> infraestruturas = infraestruturaService.buscarPorAno(ano);
-        return new ResponseEntity<>(infraestruturas, HttpStatus.OK);
-    }
-
-    @GetMapping("/maisRecentes")
+    @GetMapping("/mais-recentes")
     @Operation(summary = "Buscar a infraestrutura mais recente de cada escola",
             description = "Retorna uma infraestrutura por escola, a do registro anual mais recente que a possua. Usado pelo mapa público, "
                     + "que não deve repetir marcadores de escolas com mais de um ano registrado. Retorna uma lista vazia quando não há cadastros.")
@@ -79,9 +67,9 @@ public class InfraestruturaEscolaController {
         return ResponseEntity.ok(infraestruturaService.buscarMaisRecentes());
     }
 
-    @PutMapping("/editar")
+    @PutMapping("/{id}")
     @Operation(summary = "Editar infraestrutura escolar",
-            description = "Atualiza os dados de infraestrutura escolar identificado pelo campo id do corpo da requisição. Requer perfil ADMIN.")
+            description = "Atualiza os dados de infraestrutura escolar identificado pelo ID informado no caminho. Requer perfil ADMIN.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados de entrada inválidos", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
@@ -90,9 +78,9 @@ public class InfraestruturaEscolaController {
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<InfraestruturaEscolaResponseDTO> editar(@Valid @RequestBody InfraestruturaEscolaRequestDTO infraDTO){
-        InfraestruturaEscolaResponseDTO infraestruturaEscolaResponseDTO = infraestruturaService.editar(infraDTO);
-        return new ResponseEntity<InfraestruturaEscolaResponseDTO>(infraestruturaEscolaResponseDTO, HttpStatus.OK);
+    public ResponseEntity<InfraestruturaEscolaResponseDTO> editar(@Parameter(description = "ID de infraestrutura escolar", example = "1") @PathVariable Long id, @Valid @RequestBody InfraestruturaEscolaRequestDTO infraDTO){
+        InfraestruturaEscolaResponseDTO infraestruturaEscolaResponseDTO = infraestruturaService.editar(id, infraDTO);
+        return new ResponseEntity<>(infraestruturaEscolaResponseDTO, HttpStatus.OK);
     }
 
     @PostMapping("/{id}/foto")
@@ -127,20 +115,20 @@ public class InfraestruturaEscolaController {
         );
     }
 
-    @DeleteMapping("/excluir/{id}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "Excluir infraestrutura escolar",
             description = "Remove o registro de infraestrutura escolar pelo ID. A resposta de sucesso não possui corpo. Requer perfil ADMIN.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Operação realizada com sucesso", content = @Content),
+            @ApiResponse(responseCode = "204", description = "Registro excluído", content = @Content),
             @ApiResponse(responseCode = "400", description = "ID em formato inválido", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "409", description = "O registro possui vínculos que impedem a exclusão", content = @Content(mediaType = "application/problem+json", schema = @Schema(implementation = ProblemDetail.class))),
             @ApiResponse(responseCode = "401", description = "Autenticação ausente ou inválida", content = @Content),
             @ApiResponse(responseCode = "403", description = "Usuário sem permissão para esta operação", content = @Content)
     })
-    public ResponseEntity<?> excluir(@Parameter(description = "ID do registro de infraestrutura escolar", example = "1") @PathVariable Long id){
+    public ResponseEntity<Void> excluir(@Parameter(description = "ID do registro de infraestrutura escolar", example = "1") @PathVariable Long id){
         infraestruturaService.excluir(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -4,9 +4,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { environment } from '@environments/environment';
 
 import { AnoReferencia, AnoReferenciaService } from './ano-referencia.service';
-import { AtualizacaoAnualService } from './atualizacao-anual.service';
 
-const URL = `${environment.apiUrl}/anos`;
+const URL = `${environment.apiUrl}/anos-referencia`;
 const ANOS: AnoReferencia[] = [{ id: 1, ano: 2025 }, { id: 2, ano: 2026 }] as AnoReferencia[];
 
 describe('AnoReferenciaService (cache)', () => {
@@ -41,7 +40,7 @@ describe('AnoReferenciaService (cache)', () => {
     service.listar().subscribe();
     http.expectOne(URL).flush(ANOS);
     service.salvar(2027).subscribe();
-    http.expectOne(`${URL}/salvar`).flush({ id: 3, ano: 2027 });
+    http.expectOne(URL).flush({ id: 3, ano: 2027 });
     service.listar().subscribe();
     http.expectOne(URL).flush([...ANOS, { id: 3, ano: 2027 }]);
   });
@@ -49,8 +48,8 @@ describe('AnoReferenciaService (cache)', () => {
   it('volta a buscar depois de iniciar o novo ano', () => {
     service.listar().subscribe();
     http.expectOne(URL).flush(ANOS);
-    TestBed.inject(AtualizacaoAnualService).iniciar().subscribe();
-    http.expectOne(`${environment.apiUrl}/atualizacao-anual/iniciar`).flush('ok');
+    service.iniciarProximo().subscribe();
+    http.expectOne(`${URL}/proximo`).flush({ id: 3, ano: 2027 });
     service.listar().subscribe();
     http.expectOne(URL).flush(ANOS);
   });

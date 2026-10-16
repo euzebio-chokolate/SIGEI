@@ -56,12 +56,8 @@ public class ProfessorService {
     }
 
     @Transactional
-    public ProfessorResponseDTO editar(ProfessorRequestDTO professorDTO) {
-        if (professorDTO.id() == null) {
-            throw new IllegalArgumentException("Informe o ID do professor");
-        }
-
-        Professor professor = professorRepository.findById(professorDTO.id())
+    public ProfessorResponseDTO editar(Long id, ProfessorRequestDTO professorDTO) {
+        Professor professor = professorRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Professor não encontrado"));
 
         preencher(professorDTO, professor);

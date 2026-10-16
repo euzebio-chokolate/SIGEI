@@ -228,11 +228,9 @@ export class LotacaoFormComponent implements OnInit {
       numeroContrato: valor.numeroContrato.trim() || null
     };
 
-    if (this.editando && this.lotacaoId) {
-      dados.id = this.lotacaoId;
-    }
-
-    const requisicao = this.editando ? this.lotacaoService.editar(dados) : this.lotacaoService.salvar(dados);
+    const requisicao = this.editando && this.lotacaoId
+      ? this.lotacaoService.editar(this.lotacaoId, dados)
+      : this.lotacaoService.salvar(dados);
 
     requisicao.subscribe({
       next: () => {

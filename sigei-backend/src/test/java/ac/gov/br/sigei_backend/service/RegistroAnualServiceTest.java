@@ -289,7 +289,7 @@ class RegistroAnualServiceTest {
             when(registroAnualRepository.save(any(RegistroAnual.class))).thenReturn(registroSalvo);
             lenient().when(registroAnualMapper.converter(registroSalvo)).thenReturn(responseMock);
 
-            RegistroAnualResponseDTO resultado = registroAnualService.editar(requestDTO);
+            RegistroAnualResponseDTO resultado = registroAnualService.editar(requestDTO.id(), requestDTO);
 
             assertNotNull(resultado);
             verify(registroAnualRepository, times(1)).findById(1L);
@@ -303,7 +303,7 @@ class RegistroAnualServiceTest {
             RegistroAnualRequestDTO requestDTO = new RegistroAnualRequestDTO(99L, 1L, 2L, "Estadual", "Urbana", null);
             when(registroAnualRepository.findById(99L)).thenReturn(Optional.empty());
 
-            NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.editar(requestDTO));
+            NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> registroAnualService.editar(requestDTO.id(), requestDTO));
 
             assertEquals("Registro anual não encontrado", erro.getMessage());
             verify(escolaRepository, never()).findById(anyLong());

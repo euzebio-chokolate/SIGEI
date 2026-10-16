@@ -72,18 +72,18 @@ class RegrasValidacaoHttpTest {
 
     @ParameterizedTest(name = "{0} {2}")
     @CsvSource(delimiter = '|', value = {
-            "/usuario/salvar        | {\"nome\":\"U\",\"email\":\"curta@sigei.com\",\"senha\":\"1234567\",\"perfil\":\"USUARIO\"} | senha",
-            "/usuario/salvar        | {\"nome\":\"U\",\"email\":\"longa@sigei.com\",\"senha\":\"SENHA73\",\"perfil\":\"USUARIO\"} | senha",
-            "/infraestrutura/salvar | {\"registroAnualId\":999999,\"latitude\":-90.5}       | latitude",
-            "/infraestrutura/salvar | {\"registroAnualId\":999999,\"latitude\":91}          | latitude",
-            "/infraestrutura/salvar | {\"registroAnualId\":999999,\"longitude\":-181}       | longitude",
-            "/infraestrutura/salvar | {\"registroAnualId\":999999,\"longitude\":180.1}      | longitude",
-            "/infraestrutura/salvar | {\"registroAnualId\":999999,\"numSalas\":-1}          | numSalas",
-            "/infraestrutura/salvar | {\"registroAnualId\":999999,\"anoConstrucao\":1899}   | anoConstrucao",
-            "/infraestrutura/salvar | {\"registroAnualId\":999999,\"anoConstrucao\":PROXIMO} | anoConstrucao",
-            "/anos/salvar           | {\"ano\":1899}                                       | ano",
-            "/anos/salvar           | {\"ano\":DEPOIS_DO_PROXIMO}                          | ano",
-            "/anos/salvar           | {}                                                   | ano"
+            "/usuarios        | {\"nome\":\"U\",\"email\":\"curta@sigei.com\",\"senha\":\"1234567\",\"perfil\":\"USUARIO\"} | senha",
+            "/usuarios        | {\"nome\":\"U\",\"email\":\"longa@sigei.com\",\"senha\":\"SENHA73\",\"perfil\":\"USUARIO\"} | senha",
+            "/infraestruturas | {\"registroAnualId\":999999,\"latitude\":-90.5}       | latitude",
+            "/infraestruturas | {\"registroAnualId\":999999,\"latitude\":91}          | latitude",
+            "/infraestruturas | {\"registroAnualId\":999999,\"longitude\":-181}       | longitude",
+            "/infraestruturas | {\"registroAnualId\":999999,\"longitude\":180.1}      | longitude",
+            "/infraestruturas | {\"registroAnualId\":999999,\"numSalas\":-1}          | numSalas",
+            "/infraestruturas | {\"registroAnualId\":999999,\"anoConstrucao\":1899}   | anoConstrucao",
+            "/infraestruturas | {\"registroAnualId\":999999,\"anoConstrucao\":PROXIMO} | anoConstrucao",
+            "/anos-referencia           | {\"ano\":1899}                                       | ano",
+            "/anos-referencia           | {\"ano\":DEPOIS_DO_PROXIMO}                          | ano",
+            "/anos-referencia           | {}                                                   | ano"
     })
     void valorForaDaRegraDeveResponder400(String rota, String corpo, String campo) throws Exception {
         mvc.perform(post(rota)
@@ -110,7 +110,7 @@ class RegrasValidacaoHttpTest {
 
         try {
             // O formulário envia senha vazia quando ela não é alterada
-            mvc.perform(put("/usuario/editar")
+            mvc.perform(put("/usuarios/" + usuario.getId())
                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwtService.gerarToken(admin))
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"id\":" + usuario.getId() + ",\"nome\":\"Renomeado\",\"email\":\"sem.troca@sigei.com\","

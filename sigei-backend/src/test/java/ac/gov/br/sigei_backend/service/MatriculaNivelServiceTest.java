@@ -106,7 +106,7 @@ public class MatriculaNivelServiceTest {
         when(matriculaRepository.save(any(MatriculaNivel.class))).thenReturn(matriculaSalva);
         lenient().when(matriculaMapper.converter(matriculaSalva)).thenReturn(responseMock);
 
-        MatriculaNivelResponseDTO resultado = matriculaService.editar(requestDTO);
+        MatriculaNivelResponseDTO resultado = matriculaService.editar(requestDTO.id(), requestDTO);
 
         assertNotNull(resultado);
         verify(matriculaRepository, times(1)).findById(1L);
@@ -119,7 +119,7 @@ public class MatriculaNivelServiceTest {
         MatriculaNivelRequestDTO requestDTO = new MatriculaNivelRequestDTO(99L, 1L, "Ensino Fundamental I", 10, 10, 20);
         when(matriculaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaService.editar(requestDTO.id(), requestDTO));
 
         assertEquals("Matrícula não encontrada", erro.getMessage());
         verify(registroRepository, never()).findById(anyLong());
@@ -135,7 +135,7 @@ public class MatriculaNivelServiceTest {
         when(matriculaRepository.findById(1L)).thenReturn(Optional.of(matriculaExistente));
         when(registroRepository.findById(99L)).thenReturn(Optional.empty());
 
-        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaService.editar(requestDTO));
+        NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> matriculaService.editar(requestDTO.id(), requestDTO));
 
         assertEquals("Registro anual não encontrado", erro.getMessage());
         verify(matriculaRepository, never()).save(any(MatriculaNivel.class));

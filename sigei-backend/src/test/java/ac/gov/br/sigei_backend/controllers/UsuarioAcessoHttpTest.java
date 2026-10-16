@@ -42,24 +42,24 @@ class UsuarioAcessoHttpTest {
 
     @Test
     void usuarioComumNaoListaNemConsultaUsuarios() throws Exception {
-        mvc.perform(get("/usuario").header(HttpHeaders.AUTHORIZATION, token(comum))).andExpect(status().isForbidden());
-        mvc.perform(get("/usuario/" + admin.getId()).header(HttpHeaders.AUTHORIZATION, token(comum)))
+        mvc.perform(get("/usuarios").header(HttpHeaders.AUTHORIZATION, token(comum))).andExpect(status().isForbidden());
+        mvc.perform(get("/usuarios/" + admin.getId()).header(HttpHeaders.AUTHORIZATION, token(comum)))
                 .andExpect(status().isForbidden());
         // Nem os próprios dados: o login já devolve o que a tela precisa
-        mvc.perform(get("/usuario/" + comum.getId()).header(HttpHeaders.AUTHORIZATION, token(comum)))
+        mvc.perform(get("/usuarios/" + comum.getId()).header(HttpHeaders.AUTHORIZATION, token(comum)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void adminListaEConsultaUsuarios() throws Exception {
-        mvc.perform(get("/usuario").header(HttpHeaders.AUTHORIZATION, token(admin))).andExpect(status().isOk());
-        mvc.perform(get("/usuario/" + comum.getId()).header(HttpHeaders.AUTHORIZATION, token(admin)))
+        mvc.perform(get("/usuarios").header(HttpHeaders.AUTHORIZATION, token(admin))).andExpect(status().isOk());
+        mvc.perform(get("/usuarios/" + comum.getId()).header(HttpHeaders.AUTHORIZATION, token(admin)))
                 .andExpect(status().isOk());
     }
 
     @Test
     void usuarioComumContinuaLendoOsDemaisCadastros() throws Exception {
-        mvc.perform(get("/povo").header(HttpHeaders.AUTHORIZATION, token(comum))).andExpect(status().isOk());
+        mvc.perform(get("/povos").header(HttpHeaders.AUTHORIZATION, token(comum))).andExpect(status().isOk());
     }
 
     private String token(Usuario usuario) {

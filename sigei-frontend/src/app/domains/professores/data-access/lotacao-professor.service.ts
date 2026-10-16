@@ -16,10 +16,10 @@ export type {
 @Injectable({ providedIn: 'root' })
 export class LotacaoProfessorService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/lotacao`;
+  private readonly apiUrl = `${environment.apiUrl}/lotacoes`;
 
   listarPorAno(ano: number): Observable<LotacaoProfessorResponse[]> {
-    return this.http.get<LotacaoProfessorResponse[]>(`${this.apiUrl}/buscarPorAno`, { params: { ano } });
+    return this.http.get<LotacaoProfessorResponse[]>(`${environment.apiUrl}/anos/${ano}/lotacoes`);
   }
 
   /** Lotações de uma escola no ano; o tamanho máximo da página (100) cobre qualquer escola. */
@@ -28,7 +28,7 @@ export class LotacaoProfessorService {
   }
 
   listarPorProfessor(professorId: number): Observable<LotacaoProfessorResponse[]> {
-    return this.http.get<LotacaoProfessorResponse[]>(`${this.apiUrl}/buscarPorProfessor`, { params: { professorId } });
+    return this.http.get<LotacaoProfessorResponse[]>(`${environment.apiUrl}/professores/${professorId}/lotacoes`);
   }
 
   buscarPorId(id: number): Observable<LotacaoProfessorResponse> {
@@ -36,14 +36,14 @@ export class LotacaoProfessorService {
   }
 
   salvar(dados: LotacaoProfessorRequest): Observable<LotacaoProfessorResponse> {
-    return this.http.post<LotacaoProfessorResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<LotacaoProfessorResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: LotacaoProfessorRequest): Observable<LotacaoProfessorResponse> {
-    return this.http.put<LotacaoProfessorResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: LotacaoProfessorRequest): Observable<LotacaoProfessorResponse> {
+    return this.http.put<LotacaoProfessorResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

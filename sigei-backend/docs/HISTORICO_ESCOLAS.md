@@ -9,9 +9,9 @@ as tabelas e a coluna `totalAlunos` já existem nas entidades.
 
 As operações de escrita exigem autenticação com perfil `ADMIN`.
 
-1. Consulte `GET /anos` e reutilize o ID do ano desejado. Se ainda não existir,
-   cadastre com `POST /anos/salvar`, enviando `{"ano": 1990}`.
-2. Crie o registro com `POST /registroAnual/salvar`. Exemplo para escola de ID 1
+1. Consulte `GET /anos-referencia` e reutilize o ID do ano desejado. Se ainda não existir,
+   cadastre com `POST /anos-referencia`, enviando `{"ano": 1990}`.
+2. Crie o registro com `POST /registros-anuais`. Exemplo para escola de ID 1
    e ano 1990 cadastrado com ID 5:
 
 ```json
@@ -28,8 +28,8 @@ As operações de escrita exigem autenticação com perfil `ADMIN`.
    existentes de matrículas, equipe e infraestrutura. Matrículas recebem
    `registroId`; equipe e infraestrutura recebem `registroAnualId`.
 4. Repita para outros anos. O cadastro de uma combinação escola/ano já existente
-   retorna `409`. Para corrigir esse registro, use `PUT /registroAnual/editar`
-   com o seu `id`.
+   retorna `409`. Para corrigir esse registro, use `PUT /registros-anuais/{id}`
+   com o seu `id` no caminho.
 
 `totalAlunos` é opcional e deve ser maior ou igual a zero. Representa o total
 consolidado informado para aquele ano, inclusive quando não há detalhamento por
@@ -48,10 +48,10 @@ Rede e local de funcionamento continuam obrigatórios.
 Exige autenticação com perfil `ADMIN` ou `USUARIO`.
 
 ```http
-GET /registroAnual/historico?escolaId=1
-GET /registroAnual/historico?escolaId=1&anoInicial=1990&anoFinal=2026
-GET /registroAnual/historico?escolaId=1&anoInicial=1990
-GET /registroAnual/historico?escolaId=1&anoFinal=1992
+GET /escolas/1/registros-anuais
+GET /escolas/1/registros-anuais?anoInicial=1990&anoFinal=2026
+GET /escolas/1/registros-anuais?anoInicial=1990
+GET /escolas/1/registros-anuais?anoFinal=1992
 ```
 
 Os limites são opcionais e inclusivos. A resposta é uma lista de registros
@@ -62,7 +62,7 @@ O campo `totalAlunos` também passa a fazer parte das respostas existentes de
 registros anuais.
 
 - `200`: histórico encontrado ou lista vazia se a escola não tiver registros no período.
-- `400`: escola não informada, ID não positivo, ano não positivo, formato inválido
+- `400`: ID da escola não positivo, ano não positivo, formato inválido
   ou ano inicial maior que o final.
 - `404`: escola inexistente.
 
@@ -72,13 +72,13 @@ horizontal e `totalAlunos` ou `infraestrutura.numSalas` no eixo vertical.
 Apresente lacunas como dados não informados; não presuma crescimento anual entre
 anos não consecutivos nem calcule variação percentual com base igual a zero.
 
-Para consultar apenas um ano, continua disponível:
+Para consultar apenas um ano (valor do ano civil, não o ID):
 
 ```http
-GET /registroAnual/buscarPorEscolaEAno?escolaId=1&ano=1990
+GET /escolas/1/registros-anuais/1990
 ```
 
-O detalhe `GET /escola/{id}` continua selecionando o maior ano de referência.
+O detalhe `GET /escolas/{id}` continua selecionando o maior ano de referência.
 Cadastrar 1990 depois de 2026 não muda essa seleção.
 
 ## Limites do histórico

@@ -55,7 +55,7 @@ export class AuthService {
   }
 
   alterarSenha(dados: AlterarSenhaRequest): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/alterar-senha`, dados);
+    return this.http.put<void>(`${this.apiUrl}/senha`, dados);
   }
 
   getUsuario(): UsuarioAutenticado | null {

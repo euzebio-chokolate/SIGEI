@@ -57,11 +57,12 @@ public class MunicipioService {
         return municipioResponseDTOS;
     }
 
-    public MunicipioResponseDTO editar(MunicipioRequestDTO municipioDTO){
-        municipioRepository.findById(municipioDTO.id())
+    public MunicipioResponseDTO editar(Long id, MunicipioRequestDTO municipioDTO){
+        municipioRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Id de municipio inválido ou não encontrado"));
 
         Municipio municipio = municipioMapper.converter(municipioDTO);
+        municipio.setId(id);
         municipioRepository.save(municipio);
         return municipioMapper.converter(municipio);
     }

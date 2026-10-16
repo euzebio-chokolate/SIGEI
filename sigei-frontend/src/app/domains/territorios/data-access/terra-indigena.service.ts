@@ -9,7 +9,7 @@ export type { MunicipioResumo, TerraIndigenaRequest, TerraIndigenaResponse, Terr
 @Injectable({ providedIn: 'root' })
 export class TerraIndigenaService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/terra`;
+  private readonly apiUrl = `${environment.apiUrl}/terras-indigenas`;
 
   listarEstatisticas(): Observable<TerraIndigenaEstatistica[]> {
     return this.http.get<TerraIndigenaEstatistica[]>(`${this.apiUrl}/estatisticas`);
@@ -20,14 +20,14 @@ export class TerraIndigenaService {
   }
 
   salvar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
-    return this.http.post<TerraIndigenaResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<TerraIndigenaResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
-    return this.http.put<TerraIndigenaResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: TerraIndigenaRequest): Observable<TerraIndigenaResponse> {
+    return this.http.put<TerraIndigenaResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

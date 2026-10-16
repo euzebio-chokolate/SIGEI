@@ -9,7 +9,7 @@ export type { AldeiaResumo, PovoRequest, PovoResponse } from '../models/povo.mod
 @Injectable({ providedIn: 'root' })
 export class PovoService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/povo`;
+  private readonly apiUrl = `${environment.apiUrl}/povos`;
 
   listar(): Observable<PovoResponse[]> {
     return this.http.get<PovoResponse[]>(`${this.apiUrl}`);
@@ -20,14 +20,14 @@ export class PovoService {
   }
 
   salvar(dados: PovoRequest): Observable<PovoResponse> {
-    return this.http.post<PovoResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<PovoResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: PovoRequest): Observable<PovoResponse> {
-    return this.http.put<PovoResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: PovoRequest): Observable<PovoResponse> {
+    return this.http.put<PovoResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

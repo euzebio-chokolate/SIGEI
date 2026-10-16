@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8080/municipio/salvar
+  url: http://localhost:8080/municipios
   body:
     type: json
     data: ""

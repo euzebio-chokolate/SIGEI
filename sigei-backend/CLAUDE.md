@@ -68,36 +68,36 @@ Consulte [docs/BANCO_DE_DADOS.md](docs/BANCO_DE_DADOS.md) para o diagrama e o di
 
 ## Contratos HTTP
 
-Não há prefixo global `/api` configurado. Preserve a grafia existente, incluindo camelCase nas rotas.
+Não há prefixo global `/api` configurado. As rotas seguem REST: recursos no plural e em kebab-case, sem verbos no caminho, e o ID do registro no caminho. Mantenha esse padrão em rotas novas.
 
-Na tabela, **CRUD base** significa: `POST /salvar`, `GET` na raiz do recurso, `PUT /editar` e `DELETE /excluir/{id}`. Nas edições, o ID normalmente vem no corpo do DTO. A tabela lista apenas rotas implementadas.
+Na tabela, **CRUD base** significa: `POST` na coleção (`201`), `GET` na coleção, `PUT /{id}` (`200`) e `DELETE /{id}` (`204`, sem corpo). Na edição, o ID do caminho prevalece: um `id` no corpo é ignorado, e o cadastro também ignora o `id` do corpo (os mappers de entrada têm `@Mapping(target = "id", ignore = true)`), para que um `POST` nunca sobrescreva um registro. Os controllers retornam `ResponseEntity` tipado. A tabela lista apenas rotas implementadas.
 
 | Recurso | Operações |
 | --- | --- |
-| `/aldeia` | CRUD base e `GET /{id}`. |
-| `/povo` | CRUD base e `GET /{id}`. |
-| `/municipio` | CRUD base e `GET /estatisticas`. |
-| `/terra` | CRUD base, `GET /{id}` e `GET /estatisticas`. |
-| `/escola` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `GET /{id}/historico` (trilha de auditoria, só `ADMIN`), `POST /salvarCompleto` e `PUT /editarCompleto` (multipart: parte `dados` em JSON e parte opcional `foto`). |
-| `/anos` | CRUD base. |
-| `/registroAnual` | CRUD base, com o `GET` da raiz paginado (`PaginaDTO`; filtros opcionais `ano`, `escolaId` e `municipioId`), `GET /buscarPorAno?ano=2025`, `GET /buscarPorEscolaEAno?escolaId=1&ano=2025` e `GET /historico?escolaId=1`. |
-| `/infraestrutura` | CRUD base, `GET /buscarPorAno?ano=2025`, `GET /maisRecentes` (uma por escola, do registro mais recente que tenha infraestrutura; usada pelo mapa público) e `POST /{id}/foto` (multipart, campo `foto`). |
-| `/equipe` | Apenas `POST /salvar` e `PUT /editar`. |
-| `/matriculaNivel` | CRUD base. |
-| `/matriculaSerie` | CRUD base. |
-| `/usuario` | CRUD base e `GET /{id}`. |
-| `/professor` | CRUD base e `GET /{id}`. Exclusão retorna `204` e remove as lotações. CPF e matrícula só aparecem para `ADMIN`. |
-| `/lotacao` | CRUD base, com o `GET` da raiz paginado (`PaginaDTO`; filtros opcionais `ano`, `professorId`, `escolaId` e `municipioId`), `GET /{id}`, `GET /buscarPorAno?ano=2026` e `GET /buscarPorProfessor?professorId=1`. Exclusão retorna `204`. Número do contrato só aparece para `ADMIN`. |
-| `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /alterar-senha`. |
+| `/aldeias` | CRUD base e `GET /{id}`. |
+| `/povos` | CRUD base e `GET /{id}`. |
+| `/municipios` | CRUD base e `GET /estatisticas`. |
+| `/terras-indigenas` | CRUD base, `GET /{id}` e `GET /estatisticas`. |
+| `/escolas` | CRUD base, `GET /{id}` com detalhes e registro anual mais recente da escola, `GET /{id}/historico` (trilha de auditoria, só `ADMIN`), `GET /{id}/registros-anuais` (registros da escola em ordem crescente de ano; `anoInicial` e `anoFinal` opcionais), `GET /{id}/registros-anuais/{ano}` (registro do ano civil), `POST /cadastro-completo` e `PUT /{id}/cadastro-completo` (multipart: parte `dados` em JSON e parte opcional `foto`). |
+| `/anos-referencia` | CRUD base (sem `GET /{id}`) e `POST /proximo`, sem corpo, que abre o ano seguinte (ver "Abertura de ano") e responde `201` com o ano criado. |
+| `/anos/{ano}` | Listas completas de um ano civil, sem paginação, usadas pelas telas: `GET /registros-anuais`, `GET /infraestruturas` (pública) e `GET /lotacoes`. `{ano}` é o valor do ano (`2025`), não o ID de `AnoReferencia`; por isso fica fora de `/anos-referencia/{id}` (`AnoController`). |
+| `/registros-anuais` | CRUD base, com o `GET` da coleção paginado (`PaginaDTO`; filtros opcionais `ano`, `escolaId` e `municipioId`). |
+| `/infraestruturas` | CRUD base, `GET /mais-recentes` (uma por escola, do registro mais recente que tenha infraestrutura; usada pelo mapa público) e `POST /{id}/foto` (multipart, campo `foto`). |
+| `/equipes` | Apenas `POST` e `PUT /{id}`. |
+| `/matriculas-nivel` | CRUD base. |
+| `/matriculas-serie` | CRUD base. |
+| `/usuarios` | CRUD base e `GET /{id}`. |
+| `/professores` | CRUD base, `GET /{id}` e `GET /{id}/lotacoes` (todas as lotações do professor, da mais recente à mais antiga). A exclusão remove as lotações. CPF e matrícula só aparecem para `ADMIN`. |
+| `/lotacoes` | CRUD base, com o `GET` da coleção paginado (`PaginaDTO`; filtros opcionais `ano`, `professorId`, `escolaId` e `municipioId`), e `GET /{id}`. Número do contrato só aparece para `ADMIN`. |
+| `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /senha` (troca da própria senha). |
 | `/dashboard` | `GET`, com parâmetro opcional `ano`. Inclui o bloco `professores` (lotados, lotações, vagas, núcleo e lotações por tipo de contrato). |
 | `/auditoria` | `GET`, só `ADMIN`: alterações de todas as entidades auditadas, paginadas (`pagina` a partir de 0, `tamanho` até 100) e filtráveis por `entidade`, `operacao`, `usuarioId`, `sistema`, `de` e `ate` (datas do Acre). Responde `PaginaAuditoriaDTO`. |
-| `/atualizacao-anual` | `POST /iniciar`, sem corpo. |
 | `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo` e parâmetro opcional `ano` (sem ele, o mais recente); `GET /layouts` (colunas aceitas por tipo) e `GET /modelos/{tipo}` (planilha modelo `.xlsx`). |
 | `/relatorios` | `GET /{tipo}` (`painel`, `escolas`, `matriculas`, `professores`), com `formato` (`xlsx` padrão ou `pdf`), `ano` e `municipioId` opcionais; responde o arquivo como anexo. |
 
 Os DTOs são a fonte dos nomes de campos, tipos e validações. Não suponha paginação, um envelope único de resposta ou CRUD completo em todos os controllers.
 
-Paginação: só as listagens de todos os anos, que crescem com o histórico (`GET /registroAnual` e `GET /lotacao`), e a auditoria. As duas primeiras recebem `pagina` (a partir de 0) e `tamanho` (padrão 20, até 100; `utils/Paginacao`, `400` fora disso), ordenam na consulta do repository e respondem `PaginaDTO` (`itens`, `pagina`, `tamanho`, `totalItens`, `totalPaginas`). As demais listas devolvem tudo, porque têm o tamanho do cadastro ou de um ano (cerca de 250 escolas e 600 lotações por ano), e o frontend pagina e filtra na tela; as telas usam as rotas por ano (`/buscarPorAno`), não as paginadas. A exceção é o modal de detalhes da escola, que lista os professores lotados nela no ano com `GET /lotacao?escolaId=&ano=&tamanho=100`. Ao criar uma listagem que cresça a cada ano, pagine-a da mesma forma. Criações normalmente retornam `201`; consultas e edições, `200`. Exclusões variam entre `200` e `204`; preserve o contrato de cada controller.
+Paginação: só as listagens de todos os anos, que crescem com o histórico (`GET /registros-anuais` e `GET /lotacoes`), e a auditoria. As duas primeiras recebem `pagina` (a partir de 0) e `tamanho` (padrão 20, até 100; `utils/Paginacao`, `400` fora disso), ordenam na consulta do repository e respondem `PaginaDTO` (`itens`, `pagina`, `tamanho`, `totalItens`, `totalPaginas`). As demais listas devolvem tudo, porque têm o tamanho do cadastro ou de um ano (cerca de 250 escolas e 600 lotações por ano), e o frontend pagina e filtra na tela; as telas usam as rotas por ano (`/anos/{ano}/...`), não as paginadas. A exceção é o modal de detalhes da escola, que lista os professores lotados nela no ano com `GET /lotacoes?escolaId=&ano=&tamanho=100`. Ao criar uma listagem que cresça a cada ano, pagine-a da mesma forma. Criações retornam `201`; consultas e edições, `200`; exclusões, `204`.
 
 Swagger: `/swagger-ui.html` e `/swagger-ui/**`; OpenAPI: `/v3/api-docs`. As anotações dos controllers documentam operações, mas o comportamento efetivo depende também dos services e de `SecurityConfig`.
 
@@ -117,15 +117,15 @@ As regras são avaliadas nesta ordem:
 | `/actuator/health` e descendentes | Público. |
 | `/auth/login`, `/auth/refresh`, `/auth/logout` | Público. |
 | Rotas Swagger/OpenAPI configuradas | Público. |
-| `/auth/alterar-senha` | Qualquer usuário autenticado. |
-| `GET /infraestrutura` e descendentes | Público. |
-| `GET /escola/*/historico` | `ADMIN`. |
+| `/auth/senha` | Qualquer usuário autenticado. |
+| `GET /infraestruturas` e descendentes, e `GET /anos/*/infraestruturas` | Público. |
+| `GET /escolas/*/historico` | `ADMIN`. |
 | `GET /auditoria` e descendentes | `ADMIN`. |
-| `GET /usuario` e descendentes | `ADMIN`. |
+| `GET /usuarios` e descendentes | `ADMIN`. |
 | Demais `GET /**` | `ADMIN` ou `USUARIO`. |
 | Demais requisições | `ADMIN`. |
 
-Esses matchers não criam endpoints. A exceção pública de infraestrutura não libera uploads, edições ou exclusões. Leituras que expõem dados de pessoas ou de todo o sistema (`/usuario`, com nomes, e-mails e perfis; `/auditoria`; histórico da escola) têm matcher `ADMIN` antes da regra geral de leitura; esconder a tela no frontend não basta. `UsuarioAcessoHttpTest` cobre `/usuario`, inclusive a raiz (o padrão `/usuario/*` não a incluiria). Já `/professor` e `/lotacao` têm a leitura liberada a `USUARIO`, e é o service (`AcessoDadosSensiveis`) que omite CPF, matrícula e número do contrato para quem não é `ADMIN`.
+Esses matchers não criam endpoints. A exceção pública de infraestrutura não libera uploads, edições ou exclusões. Leituras que expõem dados de pessoas ou de todo o sistema (`/usuarios`, com nomes, e-mails e perfis; `/auditoria`; histórico da escola) têm matcher `ADMIN` antes da regra geral de leitura; esconder a tela no frontend não basta. `UsuarioAcessoHttpTest` cobre `/usuarios`, inclusive a raiz (o padrão `/usuarios/*` não a incluiria). Já `/professores` e `/lotacoes` (inclusive `/professores/{id}/lotacoes` e `/anos/{ano}/lotacoes`) têm a leitura liberada a `USUARIO`, e é o service (`AcessoDadosSensiveis`) que omite CPF, matrícula e número do contrato para quem não é `ADMIN`.
 
 Fluxo de autenticação:
 
@@ -134,7 +134,7 @@ Fluxo de autenticação:
 3. O navegador envia `sigei_acesso` automaticamente. O filtro aceita também `Authorization: Bearer <token>` (com precedência) para clientes de API, mas a API não expõe mais o token. O subject é o e-mail; há claims de ID, nome e perfil. Expiração padrão do token de acesso: `900000` milissegundos (15 minutos).
 4. O filtro valida o JWT e consulta novamente o usuário no banco. A autorização usa o perfil e o estado atuais do cadastro.
 5. Se `alterarSenha=true`, a única autoridade atribuída é `ROLE_TROCAR_SENHA`. O usuário pode alterar a própria senha e acessar rotas públicas, mas não recebe os privilégios normais do perfil.
-6. `PUT /auth/alterar-senha` recebe `senhaAtual`, `novaSenha` e `confirmacaoSenha`; valida as senhas (de 8 a 72 caracteres, o limite do BCrypt; o mesmo vale para a senha de `/usuario`, que pode vir vazia na edição para manter a atual), impede reutilizar a atual, grava BCrypt, define `alterarSenha=false`, revoga todos os refresh tokens do usuário e remove os cookies de sessão. Retorna `204`.
+6. `PUT /auth/senha` recebe `senhaAtual`, `novaSenha` e `confirmacaoSenha`; valida as senhas (de 8 a 72 caracteres, o limite do BCrypt; o mesmo vale para a senha de `/usuarios`, que pode vir vazia na edição para manter a atual), impede reutilizar a atual, grava BCrypt, define `alterarSenha=false`, revoga todos os refresh tokens do usuário e remove os cookies de sessão. Retorna `204`.
 7. `POST /auth/refresh` lê o cookie `sigei_renovacao`, grava novos cookies e devolve o mesmo corpo do login. `RefreshTokenService` grava apenas o hash SHA-256, valida por 7 dias (`jwt.refresh-expiration`) e rotaciona: o token usado é revogado por update condicional, de modo que duas renovações simultâneas não geram duas sessões. Reapresentar um token revogado há mais de 30 segundos (`TOLERANCIA_CONCORRENCIA`) revoga todas as sessões do usuário; dentro desse intervalo, que cobre abas renovando ao mesmo tempo com o mesmo cookie, o token é só recusado. Cookie ausente ou token desconhecido, expirado, revogado ou de usuário inativo resulta em `401` e na remoção dos cookies; a transação não é desfeita nesses casos, para manter as revogações.
 8. `POST /auth/logout` revoga o refresh token do cookie, remove os cookies e retorna `204` mesmo sem sessão.
 
@@ -148,7 +148,7 @@ CORS usa `CORS_ALLOWED_ORIGINS` (padrão `http://localhost:4200`), aceita origen
 
 ### Mapa público
 
-`GET /infraestrutura/maisRecentes` seleciona diretamente `InfraestruturaEscolaResponseDTO`
+`GET /infraestruturas/mais-recentes` seleciona diretamente `InfraestruturaEscolaResponseDTO`
 no repository, incluindo os resumos de escola e ano por um construtor de projeção.
 Isso evita materializar entidades e carregar relacionamentos EAGER por escola.
 Preserve uma infraestrutura por escola, do ano mais recente que tenha infraestrutura;
@@ -156,7 +156,7 @@ o teste de repository também verifica uma única consulta e nenhuma entidade ca
 
 ### Abertura de ano
 
-`AtualizacaoAnualService.iniciarNovoAno()` é transacional. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia para novas entidades:
+`POST /anos-referencia/proximo` chama `AtualizacaoAnualService.iniciarNovoAno()`, que é transacional e devolve o ano criado. Cria o maior ano cadastrado + 1 e percorre as escolas. Para cada escola com histórico, usa seu registro mais recente e copia para novas entidades:
 
 - do registro: rede, local de funcionamento e `totalAlunos`;
 - a equipe, com `anoReferencia` apontando para o novo ano;
@@ -173,7 +173,7 @@ Da foto, só a URL é copiada. O `fotoPublicId` fica apenas no registro que fez 
 
 `CadastroEscolaService` grava, em uma única transação, escola, registro do ano informado, equipe, infraestrutura, matrículas e foto (`CadastroEscolaRequestDTO`). É o fluxo usado pelo formulário de escolas do frontend; os endpoints individuais de cada entidade continuam existindo.
 
-- `salvarCompleto` exige `escola.id` nulo e retorna `201`; `editarCompleto` exige `escola.id` e retorna `200`. Ambos retornam `CadastroEscolaResponseDTO` (`escola` e `registro`).
+- `POST /escolas/cadastro-completo` exige `escola.id` nulo e retorna `201`; `PUT /escolas/{id}/cadastro-completo` usa o ID do caminho (ignora `escola.id`) e retorna `200`. Ambos retornam `CadastroEscolaResponseDTO` (`escola` e `registro`).
 - O registro é localizado por escola + ano: se existir, é atualizado; senão, é criado. Registros de outros anos não são alterados.
 - Matrículas são casadas por `nivel` e por `denominacao` + `etapaEnsino`; itens ausentes na requisição são preservados e chaves repetidas geram `400`.
 - `removerFoto=true` limpa a referência da foto. O upload ao Cloudinary ocorre após o flush do banco; se a transação for desfeita depois do upload, a imagem é removida por compensação.
@@ -183,7 +183,7 @@ Da foto, só a URL é copiada. O `fotoPublicId` fica apenas no registro que fez 
 
 O Hibernate Envers registra cada criação, alteração e exclusão das entidades com `@Audited`: todas as de domínio e `Usuario`, sem a `senha` (`@NotAudited`). `RefreshToken` não é auditado. Cada transação gera uma `Revisao` com data e hora, e o `RevisaoListener` copia para ela ID, e-mail e nome do `Usuario` autenticado. Sem autenticação (inicializadores, carga de planilhas), o autor fica nulo e a revisão é atribuída ao sistema. Os valores de cada versão ficam nas tabelas `<entidade>_aud`. A configuração está em `application.properties` (`org.hibernate.envers.*`): exclusões guardam os últimos valores, e mudanças em coleções não geram revisão do pai.
 
-`HistoricoEscolaService` monta `GET /escola/{id}/historico`, com as alterações da escola, de seus registros anuais e, em cada registro, de equipe, infraestrutura e matrículas. Compara cada versão com a anterior da mesma entidade e devolve apenas os campos alterados. Relacionamentos aparecem como `<campo>Id`. A ordem vai da revisão mais recente à mais antiga, e cada item traz o `ano` do registro. Uma escola excluída mantém o histórico; uma escola sem revisões resulta em `404`.
+`HistoricoEscolaService` monta `GET /escolas/{id}/historico`, com as alterações da escola, de seus registros anuais e, em cada registro, de equipe, infraestrutura e matrículas. Compara cada versão com a anterior da mesma entidade e devolve apenas os campos alterados. Relacionamentos aparecem como `<campo>Id`. A ordem vai da revisão mais recente à mais antiga, e cada item traz o `ano` do registro. Uma escola excluída mantém o histórico; uma escola sem revisões resulta em `404`.
 
 `AuditoriaService` monta `GET /auditoria`, a auditoria geral. Lista primeiro uma projeção leve (revisão, ID) de cada tabela `_aud` para ordenar e contar, e só então carrega e compara os registros da página. A paginação é por alteração, não por revisão, porque a revisão inicial da `V4` contém todos os registros existentes na época. Cada item traz uma `descricao` (nome do registro ou, para partes do registro anual e lotações, a escola ou o professor), buscada nos dados atuais e, para registros excluídos, na última versão auditada.
 
@@ -319,7 +319,7 @@ API local: `http://localhost:8080`; health: `/actuator/health`.
 
 Testes em `src/test/java` espelham os pacotes principais. Services usam Mockito; repositories usam `@DataJpaTest` com `@ActiveProfiles("test")`. Há teste de carregamento do contexto, teste do inicializador de municípios e `FlywayMigracoesTest` (PostgreSQL via Testcontainers). O perfil `test` configura H2 em memória, schema `create-drop`, Flyway desligado (as migrações usam SQL do PostgreSQL), segredo JWT de teste e desabilita a carga de planilhas.
 
-Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organizar cenários, seguindo `RegistroAnualServiceTest`. Fixtures de persistência ficam em `repository/RepositoryTestFixtures.java`. Requisições manuais estão em `tests - bruno/Sample API Collection/`; elas não substituem testes automatizados. Testes H2 não garantem compatibilidade de toda consulta com PostgreSQL.
+Use sufixo `Test` para descoberta pelo Maven e `@Nested` quando ajudar a organizar cenários, seguindo `RegistroAnualServiceTest`. Fixtures de persistência ficam em `repository/RepositoryTestFixtures.java`. Requisições manuais estão em `tests - bruno/Sample API Collection/`; elas não substituem testes automatizados. `RotasRestHttpTest` cobre o contrato REST (ID do caminho na edição, `id` do corpo ignorado no cadastro, `204` na exclusão, abertura de ano e as listas por ano). Testes H2 não garantem compatibilidade de toda consulta com PostgreSQL.
 
 ## Erros e cuidados ao modificar
 
@@ -341,7 +341,7 @@ Os tratamentos próprios:
 | `RegraNegocioException` (e a subclasse `RegistroEmUsoException`) | `409`, mensagem do service. |
 | `DataIntegrityViolationException` | `409`, mensagem genérica; a mensagem do banco (SQL, constraints) não vai para a resposta, e o log registra só o nome da constraint. |
 | `ArmazenamentoImagemNaoConfiguradoException` | `503`, mensagem da exceção. |
-| `TokenInvalidoException` | `401`, mensagem da exceção; em `/auth/refresh` é tratada no próprio controller, que também remove os cookies. |
+| `TokenInvalidoException` | `401`, mensagem da exceção; em `/auth/refresh` o controller remove os cookies e relança a exceção. |
 | `CredenciaisInvalidasException` | `401`, "E-mail ou senha inválidos." (login). |
 | `UsuarioDesativadoException` | `403`, "Usuário desativado. Procure o administrador do sistema." (login com a senha correta). |
 | Qualquer outra `Exception` | `500`, mensagem genérica; a exceção vai só para o log. |

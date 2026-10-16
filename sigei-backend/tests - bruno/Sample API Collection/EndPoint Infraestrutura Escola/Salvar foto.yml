@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: localhost:8080/infraestrutura/{id}/foto
+  url: localhost:8080/infraestruturas/{id}/foto
   auth: inherit
 
 settings:

@@ -123,8 +123,8 @@ public class EscolaService {
     }
 
     @Transactional
-    public EscolaResponseDTO editar(EscolaRequestDTO escolaDTO){
-        Escola escola = escolaRepository.findById(escolaDTO.id())
+    public EscolaResponseDTO editar(Long id, EscolaRequestDTO escolaDTO){
+        Escola escola = escolaRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Escola não encontrada"));
 
         Aldeia aldeia = aldeiaRepository.findById(escolaDTO.aldeiaId())

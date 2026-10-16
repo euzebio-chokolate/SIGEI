@@ -14,6 +14,7 @@ public interface TerraIndigenaMapper {
     TerraIndigenaResumoDTO converterResumo(TerraIndigena terraIndigena);
     TerraIndigenaResponseDTO converter(TerraIndigena terraIndigena);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "municipio", ignore = true)
     TerraIndigena converter(TerraIndigenaRequestDTO terraIndigenaRequestDTO);
 }

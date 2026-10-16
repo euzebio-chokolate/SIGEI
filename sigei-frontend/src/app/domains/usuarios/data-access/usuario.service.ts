@@ -9,7 +9,7 @@ export type { PerfilUsuario, UsuarioResponse, UsuarioRequest } from '../models/u
 @Injectable({ providedIn: 'root' })
 export class UsuarioService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/usuario`;
+  private readonly apiUrl = `${environment.apiUrl}/usuarios`;
 
   listar(): Observable<UsuarioResponse[]> {
     return this.http.get<UsuarioResponse[]>(this.apiUrl);
@@ -20,14 +20,14 @@ export class UsuarioService {
   }
 
   salvar(dados: UsuarioRequest): Observable<UsuarioResponse> {
-    return this.http.post<UsuarioResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<UsuarioResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: UsuarioRequest): Observable<UsuarioResponse> {
-    return this.http.put<UsuarioResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: UsuarioRequest): Observable<UsuarioResponse> {
+    return this.http.put<UsuarioResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8080/matriculaSerie/salvar
+  url: http://localhost:8080/matriculas-serie
   body:
     type: json
     data: |-

@@ -9,21 +9,21 @@ export type { MatriculaSerieRequest, MatriculaSerieResponse } from '../models/ma
 @Injectable({ providedIn: 'root' })
 export class MatriculaSerieService {
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = `${environment.apiUrl}/matriculaSerie`;
+  private readonly apiUrl = `${environment.apiUrl}/matriculas-serie`;
 
   listar(): Observable<MatriculaSerieResponse[]> {
     return this.http.get<MatriculaSerieResponse[]>(this.apiUrl);
   }
 
   salvar(dados: MatriculaSerieRequest): Observable<MatriculaSerieResponse> {
-    return this.http.post<MatriculaSerieResponse>(`${this.apiUrl}/salvar`, dados);
+    return this.http.post<MatriculaSerieResponse>(this.apiUrl, dados);
   }
 
-  editar(dados: MatriculaSerieRequest): Observable<MatriculaSerieResponse> {
-    return this.http.put<MatriculaSerieResponse>(`${this.apiUrl}/editar`, dados);
+  editar(id: number, dados: MatriculaSerieRequest): Observable<MatriculaSerieResponse> {
+    return this.http.put<MatriculaSerieResponse>(`${this.apiUrl}/${id}`, dados);
   }
 
   excluir(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/excluir/${id}`);
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

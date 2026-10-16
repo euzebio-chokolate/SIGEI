@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/matriculaNivel
+  url: http://localhost:8080/matriculas-nivel
   auth: inherit
 
 settings:

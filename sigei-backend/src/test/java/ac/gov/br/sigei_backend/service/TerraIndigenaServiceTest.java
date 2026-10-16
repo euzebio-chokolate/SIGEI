@@ -113,7 +113,7 @@ public class TerraIndigenaServiceTest {
         when(terraIndigenaRepository.save(any(TerraIndigena.class))).thenReturn(terraConvertida);
         lenient().when(terraIndigenaMapper.converter(any(TerraIndigena.class))).thenReturn(responseMock);
 
-        TerraIndigenaResponseDTO resultado = terraIndigenaService.editar(requestDTO);
+        TerraIndigenaResponseDTO resultado = terraIndigenaService.editar(requestDTO.id(), requestDTO);
 
         assertNotNull(resultado);
         verify(terraIndigenaRepository, times(1)).findById(1L);
@@ -127,7 +127,7 @@ public class TerraIndigenaServiceTest {
         when(terraIndigenaRepository.findById(99L)).thenReturn(Optional.empty());
 
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
-            terraIndigenaService.editar(requestDTO);
+            terraIndigenaService.editar(requestDTO.id(), requestDTO);
         });
 
         assertEquals("Id de terra indígena inválido ou não encontrado", erro.getMessage());
@@ -145,7 +145,7 @@ public class TerraIndigenaServiceTest {
         when(municipioRepository.findById(99L)).thenReturn(Optional.empty());
 
         NoSuchElementException erro = assertThrows(NoSuchElementException.class, () -> {
-            terraIndigenaService.editar(requestDTO);
+            terraIndigenaService.editar(requestDTO.id(), requestDTO);
         });
 
         assertEquals("Id de município inválido ou não encontrado", erro.getMessage());

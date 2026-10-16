@@ -199,12 +199,7 @@ export class PovoFormComponent implements OnInit {
 
     // Fluxo de edição
     if (this.editando && this.povoId !== null) {
-      const dadosEdicao: PovoRequest = {
-        id: this.povoId,
-        nome: dados.nome,
-      };
-      
-      this.povoService.editar(dadosEdicao).subscribe({
+      this.povoService.editar(this.povoId, dados).subscribe({
         next: () => {
           this.salvando = false;
           this.toast.sucesso('Os dados do povo foram atualizados.', 'Povo atualizado');

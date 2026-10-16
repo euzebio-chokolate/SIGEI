@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: http://localhost:8080/escola
+  url: http://localhost:8080/escolas
   auth:
     type: bearer
     token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhZG1pbkBzaWdlaS5jb20iLCJpZCI6MSwibm9tZSI6IkFkbWluaXN0cmFkb3IiLCJwZXJmaWwiOiJBRE1JTiIsImlhdCI6MTc4Nzg4NDYwNywiZXhwIjoxNzg3OTcxMDA3fQ.uoScVhRv5-LRDimy4kkHWp9RXnLFQBHTTr92gEDs8Bw

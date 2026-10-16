@@ -97,12 +97,8 @@ public class LotacaoProfessorService {
     }
 
     @Transactional
-    public LotacaoProfessorResponseDTO editar(LotacaoProfessorRequestDTO lotacaoDTO) {
-        if (lotacaoDTO.id() == null) {
-            throw new IllegalArgumentException("Informe o ID da lotação");
-        }
-
-        LotacaoProfessor lotacao = lotacaoRepository.findById(lotacaoDTO.id())
+    public LotacaoProfessorResponseDTO editar(Long id, LotacaoProfessorRequestDTO lotacaoDTO) {
+        LotacaoProfessor lotacao = lotacaoRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Lotação não encontrada"));
 
         preencher(lotacaoDTO, lotacao);

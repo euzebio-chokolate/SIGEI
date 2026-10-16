@@ -35,7 +35,7 @@ public class AtualizacaoAnualService {
     LotacaoProfessorRepository lotacaoProfessorRepository;
 
     @Transactional
-    public void iniciarNovoAno() {
+    public AnoReferencia iniciarNovoAno() {
 
         AnoReferencia ultimoAno = anoReferenciaRepository
                 .findTopByOrderByAnoDesc()
@@ -109,6 +109,8 @@ public class AtualizacaoAnualService {
         }
 
         copiarLotacoes(ultimoAno, novoAnoSalvo);
+
+        return novoAnoSalvo;
     }
 
     /**

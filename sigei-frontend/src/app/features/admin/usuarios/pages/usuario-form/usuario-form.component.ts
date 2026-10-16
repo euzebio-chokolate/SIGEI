@@ -105,12 +105,8 @@ export class UsuarioFormComponent implements OnInit {
       ativo: valor.ativo
     };
 
-    if (this.editando && this.usuarioId) {
-      dados.id = this.usuarioId;
-    }
-
-    const requisicao = this.editando
-      ? this.usuarioService.editar(dados)
+    const requisicao = this.editando && this.usuarioId
+      ? this.usuarioService.editar(this.usuarioId, dados)
       : this.usuarioService.salvar(dados);
 
     requisicao.subscribe({
