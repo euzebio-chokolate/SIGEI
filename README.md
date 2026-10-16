@@ -68,13 +68,13 @@ SIGEI/
 │   │   └── service/      # regras de negócio
 │   ├── docs/             # banco de dados, modelo ER, histórico anual
 │   └── planilhas/        # planilhas de referência para importar pela tela
-├── sigei-frontend/       # aplicação Angular
-│   ├── src/app/
-│   │   ├── core/         # autenticação
-│   │   ├── domains/      # serviços HTTP e modelos por domínio
-│   │   ├── features/     # telas (mapa público, login, área administrativa)
-│   │   └── shared/       # componentes reutilizáveis
-│   └── docs/             # documentação técnica do frontend
+└── sigei-frontend/       # aplicação Angular
+    ├── src/app/
+    │   ├── core/         # autenticação
+    │   ├── domains/      # serviços HTTP e modelos por domínio
+    │   ├── features/     # telas (mapa público, login, área administrativa)
+    │   └── shared/       # componentes reutilizáveis
+    └── docs/             # documentação técnica do frontend
 ```
 
 ## Como executar
