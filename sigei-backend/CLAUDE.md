@@ -205,6 +205,8 @@ As três importações recebem o ano (`ano`) e localizam as colunas pelo cabeça
 
 `ImportacaoExcelService` (escolas, infraestrutura e equipe) cria o ano informado se ainda não existir (de 2000 ao ano atual + 1), sem copiar dados de outro ano. O anexo vem da coluna `TIPO DE UNIDADE` ou, no formato antigo, de `ANEXO` na coluna de ordem; sem `LATITUDE`/`LONGITUDE`, aceita `COORDENADAS` com a longitude na coluna seguinte. Coordenadas podem estar em graus decimais ou em graus, minutos e segundos. Com dois anos no ano de construção (`2014 e 2025`, construção e reforma), vale o primeiro (`ExcelUtils.lerAno`). Erros de banco de uma linha aparecem no resultado com uma mensagem neutra, sem o SQL, e vão para o log. `ImportacaoMatriculasService` exige o ano cadastrado e o registro anual de cada escola nele; `EJA` e `AEE` são opcionais (zero).
 
+A coluna `RELATÓRIO FOTOGRÁFICO` das planilhas não é importada: `temRegistroFotografico` indica uma foto anexada no sistema (o formulário exige a foto quando ele está marcado), e a importação não traz fotos.
+
 Preserve a normalização de nomes, o tratamento de coordenadas e as regras de identificação de escolas. Os retornos `ImportacaoResultadoDTO`, `ImportacaoMatriculasResultadoDTO` e `ImportacaoProfessoresResultadoDTO` incluem contadores e erros; uma resposta `200` não significa que todas as linhas foram importadas. Consulte os services e os utilitários antes de modificar esses fluxos.
 
 `ImportacaoProfessoresService` lê o quadro de escolas e professores indígenas para o ano informado, que precisa estar iniciado (senão, `400`). As colunas obrigatórias são `MUNICÍPIO`, `LOTAÇÃO` e `NOME`. Cada linha é uma lotação:
@@ -264,6 +266,7 @@ Fonte: `src/main/resources/application.properties`. O arquivo importa opcionalme
 - `V7__professores_e_lotacoes.sql` cria `professor` e `lotacao_professor`, com as tabelas `_aud`. As colunas sensíveis só recebem valores cifrados pela aplicação; não grave CPF, matrícula ou contrato por SQL direto.
 - `V8__normaliza_email_usuario.sql` normaliza os e-mails de `usuario` já gravados, registrando o ajuste numa revisão do sistema. E-mails que coincidiriam com o de outro usuário não são alterados; a migração emite um aviso com os IDs, para resolução manual.
 - `V9__varias_escolas_por_aldeia.sql` remove a restrição única de `escola.aldeia_id` (procurada pela coluna, porque o nome varia) e cria o índice `idx_escola_aldeia`. Não altera dados.
+- `V10__desmarca_registro_fotografico_sem_foto.sql` desmarca `tem_registro_fotografico` nas infraestruturas sem `foto_url`, registrando o ajuste numa revisão do sistema. O campo indica foto anexada no sistema, e o formulário exige a foto quando ele está marcado.
 - Bancos criados antes do Flyway, sem `flyway_schema_history`, recebem baseline na versão 1 (`spring.flyway.baseline-on-migrate`) e executam só as migrações seguintes.
 
 Para mudar o esquema: altere a entidade, crie `V<n>__descricao.sql` com o SQL PostgreSQL correspondente e nunca edite uma migração já aplicada. Para obter o DDL que o Hibernate espera, gere o script com `jakarta.persistence.schema-generation.scripts.action=create` e o dialeto PostgreSQL. `FlywayMigracoesTest` aplica as migrações em um PostgreSQL real (Testcontainers) e sobe o contexto com `validate`. Ele exige Docker e é ignorado quando o Docker não está disponível.

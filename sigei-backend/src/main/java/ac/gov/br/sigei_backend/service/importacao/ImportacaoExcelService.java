@@ -80,7 +80,6 @@ public class ImportacaoExcelService {
         ENERGIA("ENERGIA", false,
                 "REDE PÚBLICA (ou REDE ELÉTRICA), GERADOR, SOLAR, OUTRO ou NÃO.",
                 "TIPO DE ENERGIA"),
-        FOTOGRAFICO("RELATÓRIO FOTOGRÁFICO", false, "SIM ou NÃO.", "REGISTRO FOTOGRÁFICO"),
         PROFESSOR("TEM PROFESSOR RESPONSÁVEL", false, "SIM ou NÃO.", "PROFESSOR RESPONSÁVEL"),
         EQUIPE_GESTORA("TEM EQUIPE GESTORA", false, "SIM ou NÃO.", "EQUIPE GESTORA"),
         MERENDEIRA("TEM MERENDEIRA", false, "SIM ou NÃO.", "MERENDEIRA"),
@@ -652,7 +651,8 @@ public class ImportacaoExcelService {
                 infraestrutura::setTipoEnergia
         );
 
-        linha.seExistir(Coluna.FOTOGRAFICO, linha::booleano, infraestrutura::setTemRegistroFotografico);
+        // A coluna RELATÓRIO FOTOGRÁFICO da planilha não é lida: temRegistroFotografico indica uma
+        // foto anexada no sistema, e marcá-lo sem foto travava a edição da escola no formulário
 
         infraestruturaRepository.save(infraestrutura);
 

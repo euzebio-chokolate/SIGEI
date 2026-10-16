@@ -49,7 +49,7 @@ class FlywayMigracoesTest {
         List<String> versoes = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9"), versoes);
+        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"), versoes);
     }
 
     @Test
@@ -76,8 +76,8 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(8, resultado.migrationsExecuted);
-        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7", "SQL:8", "SQL:9"), historico(schema));
+        assertEquals(9, resultado.migrationsExecuted);
+        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7", "SQL:8", "SQL:9", "SQL:10"), historico(schema));
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -100,7 +100,7 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(8, resultado.migrationsExecuted);
+        assertEquals(9, resultado.migrationsExecuted);
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -185,6 +185,30 @@ class FlywayMigracoesTest {
         // Linhas já válidas (4 e 6) não entram na revisão do ajuste
         assertEquals(List.of(1L, 2L, 3L, 5L), jdbc.queryForList(
                 "select id from " + schema + ".infraestrutura_escola_aud where revtype = 1 order by id", Long.class));
+    }
+
+    @Test
+    void registroFotograficoSemFotoDeveSerDesmarcado() throws Exception {
+        String schema = "legado_com_registro_fotografico";
+        criarSchema(schema, script("V1__esquema_inicial.sql") + """
+                insert into infraestrutura_escola (id, tem_registro_fotografico, foto_url) values
+                    (1, true, null),
+                    (2, true, ''),
+                    (3, true, 'https://exemplo/foto.jpg'),
+                    (4, false, null),
+                    (5, null, null);
+                """);
+
+        flyway(schema).migrate();
+
+        assertEquals(List.of("1:false", "2:false", "3:true", "4:false", "5:-"),
+                jdbc.queryForList("select id || ':' || coalesce(tem_registro_fotografico::text, '-') from "
+                        + schema + ".infraestrutura_escola order by id", String.class));
+
+        // Só as linhas desmarcadas entram na revisão do ajuste
+        assertEquals(List.of(1L, 2L), jdbc.queryForList(
+                "select a.id from " + schema + ".infraestrutura_escola_aud a where a.rev = (select max(id) from "
+                        + schema + ".revisao) order by a.id", Long.class));
     }
 
     @Test

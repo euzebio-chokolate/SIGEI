@@ -124,6 +124,19 @@ class ImportacaoEscolasMatriculasServiceTest {
         }
 
         @Test
+        void relatorioFotograficoDaPlanilhaNaoDeveMarcarFotoAnexada() throws IOException {
+            ImportacaoResultadoDTO resultado = importarEscolas(planilha("Escolas", 0,
+                    new String[]{"MUNICÍPIO", "CÓDIGO", "NOME DA ESCOLA", "TERRA INDÍGENA", "ALDEIA", "POVO", "RELATÓRIO FOTOGRÁFICO"},
+                    new String[]{"FEIJÓ", "12000001", "ESC IND ALTO BONITO", "ALTO RIO ENVIRA", "ALTO BONITO", "ASHANINKA", "SIM"}
+            ), ANO);
+
+            assertTrue(resultado.erros().isEmpty(), resultado.erros().toString());
+            InfraestruturaEscola infraestrutura = infraestruturaDaSede();
+            assertNotEquals(Boolean.TRUE, infraestrutura.getTemRegistroFotografico());
+            assertNull(infraestrutura.getFotoUrl());
+        }
+
+        @Test
         void deveImportarDuasEscolasDaMesmaAldeiaEOPrimeiroAnoDeConstrucao() throws IOException {
             // Como na planilha de 2025: duas sedes na aldeia Belo Monte (Feijó) e
             // células com construção e reforma ("2014 e 2025")
