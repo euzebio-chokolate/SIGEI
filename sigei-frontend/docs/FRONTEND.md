@@ -15,7 +15,8 @@ Swagger em `/swagger-ui.html`).
 | Leaflet | 1.9.4 | Mapa público. Usado diretamente, sem `ngx-leaflet`. |
 | @ng-icons/heroicons | 34 | Ícones. |
 | RxJS | 7.8 | Composição das chamadas HTTP. |
-| Vitest | 4.0 | Executor de testes configurado. Não há arquivos `.spec.ts` no momento. |
+| Vitest | 4.0 | Testes unitários e de componente (`ng test`, jsdom). |
+| Playwright | 1.63.0 | Testes de ponta a ponta das telas, no Chromium (`e2e/`). |
 
 A aplicação usa detecção de mudanças **sem Zone.js**
 (`provideZonelessChangeDetection` em `app.config.ts`). Por isso os componentes
@@ -346,5 +347,48 @@ Veja o [README](../README.md) para desenvolvimento local, build e Docker.
 npm ci
 npm start          # http://localhost:4200
 npm run build      # dist/sigei-frontend/browser
-npm test           # Vitest (ainda sem testes)
+npm test           # Vitest: unitários e de componente
+npm run e2e        # Playwright: ponta a ponta (sobe o ng serve na porta 4300)
+npm run e2e:ui     # Playwright no modo interativo
 ```
+
+Na primeira vez, instale o navegador dos testes de ponta a ponta com
+`npx playwright install chromium`.
+
+## Testes
+
+Há três níveis, do mais rápido ao mais completo:
+
+| Nível | Onde | O que cobre |
+| --- | --- | --- |
+| Unitário | `*.spec.ts` ao lado do código (`core`, `domains`) | Regras puras, serviços HTTP (com `HttpTestingController`), interpretação de erros, conversões. |
+| Componente | `*.component.spec.ts` | Um componente renderizado com `TestBed`, interagindo pelo DOM: validação, mensagens, chamadas HTTP e navegação. |
+| Ponta a ponta | `e2e/*.e2e.ts` | Jornadas completas no navegador: rotas, guards, interceptors, Leaflet e formulários de várias etapas. |
+
+**Testes de componente.** Use os auxiliares de `src/testing/dom.ts` (alias
+`@testing/dom`: `digitar`, `escolher`, `botao`, `texto`, `selecionarArquivo`), que
+disparam os mesmos eventos do navegador. Como a aplicação não usa Zone.js, depois
+de cada interação chame `fixture.detectChanges()` e `await fixture.whenStable()`;
+em componentes hospedeiros de teste, use `signal` para os valores que mudam
+(um campo comum alterado entre ciclos gera o erro NG0100). Responda às requisições
+com `HttpTestingController` e termine com `http.verify()`.
+
+**Testes de ponta a ponta.** O Angular roda de verdade e a API é simulada no
+navegador pela fixture `api` (`e2e/apoio/api-simulada.ts`), com os dados de
+`e2e/apoio/dados.ts` no formato dos DTOs do backend. Não precisam de backend, banco
+nem credenciais, e chamadas a outros domínios (camadas do mapa) são bloqueadas.
+
+- `api.em(metodo, caminho, resposta)` simula uma rota (o caminho é o do backend,
+  sem `/api`); a definida por último prevalece. `api.chamadas(metodo, caminho)`
+  devolve as requisições feitas, para conferir parâmetros e corpo.
+- Uma chamada sem simulação responde 404 e **faz o teste falhar** ao final, para que
+  uma tela não dependa, sem ninguém notar, de uma rota que o teste não previu.
+- `entrarComo(page, USUARIOS.admin)` começa com a sessão iniciada, como depois do
+  login; o login pela tela fica coberto em `autenticacao.e2e.ts`.
+- Ao mudar um DTO, atualize `dados.ts`. Como a API é simulada, estes testes não
+  verificam o contrato com o backend real; isso cabe aos testes HTTP do backend.
+
+Cobertura atual: mapa público (marcadores, busca, popup, falha e nova tentativa),
+autenticação (login, troca obrigatória de senha, perfil sem acesso, sessão
+expirada), importação com pré-visualização e cadastro completo de escola com
+coordenadas em G°M'S".

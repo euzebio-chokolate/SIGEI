@@ -257,11 +257,17 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   }
 
   private obterCoordenadas(item: EscolaMapaItem): L.LatLngTuple | null {
+    // Number(null) e Number('') valem 0: sem esta checagem, a escola sem coordenadas iria para (0, 0)
+    if (!this.temValor(item.latitude) || !this.temValor(item.longitude)) return null;
     const latitude = Number(item.latitude);
     const longitude = Number(item.longitude);
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) return null;
     return [latitude, longitude];
+  }
+
+  private temValor(valor: unknown): boolean {
+    return valor !== null && valor !== undefined && String(valor).trim() !== '';
   }
 
   /** Escola fora de funcionamento (paralisada ou desativada): marcador vermelho. */

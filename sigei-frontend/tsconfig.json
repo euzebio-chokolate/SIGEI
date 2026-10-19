@@ -9,7 +9,8 @@
       "@domains/*": ["src/app/domains/*"],
       "@features/*": ["src/app/features/*"],
       "@shared/*": ["src/app/shared/*"],
-      "@environments/*": ["src/environments/*"]
+      "@environments/*": ["src/environments/*"],
+      "@testing/*": ["src/testing/*"]
     },
     "strict": true,
     "noImplicitOverride": true,
