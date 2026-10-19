@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 
 import { AuthService } from '@core/auth/auth.service';
 import { interpretarErro } from '@core/http/erro-http';
+import { PreferenciasService } from '@core/preferencias/preferencias.service';
 
 @Component({
   selector: 'app-login',
@@ -15,6 +16,7 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly preferencias = inject(PreferenciasService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   carregando = false;
@@ -49,7 +51,7 @@ export class LoginComponent {
           this.router.navigate(['/alterar-senha']);
         } else {
           this.authService.consumirSenhaTemporaria();
-          this.router.navigate(['/admin/dashboard']);
+          this.router.navigate(this.preferencias.rotaInicial());
         }
       },
       error: erro => {

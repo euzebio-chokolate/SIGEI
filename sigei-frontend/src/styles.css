@@ -202,3 +202,54 @@ textarea.ng-invalid.ng-touched {
 .config-toggle input[type='checkbox']:checked::after {
   transform: translateX(1.15rem);
 }
+
+/*
+ * Menu compacto (preferência): no computador, só os ícones, com o nome no title.
+ * No celular, o menu é uma gaveta e continua completo.
+ */
+@media (min-width: 1024px) {
+  .menu-compacto .nav-rotulo,
+  .menu-compacto .nav-secao {
+    display: none;
+  }
+
+  .menu-compacto nav {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .menu-compacto nav a,
+  .menu-compacto .nav-item {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .menu-compacto nav > div {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .menu-compacto .nav-usuario {
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .menu-compacto .nav-usuario > div {
+    justify-content: center;
+  }
+}
+
+/*
+ * Reduzir animações (preferência, classe no <html>). Os indicadores de carregamento
+ * (animate-spin) continuam girando, porque informam que algo está em andamento.
+ */
+html.reduzir-animacoes *:not(.animate-spin),
+html.reduzir-animacoes *::before,
+html.reduzir-animacoes *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

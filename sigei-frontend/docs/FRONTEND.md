@@ -189,8 +189,8 @@ Serviços HTTP e rotas consumidas:
 - Registros com coordenadas ausentes ou fora do intervalo válido não geram
   marcador.
 
-Preferências lidas de `localStorage['sigei-preferencias']`: `camadaMapa`,
-`abrirPopupAoPassarMouse` e `exibirFotosNoMapa`.
+Usa as preferências `camadaMapa`, `abrirPopupAoPassarMouse`, `exibirFotosNoMapa` e
+`reduzirAnimacoes` (que desliga as animações do Leaflet), lidas do `PreferenciasService`.
 
 ### Dashboard
 
@@ -311,19 +311,34 @@ administradores criam e editam usuários.
 
 ### Configurações
 
-Preferências gravadas apenas neste navegador, em
-`localStorage['sigei-preferencias']`. Hoje só três delas têm efeito, todas no
-mapa: `camadaMapa`, `abrirPopupAoPassarMouse` e `exibirFotosNoMapa`. Os campos
-`nomeInstituicao`, `siglaInstituicao`, `paginaInicial`, `menuCompacto`,
-`reduzirAnimacoes`, `confirmarExclusoes` e `avisarAtualizacaoAnual` são salvos,
-mas nenhuma tela os lê.
+Preferências gravadas apenas neste navegador, em `localStorage['sigei-preferencias']`.
+`core/preferencias/PreferenciasService` é a fonte única: a tela grava por ele e as
+demais telas leem dele (signal `preferencias`), sempre com valores válidos. O que
+estiver fora das opções volta ao padrão, e chaves retiradas são descartadas no
+próximo salvamento. Salvar aplica na hora, sem recarregar.
+
+| Preferência | Efeito |
+| --- | --- |
+| `paginaInicial` | Tela aberta após o login, em `/admin` e na rota de fallback (`rotaInicial()`, `paginaInicialRedirect`). |
+| `camadaMapa`, `abrirPopupAoPassarMouse`, `exibirFotosNoMapa` | Mapa público. |
+| `menuCompacto` | No computador, o menu lateral mostra só os ícones, com o nome no `title` (classes `nav-rotulo` e `nav-secao` em `styles.css`). O menu do celular continua completo. |
+| `reduzirAnimacoes` | Classe `reduzir-animacoes` no `<html>`, que zera transições e animações (menos os indicadores `animate-spin`), e animações do Leaflet desligadas. |
+| `avisarAtualizacaoAnual` | `LembreteAnoLetivoComponent` (no shell): quando o ano civil atual, no fuso do Acre, ainda não foi aberto, avisa no topo da área administrativa. O administrador pode abrir o ano seguinte ao mais recente (`POST /anos-referencia/proximo`), com confirmação; o perfil de consulta só é avisado. "Dispensar" esconde o aviso até o fim da sessão do navegador. |
+
+A seção "Sobre o sistema" mostra o nome do sistema, o usuário conectado e o perfil,
+sem campos editáveis. A antiga identificação institucional (nome e sigla) e a
+opção "Confirmar exclusões" foram retiradas: as exclusões sempre pedem confirmação.
+
+O menu lateral fica fixo na altura da janela no computador (`lg:sticky lg:h-screen`),
+com rolagem própria; assim o atalho "Visualizar mapa público" continua à vista em
+páginas longas.
 
 ## Componentes compartilhados
 
 | Componente | Local | Uso |
 | --- | --- | --- |
 | `HeaderComponent` | `shared/ui/header` | Cabeçalho do mapa público |
-| `ConfirmModalComponent` | `shared/ui/confirm-modal` | Confirmação de exclusão |
+| `ConfirmModalComponent` | `shared/ui/confirm-modal` | Confirmação de exclusão (`variante="perigo"`, padrão) ou de outra ação (`variante="neutra"`, com `icone`) |
 | `SucessoModalComponent` | `shared/ui/sucesso-modal` | Mensagem após salvar |
 | `ListModalComponent` | `shared/ui/list-modal` | Lista em modal (usada na lista de povos) |
 | `AnoModalComponent` | `domains/escolas/ui/ano-modal` | Cadastro rápido de ano de referência |
@@ -383,6 +398,9 @@ nem credenciais, e chamadas a outros domínios (camadas do mapa) são bloqueadas
   devolve as requisições feitas, para conferir parâmetros e corpo.
 - Uma chamada sem simulação responde 404 e **faz o teste falhar** ao final, para que
   uma tela não dependa, sem ninguém notar, de uma rota que o teste não previu.
+- A fixture começa cada teste com o lembrete de ano letivo desligado, porque ele
+  consulta os anos em toda tela administrativa; `definirPreferencias(page, {...})`
+  grava outras preferências antes de a aplicação carregar.
 - `entrarComo(page, USUARIOS.admin)` começa com a sessão iniciada, como depois do
   login; o login pela tela fica coberto em `autenticacao.e2e.ts`.
 - Ao mudar um DTO, atualize `dados.ts`. Como a API é simulada, estes testes não
@@ -390,5 +408,6 @@ nem credenciais, e chamadas a outros domínios (camadas do mapa) são bloqueadas
 
 Cobertura atual: mapa público (marcadores, busca, popup, falha e nova tentativa),
 autenticação (login, troca obrigatória de senha, perfil sem acesso, sessão
-expirada), importação com pré-visualização e cadastro completo de escola com
+expirada), preferências (tela de configurações, página inicial, menu compacto,
+animações, lembrete de ano letivo e atalho do mapa visível no menu), importação com pré-visualização e cadastro completo de escola com
 coordenadas em G°M'S".

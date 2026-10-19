@@ -3,22 +3,22 @@
     <button type="button" aria-label="Fechar menu" (click)="fecharMenuMobile()" class="fixed inset-0 z-30 bg-slate-950/45 backdrop-blur-[2px] lg:hidden"></button>
   }
 
-  <aside class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-white/10 bg-verde-escuro text-white shadow-2xl transition-transform duration-300 lg:static lg:translate-x-0 lg:shadow-none" [class.-translate-x-full]="!menuMobileAberto">
+  <aside class="fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-white/10 bg-verde-escuro text-white shadow-2xl transition-transform duration-300 lg:sticky lg:top-0 lg:h-screen lg:shrink-0 lg:self-start lg:translate-x-0 lg:shadow-none" [class.-translate-x-full]="!menuMobileAberto" [class.menu-compacto]="menuCompacto()" [class.lg:w-20]="menuCompacto()">
     <div class="flex h-20 shrink-0 items-center gap-3 border-b border-white/10 px-5">
       <div class="grid h-11 w-11 place-items-center rounded-xl bg-white/10 ring-1 ring-white/10">
         <img src="assets/logo/Logo-SIGEI.svg" alt="Logo SIGEI" class="h-9 w-9 object-contain" />
       </div>
-      <div class="min-w-0">
+      <div class="nav-rotulo min-w-0">
         <h1 class="text-xl font-extrabold tracking-wide">SIGEI</h1>
         <p class="truncate text-[10px] font-medium uppercase tracking-[0.16em] text-emerald-100/60">Gestão Escolar Indígena</p>
       </div>
       <button type="button" (click)="fecharMenuMobile()" aria-label="Fechar menu" class="ml-auto grid h-9 w-9 place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white lg:hidden"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <div class="mx-4 mt-5 rounded-xl border border-white/10 bg-white/[0.06] p-3">
+    <div class="nav-usuario mx-4 mt-5 rounded-xl border border-white/10 bg-white/[0.06] p-3" [title]="usuario?.nome ?? ''">
       <div class="flex items-center gap-3">
         <div class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-emerald-400/15 text-sm font-bold text-emerald-200 ring-1 ring-emerald-300/20">{{ usuario?.nome?.charAt(0)?.toUpperCase() ?? 'U' }}</div>
-        <div class="min-w-0">
+        <div class="nav-rotulo min-w-0">
           <p class="truncate text-xs font-semibold text-white">{{ usuario?.nome ?? 'Usuário' }}</p>
           <p class="mt-0.5 truncate text-[10px] text-white/45">{{ usuario?.email ?? 'Acesso administrativo' }}</p>
           <p class="mt-1 text-[9px] font-bold uppercase tracking-wider text-emerald-300/70">{{ ehAdmin ? 'Administrador' : 'Somente leitura' }}</p>
@@ -27,36 +27,36 @@
     </div>
 
     <nav class="flex-1 overflow-y-auto px-4 py-5">
-      <p class="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Visão geral</p>
-      <a routerLink="/admin/dashboard" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/[0.06] hover:text-white">
-        <span class="grid h-8 w-8 place-items-center rounded-lg bg-white/[0.06] text-emerald-300 group-hover:bg-white/10"><i class="fa-solid fa-chart-pie text-sm"></i></span>Painel gerencial
+      <p class="nav-secao mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Visão geral</p>
+      <a routerLink="/admin/dashboard" [routerLinkActiveOptions]="{ exact: true }" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/[0.06] hover:text-white" title="Painel gerencial">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-white/[0.06] text-emerald-300 group-hover:bg-white/10"><i class="fa-solid fa-chart-pie text-sm"></i></span><span class="nav-rotulo">Painel gerencial</span>
       </a>
-      <a routerLink="/admin/relatorios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="group mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/[0.06] hover:text-white">
-        <span class="grid h-8 w-8 place-items-center rounded-lg bg-white/[0.06] text-emerald-300 group-hover:bg-white/10"><i class="fa-solid fa-file-export text-sm"></i></span>Relatórios
+      <a routerLink="/admin/relatorios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="group mt-1 flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/[0.06] hover:text-white" title="Relatórios">
+        <span class="grid h-8 w-8 place-items-center rounded-lg bg-white/[0.06] text-emerald-300 group-hover:bg-white/10"><i class="fa-solid fa-file-export text-sm"></i></span><span class="nav-rotulo">Relatórios</span>
       </a>
 
-      <p class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Cadastros territoriais</p>
+      <p class="nav-secao mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Cadastros territoriais</p>
       <div class="space-y-1">
-        <a routerLink="/admin/municipios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-city"></i>Municípios</a>
-        <a routerLink="/admin/terras-indigenas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-map"></i>Terras Indígenas</a>
-        <a routerLink="/admin/povos" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-people-group"></i>Povos Indígenas</a>
-        <a routerLink="/admin/aldeias" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-tents"></i>Aldeias</a>
+        <a routerLink="/admin/municipios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Municípios"><i class="fa-solid fa-city"></i><span class="nav-rotulo">Municípios</span></a>
+        <a routerLink="/admin/terras-indigenas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Terras Indígenas"><i class="fa-solid fa-map"></i><span class="nav-rotulo">Terras Indígenas</span></a>
+        <a routerLink="/admin/povos" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Povos Indígenas"><i class="fa-solid fa-people-group"></i><span class="nav-rotulo">Povos Indígenas</span></a>
+        <a routerLink="/admin/aldeias" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Aldeias"><i class="fa-solid fa-tents"></i><span class="nav-rotulo">Aldeias</span></a>
       </div>
 
-      <p class="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Gestão educacional</p>
+      <p class="nav-secao mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-white/35">Gestão educacional</p>
       <div class="space-y-1">
-        <a routerLink="/admin/escolas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-school"></i>Escolas</a>
-        <a routerLink="/admin/professores" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-chalkboard-user"></i>Professores</a>
-        <a routerLink="/admin/historico-escolas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i>Histórico escolar</a>
-        <a *seAdmin routerLink="/admin/usuarios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-user-shield"></i>Usuários e acesso</a>
-        <a *seAdmin routerLink="/admin/importacoes" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-file-import"></i>Importação de planilhas</a>
-        <a *seAdmin routerLink="/admin/auditoria" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-user-clock"></i>Auditoria</a>
-        <a routerLink="/admin/configuracoes" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item"><i class="fa-solid fa-gear"></i>Configurações</a>
+        <a routerLink="/admin/escolas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Escolas"><i class="fa-solid fa-school"></i><span class="nav-rotulo">Escolas</span></a>
+        <a routerLink="/admin/professores" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Professores"><i class="fa-solid fa-chalkboard-user"></i><span class="nav-rotulo">Professores</span></a>
+        <a routerLink="/admin/historico-escolas" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Histórico escolar"><i class="fa-solid fa-clock-rotate-left"></i><span class="nav-rotulo">Histórico escolar</span></a>
+        <a *seAdmin routerLink="/admin/usuarios" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Usuários e acesso"><i class="fa-solid fa-user-shield"></i><span class="nav-rotulo">Usuários e acesso</span></a>
+        <a *seAdmin routerLink="/admin/importacoes" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Importação de planilhas"><i class="fa-solid fa-file-import"></i><span class="nav-rotulo">Importação de planilhas</span></a>
+        <a *seAdmin routerLink="/admin/auditoria" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Auditoria"><i class="fa-solid fa-user-clock"></i><span class="nav-rotulo">Auditoria</span></a>
+        <a routerLink="/admin/configuracoes" routerLinkActive="!bg-emerald-500/20 !text-white ring-1 ring-emerald-300/15" (click)="fecharMenuMobile()" class="nav-item" title="Configurações"><i class="fa-solid fa-gear"></i><span class="nav-rotulo">Configurações</span></a>
       </div>
     </nav>
 
     <div class="border-t border-white/10 p-4">
-      <a routerLink="/" class="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-xs font-semibold text-white/65 transition hover:bg-white/10 hover:text-white"><i class="fa-solid fa-map-location-dot text-emerald-300"></i>Visualizar mapa público</a>
+      <a routerLink="/" title="Visualizar mapa público" class="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-xs font-semibold text-white/65 transition hover:bg-white/10 hover:text-white"><i class="fa-solid fa-map-location-dot text-emerald-300"></i><span class="nav-rotulo">Visualizar mapa público</span></a>
     </div>
   </aside>
 
@@ -76,7 +76,7 @@
     </header>
 
     <div class="admin-content flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-      <div class="mx-auto w-full max-w-[1600px]"><router-outlet></router-outlet></div>
+      <div class="mx-auto w-full max-w-[1600px]"><app-lembrete-ano-letivo /><router-outlet></router-outlet></div>
     </div>
   </main>
 </div>

@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from '@core/auth/auth.guard';
+import { adminGuard, paginaInicialRedirect } from '@core/auth/auth.guard';
 
 export const ADMIN_ROUTES: Routes = [
   {
@@ -7,7 +7,7 @@ export const ADMIN_ROUTES: Routes = [
     loadComponent: () =>
       import('./admin-shell/admin.component').then(module => module.AdminComponent),
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: paginaInicialRedirect, pathMatch: 'full' },
       {
         path: 'dashboard',
         loadComponent: () => import('./dashboard/pages/dashboard/dashboard.component').then(module => module.DashboardComponent),

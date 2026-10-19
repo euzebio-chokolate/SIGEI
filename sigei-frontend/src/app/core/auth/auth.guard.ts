@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { ToastService } from '@core/notificacao/toast.service';
+import { PreferenciasService } from '@core/preferencias/preferencias.service';
 import { AuthService } from './auth.service';
 
 export const authGuard: CanActivateFn = () => {
@@ -41,5 +42,9 @@ export const fallbackGuard: CanActivateFn = () => {
 
   if (!authService.estaLogado()) return router.createUrlTree(['/login']);
   if (authService.deveAlterarSenha()) return router.createUrlTree(['/alterar-senha']);
-  return router.createUrlTree(['/admin/dashboard']);
+  return router.createUrlTree(inject(PreferenciasService).rotaInicial());
 };
+
+/** Destino de /admin: a página inicial escolhida nas configurações. */
+export const paginaInicialRedirect = () =>
+  inject(Router).createUrlTree(inject(PreferenciasService).rotaInicial());

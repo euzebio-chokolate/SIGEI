@@ -99,9 +99,26 @@ export async function entrarComo(page: Page, usuario: UsuarioDeTeste): Promise<v
   }, usuario);
 }
 
+/**
+ * Preferências da tela de configurações, gravadas antes de a aplicação carregar.
+ * Valem em todas as navegações do teste (o script roda a cada carregamento).
+ */
+export async function definirPreferencias(page: Page, preferencias: Record<string, unknown>): Promise<void> {
+  await page.addInitScript(valores => {
+    localStorage.setItem('sigei-preferencias', JSON.stringify(valores));
+  }, preferencias);
+}
+
 /** Fixture `api`: cada teste recebe uma API simulada já ligada à página. */
 export const test = base.extend<{ api: ApiSimulada }>({
   api: async ({ page }, usar) => {
+    // O lembrete de ano letivo consulta os anos em toda tela administrativa; começa
+    // desligado para cada teste simular só o que usa (preferencias.e2e.ts o liga)
+    await page.addInitScript(() => {
+      if (!localStorage.getItem('sigei-preferencias')) {
+        localStorage.setItem('sigei-preferencias', JSON.stringify({ avisarAtualizacaoAnual: false }));
+      }
+    });
     const api = new ApiSimulada(page);
     await api.iniciar();
     api.em('POST', '/auth/logout', { status: 204 });

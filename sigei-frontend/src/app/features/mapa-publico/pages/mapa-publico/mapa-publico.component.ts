@@ -5,8 +5,7 @@ import { HeaderComponent } from '@shared/ui/header/header.component';
 import { EscolaMapaItem, MapaBuscaComponent } from '@features/mapa-publico/ui/mapa-busca/mapa-busca.component';
 import { MapaFiltros, MapaFiltrosComponent } from '@features/mapa-publico/ui/mapa-filtros/mapa-filtros.component';
 import { environment } from '@environments/environment';
-
-type CamadaMapa = 'padrao' | 'satelite' | 'terreno' | 'escuro';
+import { CamadaMapa, PreferenciasService } from '@core/preferencias/preferencias.service';
 
 @Component({
   selector: 'app-mapa-publico',
@@ -17,6 +16,7 @@ type CamadaMapa = 'padrao' | 'satelite' | 'terreno' | 'escuro';
 export class MapaPublicoComponent implements OnInit, OnDestroy {
   private readonly infraestruturaService = inject(InfraestruturaService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly preferencias = inject(PreferenciasService).preferencias;
 
   private map?: L.Map;
   private tileLayerAtual?: L.TileLayer;
@@ -112,7 +112,14 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   }
 
   private iniciarMapa(): void {
-    this.map = L.map('map', { zoomControl: false, minZoom: 5 }).setView([-8.77, -70.55], 7);
+    const animar = !this.preferencias().reduzirAnimacoes;
+    this.map = L.map('map', {
+      zoomControl: false,
+      minZoom: 5,
+      zoomAnimation: animar,
+      fadeAnimation: animar,
+      markerZoomAnimation: animar
+    }).setView([-8.77, -70.55], 7);
     L.control.zoom({ position: 'bottomright' }).addTo(this.map);
     L.control.scale({ position: 'bottomright', imperial: false }).addTo(this.map);
     this.tileLayerAtual = this.camadas[this.camadaAtual].addTo(this.map);
@@ -225,25 +232,12 @@ export class MapaPublicoComponent implements OnInit, OnDestroy {
   }
 
   private carregarPreferencias(): void {
-    const preferenciasSalvas = localStorage.getItem('sigei-preferencias');
-    if (!preferenciasSalvas) return;
-
-    try {
-      const preferencias = JSON.parse(preferenciasSalvas) as {
-        camadaMapa?: CamadaMapa;
-        abrirPopupAoPassarMouse?: boolean;
-        exibirFotosNoMapa?: boolean;
-      };
-
-      if (preferencias.camadaMapa && preferencias.camadaMapa in this.camadas) {
-        this.camadaAtual = preferencias.camadaMapa;
-      }
-      this.abrirPopupAoPassarMouse = preferencias.abrirPopupAoPassarMouse ?? true;
-      this.exibirFotosNoMapa = preferencias.exibirFotosNoMapa ?? true;
-    } catch {
-      localStorage.removeItem('sigei-preferencias');
-    }
+    const preferencias = this.preferencias();
+    this.camadaAtual = preferencias.camadaMapa;
+    this.abrirPopupAoPassarMouse = preferencias.abrirPopupAoPassarMouse;
+    this.exibirFotosNoMapa = preferencias.exibirFotosNoMapa;
   }
+
 
   private criarSelo(rotulo: string, ativo: boolean, cor: 'sky' | 'emerald'): string {
     const classe = ativo

@@ -5,6 +5,7 @@ import { Router, provideRouter } from '@angular/router';
 import { environment } from '@environments/environment';
 
 import { botao, campo, digitar, texto } from '@testing/dom';
+import { PREFERENCIAS_PADRAO, PreferenciasService } from '@core/preferencias/preferencias.service';
 import { LoginComponent } from './login.component';
 
 describe('LoginComponent', () => {
@@ -65,8 +66,19 @@ describe('LoginComponent', () => {
     requisicao.flush({ id: 1, nome: 'Admin', email: 'admin@sigei.com', perfil: 'ADMIN', alterarSenha: false });
     await renderizar();
 
-    expect(navegar).toHaveBeenCalledWith(['/admin/dashboard']);
+    expect(navegar).toHaveBeenCalledWith(['/admin', 'dashboard']);
     expect(JSON.parse(localStorage.getItem('sigei_usuario')!).perfil).toBe('ADMIN');
+  });
+
+  it('abre a página inicial escolhida nas configurações', async () => {
+    TestBed.inject(PreferenciasService).salvar({ ...PREFERENCIAS_PADRAO, paginaInicial: 'escolas' });
+    await entrar('admin@sigei.com', 'senha-correta');
+
+    http.expectOne(`${environment.apiUrl}/auth/login`)
+      .flush({ id: 1, nome: 'Admin', email: 'admin@sigei.com', perfil: 'ADMIN', alterarSenha: false });
+    await renderizar();
+
+    expect(navegar).toHaveBeenCalledWith(['/admin', 'escolas']);
   });
 
   it('leva à troca de senha quando ela é obrigatória', async () => {

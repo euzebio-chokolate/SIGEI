@@ -1,0 +1,48 @@
+@if (visivel()) {
+  <div class="mb-5 flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 sm:flex-row sm:items-center" role="status">
+    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700">
+      <i class="fa-solid fa-calendar-plus"></i>
+    </span>
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-semibold text-amber-900">O ano letivo de {{ anoAtual }} ainda não foi aberto</p>
+      <p class="mt-0.5 text-xs text-amber-800">
+        O ano mais recente no sistema é {{ ultimoAno() }}.
+        @if (ehAdmin) {
+          Abrir {{ proximoAno() }} copia os últimos registros das escolas e as lotações de {{ ultimoAno() }}, para depois atualizá-los.
+        } @else {
+          Peça a um administrador para abrir o ano.
+        }
+      </p>
+    </div>
+    <div class="flex shrink-0 items-center gap-2">
+      @if (ehAdmin) {
+        <button
+          type="button"
+          (click)="confirmando.set(true)"
+          class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700"
+        >
+          Abrir {{ proximoAno() }}
+        </button>
+      }
+      <button
+        type="button"
+        (click)="dispensar()"
+        class="rounded-xl px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+      >
+        Dispensar
+      </button>
+    </div>
+  </div>
+
+  <app-confirm-modal
+    [aberto]="confirmando()"
+    variante="neutra"
+    icone="fa-calendar-plus"
+    [titulo]="'Abrir o ano letivo de ' + proximoAno() + '?'"
+    [mensagem]="'Serão copiados, para ' + proximoAno() + ', o último registro de cada escola (rede, infraestrutura, equipe e matrículas) e as lotações de professores de ' + ultimoAno() + '. Os dados de ' + ultimoAno() + ' não são alterados.'"
+    [textoConfirmar]="'Abrir ' + proximoAno()"
+    [carregando]="abrindo()"
+    (confirmar)="abrirAno()"
+    (cancelar)="confirmando.set(false)"
+  />
+}

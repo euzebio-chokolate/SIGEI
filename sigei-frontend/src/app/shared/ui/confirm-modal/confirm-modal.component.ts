@@ -21,11 +21,11 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
             <div class="flex items-start gap-4">
               <!-- Ícone -->
               <div
-                class="w-12 h-12 rounded-xl bg-rose-50
-                       text-rose-600 flex items-center
+                class="w-12 h-12 rounded-xl flex items-center
                        justify-center shrink-0"
+                [class]="variante === 'perigo' ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'"
               >
-                <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                <i class="fa-solid text-lg" [class]="variante === 'perigo' ? 'fa-triangle-exclamation' : icone"></i>
               </div>
 
               <div class="flex-1">
@@ -61,11 +61,12 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
               (click)="confirmar.emit()"
               [disabled]="carregando"
               class="px-4 py-2.5 rounded-xl text-sm font-semibold
-                     bg-rose-600 hover:bg-rose-700
                      text-white transition-all shadow-sm
-                     disabled:bg-rose-400
                      disabled:cursor-not-allowed
                      flex items-center gap-2"
+              [class]="variante === 'perigo'
+                ? 'bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400'
+                : 'bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400'"
             >
               @if (carregando) {
                 <i
@@ -75,7 +76,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 
                 Aguarde...
               } @else {
-                <i class="fa-solid fa-trash text-xs"></i>
+                <i class="fa-solid text-xs" [class]="variante === 'perigo' ? 'fa-trash' : 'fa-check'"></i>
 
                 {{ textoConfirmar }}
               }
@@ -98,6 +99,12 @@ export class ConfirmModalComponent {
   @Input() textoCancelar = 'Cancelar';
 
   @Input() carregando = false;
+
+  /** perigo (padrão): exclusões, em vermelho. neutra: confirmações que não removem dados. */
+  @Input() variante: 'perigo' | 'neutra' = 'perigo';
+
+  /** Ícone Font Awesome da variante neutra. */
+  @Input() icone = 'fa-circle-question';
 
   @Output() confirmar = new EventEmitter<void>();
 
