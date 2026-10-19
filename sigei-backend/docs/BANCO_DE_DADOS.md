@@ -267,7 +267,7 @@ Entidade [Professor.java](../src/main/java/ac/gov/br/sigei_backend/models/Profes
 | --- | --- | --- | --- |
 | `nome` | `varchar(255)` | Não | Nome completo. |
 | `cpf` | `varchar(255)` | Sim | **Sensível, cifrado.** CPF (11 dígitos) cifrado com AES-256-GCM pelo `DadoSensivelConverter`, no formato `v1:<Base64>`. |
-| `cpf_hash` | `varchar(64)` | Sim | Índice cego do CPF: HMAC-SHA256 em hexadecimal, calculado com chave derivada de `SIGEI_CHAVE_DADOS_SENSIVEIS`. UK `uk_professor_cpf_hash`; permite unicidade e busca sem decifrar. Não é auditado. |
+| `cpf_hash` | `varchar(64)` | Sim | Índice cego do CPF: HMAC-SHA256 em hexadecimal, calculado com chave derivada da chave de dados (`chave_dados`). UK `uk_professor_cpf_hash`; permite unicidade e busca sem decifrar. Não é auditado. |
 | `matricula` | `varchar(255)` | Sim | **Sensível, cifrado.** Matrícula funcional. |
 | `etnia` | `varchar(255)` | Sim | Etnia informada no quadro (por exemplo, `HUNI KUI` ou `NÃO INDÍGENA`); texto livre, sem FK para `povo`. |
 | `sexo` | `varchar(1)` | Sim | `M` ou `F`; validado pela API. |
@@ -300,7 +300,7 @@ CPF, matrícula e número do contrato:
 
 - são cifrados antes da gravação, também nas tabelas `_aud`, pois o Envers usa o mesmo conversor;
 - só são devolvidos pela API ao perfil `ADMIN`; para `USUARIO`, os campos vêm nulos;
-- dependem da chave `SIGEI_CHAVE_DADOS_SENSIVEIS` (obrigatória). Sem a chave correta, a leitura falha. Trocar a chave exige recifrar os registros existentes, e perder a chave torna os dados irrecuperáveis.
+- são cifrados pela chave de dados, guardada em `chave_dados` cifrada pela chave mestra `SIGEI_CHAVE_DADOS_SENSIVEIS` e pela chave de recuperação (cifra em envelope). Trocar a chave mestra não recifra os valores, e a chave de recuperação permite reavê-los se a mestra se perder. Ver [CHAVES_DADOS_SENSIVEIS.md](CHAVES_DADOS_SENSIVEIS.md).
 
 O texto cifrado usa IV aleatório: o mesmo valor gera conteúdos diferentes, o que impede buscas e unicidade por essas colunas. Por isso o CPF tem também o índice cego `cpf_hash`.
 
@@ -333,6 +333,19 @@ Entidade [RefreshToken.java](../src/main/java/ac/gov/br/sigei_backend/models/Ref
 | `revogado_em` | `timestamp` | Sim | Momento da revogação; distingue concorrência entre abas (até 30 s) de reutilização suspeita. |
 
 Tokens revogados são mantidos para detectar reutilização; os expirados de um usuário são apagados quando ele recebe um novo token.
+
+### `chave_dados`
+
+Entidade [ChaveDados.java](../src/main/java/ac/gov/br/sigei_backend/models/ChaveDados.java). Chave de dados dos dados sensíveis, nunca em claro. Tem um único registro (`id = 1`, garantido pela constraint `ck_chave_dados_registro_unico`), gravado por `GerenciadorChaveDados` na inicialização. Não é auditada. Procedimentos em [CHAVES_DADOS_SENSIVEIS.md](CHAVES_DADOS_SENSIVEIS.md).
+
+| Coluna | Tipo SQL esperado | Aceita nulo | Descrição |
+| --- | --- | --- | --- |
+| `id` | `smallint` | Não | Sempre `1`. |
+| `cifrada_mestra` | `varchar(255)` | Não | Chave de dados cifrada com AES-256-GCM pela chave mestra (`v1:<Base64>`). |
+| `cifrada_recuperacao` | `varchar(1024)` | Sim | Chave de dados cifrada com RSA-OAEP pela chave pública de recuperação; nula enquanto ela não for configurada. |
+| `impressao_recuperacao` | `varchar(64)` | Sim | SHA-256 da chave pública usada em `cifrada_recuperacao`; quando a chave configurada muda, a cópia é refeita. |
+| `criada_em` | `timestamp` | Não | Registro da chave de dados. |
+| `atualizada_em` | `timestamp` | Não | Última troca da chave mestra ou da chave de recuperação. |
 
 ## Trilha de auditoria
 

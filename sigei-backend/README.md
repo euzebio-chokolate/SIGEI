@@ -72,7 +72,8 @@ Use o `Dockerfile` e um PostgreSQL gerenciado. Configure:
 - `DATABASE_URL`, no formato `jdbc:postgresql://host:5432/banco`
 - `DATABASE_USERNAME` e `DATABASE_PASSWORD`
 - `JWT_SECRET`, com pelo menos 32 caracteres aleatórios
-- `SIGEI_CHAVE_DADOS_SENSIVEIS`, com 32 bytes aleatórios em Base64 (`openssl rand -base64 32`), guardada em local seguro: é a chave da criptografia de CPF, matrícula e número do contrato dos professores
+- `SIGEI_CHAVE_DADOS_SENSIVEIS`, com 32 bytes aleatórios em Base64 (`openssl rand -base64 32`), guardada em local seguro: é a chave mestra da criptografia de CPF, matrícula e número do contrato dos professores
+- `SIGEI_CHAVE_RECUPERACAO_PUBLICA` (recomendada), a chave pública que permite recuperar esses dados se a chave mestra se perder; veja [docs/CHAVES_DADOS_SENSIVEIS.md](docs/CHAVES_DADOS_SENSIVEIS.md)
 - `SIGEI_ADMIN_PASSWORD`
 - `CORS_ALLOWED_ORIGINS`, com a URL HTTPS pública do frontend
 - `SIGEI_COOKIE_SECURE=true` (padrão), para que os cookies de sessão só trafeguem por HTTPS

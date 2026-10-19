@@ -35,6 +35,9 @@ services:
         generateValue: true
       - key: SIGEI_CHAVE_DADOS_SENSIVEIS
         sync: false
+      # Recuperação da chave de dados; ver docs/CHAVES_DADOS_SENSIVEIS.md
+      - key: SIGEI_CHAVE_RECUPERACAO_PUBLICA
+        sync: false
       - key: SIGEI_ADMIN_EMAIL
         sync: false
       - key: SIGEI_ADMIN_PASSWORD

@@ -49,7 +49,7 @@ class FlywayMigracoesTest {
         List<String> versoes = jdbc.queryForList(
                 "select version from flyway_schema_history where success order by installed_rank", String.class);
 
-        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"), versoes);
+        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"), versoes);
     }
 
     @Test
@@ -76,8 +76,8 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(9, resultado.migrationsExecuted);
-        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7", "SQL:8", "SQL:9", "SQL:10"), historico(schema));
+        assertEquals(10, resultado.migrationsExecuted);
+        assertEquals(List.of("BASELINE:1", "SQL:2", "SQL:3", "SQL:4", "SQL:5", "SQL:6", "SQL:7", "SQL:8", "SQL:9", "SQL:10", "SQL:11"), historico(schema));
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }
@@ -100,7 +100,7 @@ class FlywayMigracoesTest {
 
         MigrateResult resultado = flyway(schema).migrate();
 
-        assertEquals(9, resultado.migrationsExecuted);
+        assertEquals(10, resultado.migrationsExecuted);
         assertTrue(colunaExiste(schema, "refresh_token", "revogado_em"));
         assertTrue(chaveEstrangeiraExiste(schema, "fkpr5fysa08n2o6i1rxjumfl89q"));
     }

@@ -1,6 +1,7 @@
 package ac.gov.br.sigei_backend.service.importacao;
 
 import ac.gov.br.sigei_backend.config.criptografia.CriptografiaDadosSensiveis;
+import ac.gov.br.sigei_backend.config.criptografia.GerenciadorChaveDados;
 import ac.gov.br.sigei_backend.config.security.AcessoDadosSensiveis;
 import ac.gov.br.sigei_backend.dto.response.ImportacaoProfessoresResultadoDTO;
 import ac.gov.br.sigei_backend.mappers.ProfessorMapper;
@@ -33,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest(showSql = false)
 @ActiveProfiles("test")
-@Import({ImportacaoProfessoresService.class, ProfessorService.class, CriptografiaDadosSensiveis.class,
+@Import({ImportacaoProfessoresService.class, ProfessorService.class, CriptografiaDadosSensiveis.class, GerenciadorChaveDados.class,
         AcessoDadosSensiveis.class, ImportacaoProfessoresServiceTest.MappersConfig.class})
 class ImportacaoProfessoresServiceTest {
 

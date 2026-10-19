@@ -1,6 +1,6 @@
 package ac.gov.br.sigei_backend.config.criptografia;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -28,9 +28,11 @@ import java.util.HexFormat;
  * como índice cego ({@link #indice(String)}): um HMAC-SHA256 determinístico, que só
  * pode ser calculado com a chave.
  *
- * <p>As chaves de cifra e de índice são derivadas da chave mestra
- * {@code SIGEI_CHAVE_DADOS_SENSIVEIS}. Perder essa chave torna os dados
- * irrecuperáveis; trocá-la exige recifrar os registros existentes.
+ * <p>As chaves de cifra e de índice são derivadas da chave de dados, que
+ * {@link GerenciadorChaveDados} guarda no banco cifrada pela chave mestra
+ * {@code SIGEI_CHAVE_DADOS_SENSIVEIS} e pela chave de recuperação (cifra em
+ * envelope). Trocar a chave mestra não muda a chave de dados, então os valores
+ * gravados não precisam ser recifrados.
  */
 @Component
 public class CriptografiaDadosSensiveis {
@@ -40,23 +42,33 @@ public class CriptografiaDadosSensiveis {
     private static final String ALGORITMO_HMAC = "HmacSHA256";
     private static final int TAMANHO_IV = 12;
     private static final int TAMANHO_TAG_BITS = 128;
-    private static final int TAMANHO_MINIMO_CHAVE = 32;
 
     private final SecretKey chaveCifra;
     private final SecretKey chaveIndice;
     private final SecureRandom aleatorio = new SecureRandom();
 
-    public CriptografiaDadosSensiveis(
-            @Value("${sigei.dados-sensiveis.chave:}") String chaveBase64
-    ) {
-        byte[] chaveMestra = decodificarChave(chaveBase64);
+    /** Na aplicação: a chave de dados resolvida pelo envelope. */
+    @Autowired
+    public CriptografiaDadosSensiveis(GerenciadorChaveDados gerenciador) {
+        this(gerenciador.chaveDados());
+    }
 
+    /**
+     * Com a chave de dados em Base64. Fora do envelope, só para testes e para
+     * fatias JPA sem o gerenciador ({@link DadoSensivelConverter}); na primeira
+     * inicialização, a chave de dados é igual à chave mestra.
+     */
+    public CriptografiaDadosSensiveis(String chaveBase64) {
+        this(EnvelopeChave.decodificarChaveMestra(chaveBase64, GerenciadorChaveDados.VARIAVEL_MESTRA));
+    }
+
+    CriptografiaDadosSensiveis(byte[] chaveDados) {
         this.chaveCifra = new SecretKeySpec(
-                derivar(chaveMestra, "sigei-dados-sensiveis-cifra"),
+                derivar(chaveDados, "sigei-dados-sensiveis-cifra"),
                 "AES"
         );
         this.chaveIndice = new SecretKeySpec(
-                derivar(chaveMestra, "sigei-dados-sensiveis-indice"),
+                derivar(chaveDados, "sigei-dados-sensiveis-indice"),
                 ALGORITMO_HMAC
         );
     }
@@ -129,32 +141,10 @@ public class CriptografiaDadosSensiveis {
         }
     }
 
-    private static byte[] decodificarChave(String chaveBase64) {
-        String mensagem = "Defina SIGEI_CHAVE_DADOS_SENSIVEIS com pelo menos 32 bytes aleatórios em Base64 " +
-                "(gere com: openssl rand -base64 32).";
-
-        if (chaveBase64 == null || chaveBase64.isBlank()) {
-            throw new IllegalStateException(mensagem);
-        }
-
-        byte[] chave;
-        try {
-            chave = Base64.getDecoder().decode(chaveBase64.trim());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalStateException(mensagem, e);
-        }
-
-        if (chave.length < TAMANHO_MINIMO_CHAVE) {
-            throw new IllegalStateException(mensagem);
-        }
-
-        return chave;
-    }
-
-    private static byte[] derivar(byte[] chaveMestra, String finalidade) {
+    static byte[] derivar(byte[] chave, String finalidade) {
         try {
             Mac mac = Mac.getInstance(ALGORITMO_HMAC);
-            mac.init(new SecretKeySpec(chaveMestra, ALGORITMO_HMAC));
+            mac.init(new SecretKeySpec(chave, ALGORITMO_HMAC));
             return mac.doFinal(finalidade.getBytes(StandardCharsets.UTF_8));
 
         } catch (GeneralSecurityException e) {
