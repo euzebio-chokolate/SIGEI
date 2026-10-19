@@ -4,7 +4,8 @@ import {
   EventEmitter,
   inject,
   Input,
-  Output
+  Output,
+  signal
 } from '@angular/core';
 
 import {
@@ -20,6 +21,10 @@ import {
   TIPOS_ENERGIA
 } from '@domains/escolas/models/infraestrutura-opcoes';
 import { ErroCampoComponent } from '@shared/ui/erro-campo/erro-campo.component';
+import { formatarGms } from '@core/forms/coordenadas';
+import { CoordenadaGmsComponent } from '../coordenada-gms/coordenada-gms.component';
+
+type FormatoCoordenada = 'decimal' | 'gms';
 
 export interface InfraestruturaFormControls {
   anoConstrucao: FormControl<number | null>;
@@ -40,7 +45,8 @@ export interface InfraestruturaFormControls {
   standalone: true,
   imports: [
     ReactiveFormsModule,
-    ErroCampoComponent
+    ErroCampoComponent,
+    CoordenadaGmsComponent
   ],
   templateUrl: './infraestrutura-etapa.component.html'
 })
@@ -67,6 +73,17 @@ export class InfraestruturaEtapaComponent {
   readonly tiposAcesso = TIPOS_ACESSO;
   readonly tiposAgua = TIPOS_AGUA;
   readonly tiposEnergia = TIPOS_ENERGIA;
+
+  /*
+   * As coordenadas podem ser digitadas em graus decimais ou em graus, minutos
+   * e segundos; o formulário guarda sempre o decimal.
+   */
+  readonly formatosCoordenada: { valor: FormatoCoordenada; rotulo: string }[] = [
+    { valor: 'decimal', rotulo: 'Decimal' },
+    { valor: 'gms', rotulo: 'G° M\' S"' }
+  ];
+  readonly formatoCoordenada = signal<FormatoCoordenada>('decimal');
+  readonly gms = formatarGms;
 
   fotoSelecionada: File | null = null;
   fotoPreview: string | null = null;

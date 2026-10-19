@@ -12,6 +12,7 @@ import {
   TIPOS_AGUA,
   TIPOS_ENERGIA
 } from '@domains/escolas/models/infraestrutura-opcoes';
+import { formatarGms } from '@core/forms/coordenadas';
 
 @Component({
   selector: 'app-revisao-etapa',
@@ -104,6 +105,8 @@ export class RevisaoEtapaComponent {
   simNao(valor: boolean): string {
     return valor ? 'Sim' : 'Não';
   }
+
+  readonly gms = formatarGms;
 
   readonly situacoes = SITUACOES_ESCOLA;
   readonly tiposAcesso = TIPOS_ACESSO;

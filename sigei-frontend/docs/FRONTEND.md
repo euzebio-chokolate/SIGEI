@@ -236,6 +236,15 @@ etapas, cada uma um componente em `ui/form-steps`:
 As listas de níveis e séries ficam em `escola-form.config.ts`. Cada etapa é
 validada ao avançar. Na etapa 4, marcar "registro fotográfico" exige uma foto.
 
+Ainda na etapa 4, as coordenadas podem ser digitadas em graus decimais ou em
+graus, minutos e segundos (seletor `Decimal | G° M' S"`). O formulário guarda
+sempre o decimal, que é o que a API recebe; `CoordenadaGmsComponent`
+(`ui/coordenada-gms`) converte com `core/forms/coordenadas.ts`, que segue as
+regras do `CoordenadaUtils` do backend (minutos de 0 a 59, segundos abaixo de
+60, sul e oeste negativos, 7 casas decimais). A direção usa a grafia das
+planilhas: `N`/`S` na latitude e `L`/`O` na longitude. A etapa e a revisão
+mostram o equivalente em G°M'S" ao lado do decimal.
+
 Ao salvar, as chamadas são encadeadas assim:
 
 ```text

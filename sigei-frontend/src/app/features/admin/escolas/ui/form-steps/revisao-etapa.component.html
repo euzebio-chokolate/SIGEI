@@ -259,6 +259,9 @@
           <p class="font-semibold text-slate-700 mt-1">
             {{ infraestrutura.latitude ?? '-' }}
           </p>
+          @if (gms(infraestrutura.latitude, 'latitude'); as texto) {
+            <p class="text-xs text-slate-400 mt-0.5">{{ texto }}</p>
+          }
         </div>
 
         <div>
@@ -268,6 +271,9 @@
           <p class="font-semibold text-slate-700 mt-1">
             {{ infraestrutura.longitude ?? '-' }}
           </p>
+          @if (gms(infraestrutura.longitude, 'longitude'); as texto) {
+            <p class="text-xs text-slate-400 mt-0.5">{{ texto }}</p>
+          }
         </div>
       </div>
     </div>
