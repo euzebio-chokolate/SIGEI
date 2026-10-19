@@ -24,7 +24,16 @@ describe('ImportacaoService', () => {
     const requisicao = http.expectOne(r => r.url === `${environment.apiUrl}/importacoes/matriculas`);
     expect(requisicao.request.method).toBe('POST');
     expect(requisicao.request.params.get('ano')).toBe('2027');
+    expect(requisicao.request.params.get('simulacao')).toBe('false');
     expect((requisicao.request.body as FormData).get('arquivo')).toBe(arquivo);
+    requisicao.flush({ linhasLidas: 0, erros: [] });
+  });
+
+  it('pede só a pré-visualização quando é simulação', () => {
+    service.importar('infraestrutura', new File(['x'], 'escolas.xlsx'), 2027, true).subscribe();
+
+    const requisicao = http.expectOne(r => r.url === `${environment.apiUrl}/importacoes/infraestrutura`);
+    expect(requisicao.request.params.get('simulacao')).toBe('true');
     requisicao.flush({ linhasLidas: 0, erros: [] });
   });
 

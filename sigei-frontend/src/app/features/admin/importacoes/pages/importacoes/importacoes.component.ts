@@ -22,10 +22,13 @@ import { EstadoErroComponent } from '@shared/ui/estado-erro/estado-erro.componen
 const ANO_MINIMO = 2000;
 
 interface ResultadoExibido {
+  /** Pré-visualização: o resultado que a gravação teria, sem nada gravado. */
+  simulacao: boolean;
   tipo: TipoImportacao;
   ano: number;
   arquivo: string;
   indicadores: IndicadorResultado[];
+  linhasLidas: number;
   linhasIgnoradas: number;
   erros: string[];
 }
@@ -34,6 +37,10 @@ interface ResultadoExibido {
  * Importação das planilhas de escolas e infraestrutura, matrículas e quadro de
  * professores, para qualquer ano. As colunas são reconhecidas pelo cabeçalho; a
  * tela mostra as colunas aceitas e oferece um modelo para preencher.
+ *
+ * O envio é feito em duas etapas: a pré-visualização processa a planilha sem
+ * gravar (simulação no backend) e mostra o que será criado e as linhas com
+ * erro; só a confirmação grava, com o mesmo arquivo e o mesmo ano.
  */
 @Component({
   selector: 'app-importacoes',
@@ -58,7 +65,9 @@ export class ImportacoesComponent implements OnInit {
   ano: number | null = null;
   arquivo: File | null = null;
 
-  readonly importando = signal(false);
+  /** Envio em andamento: a pré-visualização ou a gravação. */
+  readonly processando = signal<'previa' | 'gravacao' | null>(null);
+  readonly importando = computed(() => this.processando() !== null);
   readonly baixandoModelo = signal(false);
   readonly erroImportacao = signal('');
   readonly resultado = signal<ResultadoExibido | null>(null);
@@ -116,6 +125,11 @@ export class ImportacoesComponent implements OnInit {
     }
   }
 
+  /** A pré-visualização vale para um ano; ao trocá-lo, é preciso refazê-la. */
+  aoAlterarAno(): void {
+    if (this.resultado()?.simulacao) this.resultado.set(null);
+  }
+
   anoExiste(ano: number | null): boolean {
     return this.anos().some(item => item.ano === ano);
   }
@@ -145,23 +159,44 @@ export class ImportacoesComponent implements OnInit {
     return '';
   }
 
-  importar(): void {
+  /** Processa a planilha sem gravar e mostra o resultado para confirmação. */
+  previsualizar(): void {
     if (this.importando() || this.pendencia()) return;
+    this.enviar(true);
+  }
 
+  /** Grava a planilha pré-visualizada, com o mesmo arquivo e o mesmo ano. */
+  confirmar(): void {
+    const previa = this.resultado();
+    if (this.importando() || !previa?.simulacao || this.pendencia() || !this.podeConfirmar(previa)) return;
+    this.enviar(false);
+  }
+
+  cancelarPrevia(): void {
+    if (this.importando()) return;
+    this.resultado.set(null);
+  }
+
+  /** Só há o que gravar se alguma linha passou na pré-visualização. */
+  podeConfirmar(previa: ResultadoExibido): boolean {
+    return previa.linhasLidas - previa.linhasIgnoradas > 0;
+  }
+
+  private enviar(simulacao: boolean): void {
     const tipo = this.tipo();
     const ano = this.ano!;
     const arquivo = this.arquivo!;
 
-    this.importando.set(true);
+    this.processando.set(simulacao ? 'previa' : 'gravacao');
     this.erroImportacao.set('');
-    this.resultado.set(null);
 
-    this.importacaoService.importar(tipo, arquivo, ano).subscribe({
+    this.importacaoService.importar(tipo, arquivo, ano, simulacao).subscribe({
       next: resultado => {
-        this.importando.set(false);
-        this.arquivo = null;
-        this.resultado.set(this.exibir(tipo, ano, arquivo.name, resultado));
+        this.processando.set(null);
+        this.resultado.set(this.exibir(simulacao, tipo, ano, arquivo.name, resultado));
+        if (simulacao) return;
 
+        this.arquivo = null;
         if (tipo === 'infraestrutura' && !this.anoExiste(ano)) {
           // A importação de escolas pode ter criado o ano
           this.anoReferenciaService.invalidar();
@@ -169,9 +204,12 @@ export class ImportacoesComponent implements OnInit {
         }
       },
       error: erro => {
-        this.importando.set(false);
+        this.processando.set(null);
+        this.resultado.set(null);
         // Falhas da planilha inteira voltam como 400 com o motivo em texto
-        this.erroImportacao.set(interpretarErro(erro, 'Não foi possível importar a planilha.').mensagem);
+        this.erroImportacao.set(interpretarErro(erro, simulacao
+          ? 'Não foi possível verificar a planilha.'
+          : 'Não foi possível importar a planilha.').mensagem);
       }
     });
   }
@@ -197,12 +235,20 @@ export class ImportacoesComponent implements OnInit {
     return this.layouts().find(layout => layout.tipo === tipo)?.titulo ?? tipo;
   }
 
-  private exibir(tipo: TipoImportacao, ano: number, arquivo: string, resultado: ResultadoImportacao): ResultadoExibido {
+  private exibir(
+    simulacao: boolean,
+    tipo: TipoImportacao,
+    ano: number,
+    arquivo: string,
+    resultado: ResultadoImportacao
+  ): ResultadoExibido {
     return {
+      simulacao,
       tipo,
       ano,
       arquivo,
       indicadores: indicadoresResultado(tipo, resultado),
+      linhasLidas: resultado.linhasLidas,
       linhasIgnoradas: resultado.linhasIgnoradas,
       erros: resultado.erros
     };

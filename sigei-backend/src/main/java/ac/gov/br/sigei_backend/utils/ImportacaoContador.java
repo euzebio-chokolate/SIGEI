@@ -79,6 +79,11 @@ public class ImportacaoContador {
         );
     }
 
+    /** Ocorrência que não é de uma linha, como uma verificação interrompida. */
+    public void adicionarAviso(String mensagem) {
+        erros.add(mensagem);
+    }
+
     public ImportacaoResultadoDTO gerarResultado() {
         return new ImportacaoResultadoDTO(
                 linhasLidas,

@@ -41,14 +41,17 @@ export class ImportacaoService {
    * Envia a planilha para o ano informado. A resposta 200 traz contadores e as
    * linhas não importadas; falhas da planilha inteira (colunas obrigatórias
    * ausentes, ano não iniciado) voltam como 400 com o motivo em texto.
+   *
+   * Com `simulacao`, é a pré-visualização: o backend processa a planilha e
+   * devolve o mesmo resultado da gravação, mas não grava nada.
    */
-  importar(tipo: 'infraestrutura', arquivo: File, ano: number): Observable<ImportacaoEscolasResultado>;
-  importar(tipo: 'matriculas', arquivo: File, ano: number): Observable<ImportacaoMatriculasResultado>;
-  importar(tipo: 'professores', arquivo: File, ano: number): Observable<ImportacaoProfessoresResultado>;
-  importar(tipo: TipoImportacao, arquivo: File, ano: number): Observable<ResultadoImportacao>;
-  importar(tipo: TipoImportacao, arquivo: File, ano: number): Observable<ResultadoImportacao> {
+  importar(tipo: 'infraestrutura', arquivo: File, ano: number, simulacao?: boolean): Observable<ImportacaoEscolasResultado>;
+  importar(tipo: 'matriculas', arquivo: File, ano: number, simulacao?: boolean): Observable<ImportacaoMatriculasResultado>;
+  importar(tipo: 'professores', arquivo: File, ano: number, simulacao?: boolean): Observable<ImportacaoProfessoresResultado>;
+  importar(tipo: TipoImportacao, arquivo: File, ano: number, simulacao?: boolean): Observable<ResultadoImportacao>;
+  importar(tipo: TipoImportacao, arquivo: File, ano: number, simulacao?: boolean): Observable<ResultadoImportacao> {
     const formData = new FormData();
     formData.append('arquivo', arquivo);
-    return this.http.post<ResultadoImportacao>(`${this.apiUrl}/${tipo}`, formData, { params: { ano } });
+    return this.http.post<ResultadoImportacao>(`${this.apiUrl}/${tipo}`, formData, { params: { ano, simulacao: simulacao ?? false } });
   }
 }

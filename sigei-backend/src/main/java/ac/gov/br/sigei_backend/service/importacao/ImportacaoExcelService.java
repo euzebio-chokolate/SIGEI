@@ -15,13 +15,18 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.time.Year;
 import java.time.ZoneId;
 import java.util.HashMap;
@@ -146,7 +151,14 @@ public class ImportacaoExcelService {
     @Autowired
     EquipeEscolaRepository equipeEscolaRepository;
 
+    @PersistenceContext
+    EntityManager entityManager;
+
     /**
+     * Fora de transação, cada linha é gravada à medida que é lida. Na
+     * pré-visualização ({@link SimulacaoImportacao}), roda numa transação que é
+     * desfeita ao final.
+     *
      * @param ano ano de referência dos dados; nulo usa o ano mais recente cadastrado
      */
     public ImportacaoResultadoDTO importarInfraestrutura(
@@ -177,26 +189,33 @@ public class ImportacaoExcelService {
             Map<String, Municipio> municipiosPorNome =
                     carregarMunicipiosPorNome();
 
-            for (Row linha : linhas) {
-                if (!isAnexo(planilha, linha)) {
-                    processarLinha(
-                            new Linha(planilha, linha),
-                            anoReferencia,
-                            municipiosPorNome,
-                            contador
-                    );
+            try {
+                for (Row linha : linhas) {
+                    if (!isAnexo(planilha, linha)) {
+                        processarLinha(
+                                new Linha(planilha, linha),
+                                anoReferencia,
+                                municipiosPorNome,
+                                contador
+                        );
+                    }
                 }
-            }
 
-            for (Row linha : linhas) {
-                if (isAnexo(planilha, linha)) {
-                    processarLinha(
-                            new Linha(planilha, linha),
-                            anoReferencia,
-                            municipiosPorNome,
-                            contador
-                    );
+                for (Row linha : linhas) {
+                    if (isAnexo(planilha, linha)) {
+                        processarLinha(
+                                new Linha(planilha, linha),
+                                anoReferencia,
+                                municipiosPorNome,
+                                contador
+                        );
+                    }
                 }
+            } catch (ImportacaoInterrompidaException e) {
+                contador.adicionarAviso(
+                        "A verificação parou na linha " + e.numeroLinha +
+                                " por um erro ao gravar; as linhas seguintes não foram verificadas."
+                );
             }
 
             return contador.gerarResultado();
@@ -307,11 +326,38 @@ public class ImportacaoExcelService {
                     contador
             );
 
+            /*
+             * Numa transação, as alterações só iriam ao banco depois; o flush
+             * faz um erro de gravação aparecer na linha que o causou.
+             */
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                entityManager.flush();
+            }
+
         } catch (Exception e) {
             contador.adicionarErro(
                     numeroLinhaExcel,
                     obterMensagemErro(e)
             );
+
+            /*
+             * Depois de um erro de SQL, o PostgreSQL recusa os demais comandos
+             * da transação; as linhas seguintes falhariam todas.
+             */
+            if (TransactionSynchronizationManager.isActualTransactionActive()
+                    && NestedExceptionUtils.getRootCause(e) instanceof SQLException) {
+                throw new ImportacaoInterrompidaException(numeroLinhaExcel);
+            }
+        }
+    }
+
+    private static final class ImportacaoInterrompidaException extends RuntimeException {
+
+        private final int numeroLinha;
+
+        private ImportacaoInterrompidaException(int numeroLinha) {
+            super(null, null, false, false);
+            this.numeroLinha = numeroLinha;
         }
     }
 

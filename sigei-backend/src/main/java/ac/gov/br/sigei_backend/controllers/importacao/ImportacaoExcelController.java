@@ -7,6 +7,7 @@ import ac.gov.br.sigei_backend.dto.response.LayoutImportacaoDTO;
 import ac.gov.br.sigei_backend.service.importacao.ImportacaoExcelService;
 import ac.gov.br.sigei_backend.service.importacao.ImportacaoMatriculasService;
 import ac.gov.br.sigei_backend.service.importacao.ImportacaoProfessoresService;
+import ac.gov.br.sigei_backend.service.importacao.SimulacaoImportacao;
 import ac.gov.br.sigei_backend.utils.LayoutPlanilha;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -29,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Supplier;
 
 @RestController
 @RequestMapping("/importacoes")
@@ -37,6 +39,9 @@ public class ImportacaoExcelController {
 
     private static final MediaType XLSX =
             MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+    private static final String SIMULACAO =
+            "true para pré-visualizar: processa a planilha e devolve o resultado, sem gravar nada";
 
     /** Layouts por tipo, na ordem exibida na tela de importação. */
     private static final Map<String, LayoutPlanilha<?>> LAYOUTS = new LinkedHashMap<>();
@@ -55,6 +60,9 @@ public class ImportacaoExcelController {
 
     @Autowired
     ImportacaoProfessoresService importacaoProfessoresService;
+
+    @Autowired
+    SimulacaoImportacao simulacaoImportacao;
 
     @GetMapping("/layouts")
     @Operation(summary = "Listar layouts de importação",
@@ -95,7 +103,7 @@ public class ImportacaoExcelController {
 
     @PostMapping(value = "/professores", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Importar quadro de professores",
-            description = "Importa o quadro de escolas e professores indígenas para o ano informado, que precisa estar iniciado (sem ano, o mais recente). As colunas são localizadas pelo cabeçalho, em qualquer aba (GET /importacoes/layouts). As escolas são identificadas pelo município, nome e aldeia. Pode ser repetida: células vazias não apagam dados já gravados, como CPF, matrícula e número do contrato. Retorna contadores e ocorrências do processamento. Requer perfil ADMIN.")
+            description = "Importa o quadro de escolas e professores indígenas para o ano informado, que precisa estar iniciado (sem ano, o mais recente). As colunas são localizadas pelo cabeçalho, em qualquer aba (GET /importacoes/layouts). As escolas são identificadas pelo município, nome e aldeia. Pode ser repetida: células vazias não apagam dados já gravados, como CPF, matrícula e número do contrato. Retorna contadores e ocorrências do processamento. Com simulacao=true, só pré-visualiza: devolve o resultado que a gravação teria, sem gravar nada. Requer perfil ADMIN.")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Planilha Excel do quadro de professores", required = true,
             content = @Content(mediaType = "multipart/form-data",
@@ -110,13 +118,14 @@ public class ImportacaoExcelController {
     })
     public ResponseEntity<ImportacaoProfessoresResultadoDTO> importarProfessores(
             @Parameter(description = "Planilha Excel do quadro de professores", required = true) @RequestParam("arquivo") MultipartFile arquivo,
-            @Parameter(description = "Ano das lotações, por exemplo 2026; sem ele, o mais recente") @RequestParam(required = false) Integer ano) {
-        return ResponseEntity.ok(importacaoProfessoresService.importar(arquivo, ano));
+            @Parameter(description = "Ano das lotações, por exemplo 2026; sem ele, o mais recente") @RequestParam(required = false) Integer ano,
+            @Parameter(description = SIMULACAO) @RequestParam(defaultValue = "false") boolean simulacao) {
+        return ResponseEntity.ok(executar(simulacao, () -> importacaoProfessoresService.importar(arquivo, ano)));
     }
 
     @PostMapping(value = "/infraestrutura", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Importar escolas e infraestrutura",
-            description = "Importa escolas, infraestrutura e equipe para o ano informado, criado se ainda não existir (sem ano, o mais recente). As colunas são localizadas pelo cabeçalho, em qualquer aba (GET /importacoes/layouts). Retorna contadores e ocorrências do processamento. Requer perfil ADMIN.")
+            description = "Importa escolas, infraestrutura e equipe para o ano informado, criado se ainda não existir (sem ano, o mais recente). As colunas são localizadas pelo cabeçalho, em qualquer aba (GET /importacoes/layouts). Retorna contadores e ocorrências do processamento. Com simulacao=true, só pré-visualiza: devolve o resultado que a gravação teria, sem gravar nada. Requer perfil ADMIN.")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Planilha Excel de escolas e infraestrutura", required = true,
             content = @Content(mediaType = "multipart/form-data",
@@ -131,14 +140,16 @@ public class ImportacaoExcelController {
     })
     public ResponseEntity<ImportacaoResultadoDTO> importarInfraestrutura(
             @Parameter(description = "Planilha Excel de escolas e infraestrutura", required = true) @RequestParam("arquivo") MultipartFile arquivo,
-            @Parameter(description = "Ano de referência dos dados, por exemplo 2025; sem ele, o mais recente") @RequestParam(required = false) Integer ano) {
-        ImportacaoResultadoDTO resultado = importacaoExcelService.importarInfraestrutura(arquivo, ano);
+            @Parameter(description = "Ano de referência dos dados, por exemplo 2025; sem ele, o mais recente") @RequestParam(required = false) Integer ano,
+            @Parameter(description = SIMULACAO) @RequestParam(defaultValue = "false") boolean simulacao) {
+        ImportacaoResultadoDTO resultado =
+                executar(simulacao, () -> importacaoExcelService.importarInfraestrutura(arquivo, ano));
         return ResponseEntity.ok(resultado);
     }
 
     @PostMapping(value = "/matriculas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Importar matrículas",
-            description = "Importa as matrículas por etapa para os registros anuais do ano informado, que precisa estar cadastrado (sem ano, o mais recente). As colunas são localizadas pelo cabeçalho, de uma ou duas linhas, em qualquer aba (GET /importacoes/layouts). Retorna contadores e ocorrências do processamento. Requer perfil ADMIN.")
+            description = "Importa as matrículas por etapa para os registros anuais do ano informado, que precisa estar cadastrado (sem ano, o mais recente). As colunas são localizadas pelo cabeçalho, de uma ou duas linhas, em qualquer aba (GET /importacoes/layouts). Retorna contadores e ocorrências do processamento. Com simulacao=true, só pré-visualiza: devolve o resultado que a gravação teria, sem gravar nada. Requer perfil ADMIN.")
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Planilha Excel de matrículas", required = true,
             content = @Content(mediaType = "multipart/form-data",
@@ -153,8 +164,15 @@ public class ImportacaoExcelController {
     })
     public ResponseEntity<ImportacaoMatriculasResultadoDTO> importarMatriculas(
             @Parameter(description = "Planilha Excel de matrículas", required = true) @RequestParam("arquivo") MultipartFile arquivo,
-            @Parameter(description = "Ano dos registros anuais, por exemplo 2025; sem ele, o mais recente") @RequestParam(required = false) Integer ano) {
-        ImportacaoMatriculasResultadoDTO resultado = importacaoMatriculasService.importar(arquivo, ano);
+            @Parameter(description = "Ano dos registros anuais, por exemplo 2025; sem ele, o mais recente") @RequestParam(required = false) Integer ano,
+            @Parameter(description = SIMULACAO) @RequestParam(defaultValue = "false") boolean simulacao) {
+        ImportacaoMatriculasResultadoDTO resultado =
+                executar(simulacao, () -> importacaoMatriculasService.importar(arquivo, ano));
         return ResponseEntity.ok(resultado);
+    }
+
+    /** Com simulação, a importação roda numa transação desfeita ao final (pré-visualização). */
+    private <T> T executar(boolean simulacao, Supplier<T> importacao) {
+        return simulacao ? simulacaoImportacao.simular(importacao) : importacao.get();
     }
 }

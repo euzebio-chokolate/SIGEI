@@ -292,9 +292,16 @@ planilhas de escolas e infraestrutura, de matrículas e do quadro de professores
 escolhido (`POST /importacoes/{tipo}?ano=`). Ela lista as colunas aceitas de cada tipo
 (`GET /importacoes/layouts`), com os títulos alternativos, e baixa um modelo `.xlsx`
 (`GET /importacoes/modelos/{tipo}`). A importação de escolas aceita um ano novo, que o
-backend cria; as demais só oferecem anos cadastrados. O resultado mostra os contadores e
-as linhas não importadas. A tela de professores não importa mais planilhas; a lista vazia
-aponta para esta tela. Serviço e modelos ficam em `domains/importacoes`.
+backend cria; as demais só oferecem anos cadastrados. A tela de professores não importa
+mais planilhas; a lista vazia aponta para esta tela. Serviço e modelos ficam em
+`domains/importacoes`.
+
+O envio tem duas etapas. "Pré-visualizar" chama a importação com `simulacao=true`: o
+backend processa a planilha e devolve os contadores e as linhas com erro, sem gravar nada.
+A prévia mostra o que será criado e atualizado, as linhas que não serão importadas e, na
+importação de escolas, se o ano será criado. "Confirmar e gravar" reenvia o mesmo arquivo
+e o mesmo ano, sem `simulacao`, e mostra o resultado da gravação. Trocar o tipo, o ano ou
+o arquivo descarta a prévia. Sem nenhuma linha válida, a confirmação fica desabilitada.
 
 ### Usuários
 

@@ -92,7 +92,7 @@ Na tabela, **CRUD base** significa: `POST` na coleção (`201`), `GET` na coleç
 | `/auth` | `POST /login`, `POST /refresh`, `POST /logout` e `PUT /senha` (troca da própria senha). |
 | `/dashboard` | `GET`, com parâmetro opcional `ano`. Inclui o bloco `professores` (lotados, lotações, vagas, núcleo e lotações por tipo de contrato). |
 | `/auditoria` | `GET`, só `ADMIN`: alterações de todas as entidades auditadas, paginadas (`pagina` a partir de 0, `tamanho` até 100) e filtráveis por `entidade`, `operacao`, `usuarioId`, `sistema`, `de` e `ate` (datas do Acre). Responde `PaginaAuditoriaDTO`. |
-| `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo` e parâmetro opcional `ano` (sem ele, o mais recente); `GET /layouts` (colunas aceitas por tipo) e `GET /modelos/{tipo}` (planilha modelo `.xlsx`). |
+| `/importacoes` | `POST /infraestrutura`, `POST /matriculas` e `POST /professores`, multipart com campo `arquivo` e parâmetros opcionais `ano` (sem ele, o mais recente) e `simulacao` (`true` pré-visualiza sem gravar; ver "Importação de Excel"); `GET /layouts` (colunas aceitas por tipo) e `GET /modelos/{tipo}` (planilha modelo `.xlsx`). |
 | `/relatorios` | `GET /{tipo}` (`painel`, `escolas`, `matriculas`, `professores`), com `formato` (`xlsx` padrão ou `pdf`), `ano` e `municipioId` opcionais; responde o arquivo como anexo. |
 
 Os DTOs são a fonte dos nomes de campos, tipos e validações. Não suponha paginação, um envelope único de resposta ou CRUD completo em todos os controllers.
@@ -218,6 +218,12 @@ Preserve a normalização de nomes, o tratamento de coordenadas e as regras de i
 - Com a planilha de 2026 e a base de 2025, 595 das 607 linhas são importadas; as 12 restantes são de escolas que não estão cadastradas.
 
 No frontend, a tela `/admin/importacoes` (só `ADMIN`) faz as três importações para qualquer ano, mostra as colunas aceitas e baixa o modelo. A tela de professores não tem mais importação própria.
+
+**Pré-visualização.** Com `simulacao=true`, `SimulacaoImportacao` executa a importação real numa transação sempre desfeita (`TransactionTemplate` com `setRollbackOnly`). A resposta é a que a gravação daria, porque vem do mesmo código, e nada fica no banco: nem os dados, nem o ano criado pela importação de escolas, nem revisões do Envers (gravadas só no commit). A tela pré-visualiza primeiro e só grava quando o usuário confirma, reenviando o mesmo arquivo e ano.
+
+- Matrículas e professores já são `@Transactional` e participam da transação da simulação. A importação de escolas não é transacional fora dela (grava linha a linha); na simulação, roda dentro da transação e faz `flush` ao fim de cada linha, para que um erro de banco apareça na linha que o causou.
+- O `JpaTransactionManager` não habilita savepoints, então uma linha não tem transação própria. Depois de um erro de SQL, o PostgreSQL recusa os comandos seguintes; por isso, na simulação de escolas, um erro de SQL interrompe a verificação, com um aviso nos `erros` ("A verificação parou na linha N..."). Erros de validação de uma linha não interrompem.
+- Ao criar uma importação, mantenha-a sem efeitos fora do banco (upload, e-mail, chamadas externas), ou a simulação os executaria. `ImportacaoSimulacaoHttpTest` cobre a simulação com transações reais.
 
 ### Dashboard
 
