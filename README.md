@@ -66,7 +66,6 @@ SIGEI/
 │   │   ├── models/       # entidades JPA
 │   │   ├── repository/   # acesso a dados
 │   │   └── service/      # regras de negócio
-│   ├── docs/             # banco de dados, modelo ER, histórico anual
 │   └── planilhas/        # planilhas de referência para importar pela tela
 └── sigei-frontend/       # aplicação Angular
     ├── src/app/
@@ -74,7 +73,7 @@ SIGEI/
     │   ├── domains/      # serviços HTTP e modelos por domínio
     │   ├── features/     # telas (mapa público, login, área administrativa)
     │   └── shared/       # componentes reutilizáveis
-    └── docs/             # documentação técnica do frontend
+    └── e2e/              # testes de ponta a ponta (Playwright)
 ```
 
 ## Como executar
@@ -139,35 +138,29 @@ senha.
 
 ```bash
 cd sigei-backend
-./mvnw clean test             # 27 classes de teste (services e repositories), H2 em memória
-```
+./mvnw clean test             # testes de services, repositories e HTTP, H2 em memória
 
-O frontend tem o Vitest configurado (`npm test`), mas ainda não possui testes.
+cd sigei-frontend
+npm test                      # testes unitários e de componente (Vitest)
+npm run e2e                   # testes de ponta a ponta (Playwright)
+```
 
 ## Documentação
 
 | Assunto | Documento |
 | --- | --- |
-| Arquitetura, contratos HTTP, segurança e configuração do backend | [sigei-backend/CLAUDE.md](sigei-backend/CLAUDE.md) |
-| Execução, Docker e hospedagem do backend | [sigei-backend/README.md](sigei-backend/README.md) |
-| Dicionário de dados e relacionamentos | [sigei-backend/docs/BANCO_DE_DADOS.md](sigei-backend/docs/BANCO_DE_DADOS.md) |
-| Modelo ER gerado das entidades | [sigei-backend/docs/MODELO_ER.md](sigei-backend/docs/MODELO_ER.md) |
-| Histórico anual das escolas | [sigei-backend/docs/HISTORICO_ESCOLAS.md](sigei-backend/docs/HISTORICO_ESCOLAS.md) |
-| Arquitetura, rotas e telas do frontend | [sigei-frontend/docs/FRONTEND.md](sigei-frontend/docs/FRONTEND.md) |
+| Execução, Docker, hospedagem e chaves do backend | [sigei-backend/README.md](sigei-backend/README.md) |
 | Execução, Docker e hospedagem do frontend | [sigei-frontend/README.md](sigei-frontend/README.md) |
 | API interativa | Swagger em `http://localhost:8080/swagger-ui.html` |
 
 ## Limitações conhecidas
 
 - A importação reconhece colunas pelo título do cabeçalho (com sinônimos), mas cada tipo tem seu conjunto de colunas; planilhas com outra estrutura, como uma linha por etapa em vez de uma por escola, não são aceitas.
-- Não há renovação de token: após 24 horas é preciso entrar de novo.
-- O cadastro de uma escola é gravado em várias requisições, não em uma transação única.
-- Divergências entre frontend e backend estão listadas em [sigei-frontend/docs/FRONTEND.md](sigei-frontend/docs/FRONTEND.md#divergências-conhecidas).
 
 ## Autor
 
 **Euzébio do Nascimento Oliveira Neto**
 Instituto Federal do Acre — IFAC, Campus Rio Branco.
-Curso Superior de Tecnologia em Análise e Desenvolvimento de Sistemas.
+Curso Superior de Tecnologia em Sistemas para Internet.
 
-Orientação: **Prof. Me. Marlon Amaro Coelho Teixeira**.
+Orientação: **Prof. Dr. Marlon Amaro Coelho Teixeira**.

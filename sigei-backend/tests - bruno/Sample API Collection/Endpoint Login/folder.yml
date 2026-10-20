@@ -1,7 +1,0 @@
-info:
-  name: Endpoint Login
-  type: folder
-  seq: 17
-
-request:
-  auth: inherit

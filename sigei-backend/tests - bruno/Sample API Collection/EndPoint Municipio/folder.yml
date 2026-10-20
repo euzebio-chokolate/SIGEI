@@ -1,7 +1,0 @@
-info:
-  name: EndPoint Municipio
-  type: folder
-  seq: 1
-
-request:
-  auth: inherit

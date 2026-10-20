@@ -1,7 +1,0 @@
-info:
-  name: EndPoint Matricula Nivel
-  type: folder
-  seq: 10
-
-request:
-  auth: inherit

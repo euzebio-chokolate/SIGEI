@@ -2,9 +2,6 @@
 
 Interface web do Sistema de Gerenciamento Escolar Indígena, construída com Angular 21.
 
-Arquitetura, rotas, autenticação e funcionamento das telas estão descritos em
-[docs/FRONTEND.md](docs/FRONTEND.md).
-
 ## Desenvolvimento
 
 Requisitos: Node.js 22 e npm.

@@ -4,24 +4,9 @@ API do SIGEI em Java 21, Spring Boot e PostgreSQL.
 
 ## Documentação
 
-- API HTTP: Swagger em `/swagger-ui.html` e OpenAPI em `/v3/api-docs` com a aplicação em execução.
-- [Histórico anual das escolas](docs/HISTORICO_ESCOLAS.md): cadastro retroativo, consulta por período e integração com gráficos.
-- [Banco de dados](docs/BANCO_DE_DADOS.md): diagrama de relacionamentos, dicionário das 13 tabelas, chaves, nulabilidade e cascatas, com base nas entidades JPA.
-- [Modelo ER gerado automaticamente](docs/MODELO_ER.md): tabelas, colunas e relacionamentos extraídos das entidades JPA.
-
-Para atualizar o modelo ER após alterar as entidades, execute na raiz:
-
-```powershell
-.\scripts\gerar-modelo-er.ps1
-# Apenas verificar se o arquivo versionado está atualizado:
-.\scripts\gerar-modelo-er.ps1 -Check
-```
-
-O gerador usa PowerShell, sem iniciar a API ou acessar o banco. O arquivo contém
-Mermaid para visualização em um renderizador compatível. É um extrator dos
-mapeamentos usados neste projeto, não um interpretador completo de JPA:
-herança, chaves compostas, tabelas de junção e estratégias de nomes personalizadas
-exigem ampliar o script. A geração é executada pelo comando, não pelo build Maven.
+API HTTP: Swagger em `/swagger-ui.html` e OpenAPI em `/v3/api-docs` com a
+aplicação em execução. O esquema do banco está nas migrações do Flyway, em
+`src/main/resources/db/migration`.
 
 ## Organização do código
 
@@ -59,8 +44,9 @@ A API estará em `http://localhost:8080` e o health check em
 `http://localhost:8080/actuator/health`.
 
 Na primeira inicialização de um banco vazio, a aplicação cadastra os municípios
-do Acre e importa as planilhas da pasta `planilhas`. Reinícios posteriores não
-repetem a carga quando já existem registros anuais.
+do Acre e o administrador inicial. Escolas, matrículas e professores são
+importados pela tela de importações; as planilhas da pasta `planilhas` servem de
+referência.
 
 Para parar sem apagar os dados, execute `docker compose down`. Para apagar o
 banco local e testar uma carga nova, execute `docker compose down -v`.
@@ -73,7 +59,7 @@ Use o `Dockerfile` e um PostgreSQL gerenciado. Configure:
 - `DATABASE_USERNAME` e `DATABASE_PASSWORD`
 - `JWT_SECRET`, com pelo menos 32 caracteres aleatórios
 - `SIGEI_CHAVE_DADOS_SENSIVEIS`, com 32 bytes aleatórios em Base64 (`openssl rand -base64 32`), guardada em local seguro: é a chave mestra da criptografia de CPF, matrícula e número do contrato dos professores
-- `SIGEI_CHAVE_RECUPERACAO_PUBLICA` (recomendada), a chave pública que permite recuperar esses dados se a chave mestra se perder; veja [docs/CHAVES_DADOS_SENSIVEIS.md](docs/CHAVES_DADOS_SENSIVEIS.md)
+- `SIGEI_CHAVE_RECUPERACAO_PUBLICA` (recomendada), a chave pública que permite recuperar esses dados se a chave mestra se perder; veja [Chaves dos dados sensíveis](#chaves-dos-dados-sensíveis)
 - `SIGEI_ADMIN_PASSWORD`
 - `CORS_ALLOWED_ORIGINS`, com a URL HTTPS pública do frontend
 - `SIGEI_COOKIE_SECURE=true` (padrão), para que os cookies de sessão só trafeguem por HTTPS
@@ -97,6 +83,43 @@ elas, o restante da API continua funcionando, mas o upload responde com HTTP
 
 Alguns provedores entregam uma URL `postgresql://usuario:senha@host/banco`; ela
 deve ser convertida para o formato JDBC acima.
+
+## Chaves dos dados sensíveis
+
+CPF, matrícula e número do contrato dos professores são gravados cifrados
+(AES-256-GCM), também nas tabelas de auditoria. A cifra é em envelope: os valores
+são cifrados por uma chave de dados, guardada na tabela `chave_dados` cifrada pela
+chave mestra (`SIGEI_CHAVE_DADOS_SENSIVEIS`) e pela chave pública de recuperação
+(`SIGEI_CHAVE_RECUPERACAO_PUBLICA`). A chave privada de recuperação fica fora do
+servidor. A aplicação não sobe com uma chave que não abre os dados.
+
+**Configurar a recuperação (uma vez).** Num computador confiável, gere o par e
+configure a chave pública em uma linha:
+
+```bash
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:4096 -aes256 -out sigei-recuperacao-privada.pem
+openssl pkey -in sigei-recuperacao-privada.pem -pubout -outform DER | base64 -w0
+```
+
+Reinicie; o log mostra "Cópia de recuperação da chave de dados atualizada".
+Guarde o `.pem` e sua senha separados, com mais de um responsável, e nunca no
+repositório, no servidor ou nos backups do banco.
+
+**Trocar a chave mestra.** Configure a nova em `SIGEI_CHAVE_DADOS_SENSIVEIS` e a
+antiga em `SIGEI_CHAVE_DADOS_SENSIVEIS_ANTERIOR`, reinicie, remova a antiga e
+reinicie de novo. Os valores gravados não mudam; só o registro de `chave_dados`
+é recifrado.
+
+**Recuperar após perder a chave mestra.** Configure uma nova chave mestra e, em
+`SIGEI_CHAVE_RECUPERACAO_PRIVADA`, a chave privada em uma linha
+(`openssl pkcs8 -topk8 -nocrypt -in sigei-recuperacao-privada.pem -outform DER | base64 -w0`).
+Reinicie, remova `SIGEI_CHAVE_RECUPERACAO_PRIVADA` imediatamente e reinicie de
+novo. Como a chave privada passou pelo servidor, gere depois um novo par de
+recuperação.
+
+**Backups.** Para restaurar um backup com os dados sensíveis legíveis, é preciso a
+chave mestra vigente na data do backup ou a chave privada de recuperação. Guarde
+a chave mestra com os segredos da hospedagem, nunca junto com os backups.
 
 ## Execução sem Docker
 
